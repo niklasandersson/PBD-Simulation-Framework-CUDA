@@ -16,6 +16,7 @@ GLFWwindow* window;
 
 // Include GLM
 #include <glm/glm.hpp>
+
 using namespace glm;
 
 cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size);
