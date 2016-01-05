@@ -1,3 +1,22 @@
+#include <iostream>
+
+#include "Window.h"
+#include "Engine.h"
+
+int main(int argc, char* argv[]) {
+
+  Window window{"PBD Simulation CUDA", 1024, 768};
+  
+  Engine engine{window.getGLFWWindow()};
+
+  engine.run();
+
+  return EXIT_SUCCESS;
+
+}
+
+/*
+#include <iostream>
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
@@ -29,6 +48,7 @@ __global__ void addKernel(int *c, const int *a, const int *b)
 
 int main()
 {
+
     const int arraySize = 5;
     const int a[arraySize] = { 1, 2, 3, 4, 5 };
     const int b[arraySize] = { 10, 20, 30, 40, 50 };
@@ -190,3 +210,4 @@ Error:
     
     return cudaStatus;
 }
+*/
