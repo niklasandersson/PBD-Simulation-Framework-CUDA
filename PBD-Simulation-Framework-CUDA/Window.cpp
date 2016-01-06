@@ -41,7 +41,7 @@ void Window::setGLFWWindowHints() {
 
 
 void Window::createGLFWWindow() {
-  window_ = glfwCreateWindow(width_, height_, title_.c_str(), NULL, NULL);
+  window_ = glfwCreateWindow(width_, height_, title_.c_str(), nullptr, nullptr);
   if( window_ == nullptr ) {
     glfwTerminate();
     throw std::domain_error("Failed to create GLFW window");

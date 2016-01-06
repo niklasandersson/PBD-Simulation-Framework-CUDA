@@ -160,10 +160,12 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="main.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="Cuda.cu" />
+    <ClCompile Include="Engine.cu" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Cuda.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
