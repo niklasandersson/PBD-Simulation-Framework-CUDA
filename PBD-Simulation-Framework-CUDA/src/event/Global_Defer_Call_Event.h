@@ -23,7 +23,7 @@ public:
     global_defered_calls_.push_back( 
       [this, arguments]() {
         if( this )
-          this->make_calls(typename generate<sizeof...(Args)>::sequence(), arguments);
+          this->make_calls(generate<sizeof...(Args)>::sequence(), arguments);
       }
     );
     global_calls_lock_.unlock();

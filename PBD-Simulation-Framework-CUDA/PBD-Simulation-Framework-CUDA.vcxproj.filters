@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\console\Command.cc" />
+    <ClCompile Include="src\console\Console.cc" />
+    <ClCompile Include="src\console\Utils.cc" />
+    <ClCompile Include="src\exception\Error.cc" />
+    <ClCompile Include="src\format\Bitmap.cc" />
+    <ClCompile Include="src\opengl\Framebuffer.cc" />
+    <ClCompile Include="src\opengl\GL_Renderable.cc" />
+    <ClCompile Include="src\opengl\GL_Shared.cc" />
+    <ClCompile Include="src\opengl\OpenGL_Loader.cc" />
+    <ClCompile Include="src\opengl\OpenGL_Window.cc" />
+    <ClCompile Include="src\opengl\Program.cc" />
+    <ClCompile Include="src\opengl\Shader.cc" />
+    <ClCompile Include="src\opengl\Texture.cc" />
+    <ClCompile Include="src\opengl\TextureXD.cc" />
+    <ClCompile Include="src\parser\Parser.cc" />
+    <ClCompile Include="src\parser\RecursiveParser.cc" />
+    <ClCompile Include="src\regex\Regular_Expression.cc" />
+    <ClCompile Include="src\thread\ThreadPool.cc" />
+    <ClCompile Include="src\thread\WorkerThread.cc" />
+    <ClCompile Include="src\thread\WorkItem.cc" />
+    <ClCompile Include="src\thread\WorkItemComparison.cc" />
+    <ClCompile Include="src\utility\String_Utilities.cc" />
+    <ClCompile Include="src\event\Events.cc" />
+    <ClCompile Include="src\event\Global_Event_Base.cc" />
+    <ClCompile Include="src\cuda\Cuda.cu" />
+    <ClCompile Include="src\time\AllTimers.cc" />
+    <ClCompile Include="src\time\Time.cc" />
+    <ClCompile Include="src\app\Engine.cc" />
+    <ClCompile Include="src\app\Canvas.cc" />
+    <ClCompile Include="src\glfw\GLFW_Controls.cc" />
+    <ClCompile Include="src\glfw\GLFW_Window.cc" />
+    <ClCompile Include="src\app\Simulation.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\console\Command.h" />
+    <ClInclude Include="src\console\Console.h" />
+    <ClInclude Include="src\console\Utils.h" />
+    <ClInclude Include="src\exception\Error.h" />
+    <ClInclude Include="src\format\Bitmap.h" />
+    <ClInclude Include="src\opengl\Buffer.h" />
+    <ClInclude Include="src\opengl\Framebuffer.h" />
+    <ClInclude Include="src\opengl\GL_Renderable.h" />
+    <ClInclude Include="src\opengl\GL_Shared.h" />
+    <ClInclude Include="src\opengl\OpenGL_Loader.h" />
+    <ClInclude Include="src\opengl\OpenGL_Window.h" />
+    <ClInclude Include="src\opengl\Program.h" />
+    <ClInclude Include="src\opengl\Shader.h" />
+    <ClInclude Include="src\opengl\Texture.h" />
+    <ClInclude Include="src\opengl\Texture1D.h" />
+    <ClInclude Include="src\opengl\Texture2D.h" />
+    <ClInclude Include="src\opengl\Texture3D.h" />
+    <ClInclude Include="src\opengl\TextureXD.h" />
+    <ClInclude Include="src\opengl\Vao.h" />
+    <ClInclude Include="src\parser\CommentParser.h" />
+    <ClInclude Include="src\parser\Config.h" />
+    <ClInclude Include="src\parser\ConfigObject.h" />
+    <ClInclude Include="src\parser\ConfigParser.h" />
+    <ClInclude Include="src\parser\DefineParser.h" />
+    <ClInclude Include="src\parser\IncludeParser.h" />
+    <ClInclude Include="src\parser\MTLParser.h" />
+    <ClInclude Include="src\parser\OBJGroup.h" />
+    <ClInclude Include="src\parser\OBJMaterial.h" />
+    <ClInclude Include="src\parser\OBJParser.h" />
+    <ClInclude Include="src\parser\Parser.h" />
+    <ClInclude Include="src\parser\RecursiveParser.h" />
+    <ClInclude Include="src\regex\Regular_Expression.h" />
+    <ClInclude Include="src\thread\ThreadPool.h" />
+    <ClInclude Include="src\thread\WorkerThread.h" />
+    <ClInclude Include="src\thread\WorkItem.h" />
+    <ClInclude Include="src\thread\WorkItemComparison.h" />
+    <ClInclude Include="src\utility\String_Utilities.h" />
+    <ClInclude Include="src\event\Delegate.h" />
+    <ClInclude Include="src\event\Events.h" />
+    <ClInclude Include="src\event\Direct_Call_Event.h" />
+    <ClInclude Include="src\event\Global_Event_Base.h" />
+    <ClInclude Include="src\event\Global_Defer_Call_Event.h" />
+    <ClInclude Include="src\event\Local_Defer_Call_Event.h" />
+    <ClInclude Include="src\cuda\Cuda.h" />
+    <ClInclude Include="src\time\AllTimers.h" />
+    <ClInclude Include="src\time\Time.h" />
+    <ClInclude Include="src\app\Engine.h" />
+    <ClInclude Include="src\app\Floor.h" />
+    <ClInclude Include="src\app\Particles.h" />
+    <ClInclude Include="src\app\Canvas.h" />
+    <ClInclude Include="src\glfw\GLFW_Controls.h" />
+    <ClInclude Include="src\glfw\GLFW_Window.h" />
+    <ClInclude Include="src\app\Simulation.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\app\main.cu" />
+  </ItemGroup>
+</Project>

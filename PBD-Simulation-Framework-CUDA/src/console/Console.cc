@@ -49,7 +49,7 @@ void Console::execute(const char* args) const {
 	std::unordered_map<std::string, Command>::const_iterator it = commandItems_.find(cmd);
 	
   if (it == commandItems_.end()) {
-  	std::cout << cmd << ": command not found " << endl;
+  	std::cout << cmd << ": command not found " << std::endl;
   	suggestions(cmd);
  	} else {
  		std::string rest;
@@ -57,7 +57,7 @@ void Console::execute(const char* args) const {
  		try {
  			it->second.execute(rest.c_str());
  		} catch(...) {
- 			cout << "ERROR: failed to execute command: " << cmd << endl;
+ 			std::cout << "ERROR: failed to execute command: " << cmd << std::endl;
  		}
  	}	
 }
@@ -68,7 +68,7 @@ void Console::suggestions(std::string& cmd) const {
 	std::lock_guard<std::recursive_mutex> lock(commandItemsMutex_);
 	for_each(commandItems_.begin(), commandItems_.end(), [&cmd, &LIKENESS](std::pair<std::string, Command> item) {
 		if(Utils::Like(cmd, item.first) >= LIKENESS) {
-			cout << " - perhaps you meant: " << item.first << endl;
+			std::cout << " - perhaps you meant: " << item.first << std::endl;
 		}
 	});
 }

@@ -1,0 +1,4 @@
+program_floor floor/floor.vert floor/floor.frag
+program_particles particles/particles.vert particles/particles.frag
+program_particles_sprite_geom particles/particleSpriteGeom.vert particles/particleSpriteGeom.geom particles/particleSpriteGeom.frag
+program_particles_sprite particles/particleSprite.vert particles/particleSprite.frag

@@ -158,11 +158,13 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="src\main.cu" />
+    <CudaCompile Include="src\app\main.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Cuda.cu" />
-    <ClCompile Include="src\Engine.cu" />
+    <ClCompile Include="src\app\Canvas.cc" />
+    <ClCompile Include="src\app\Engine.cc" />
+    <ClCompile Include="src\app\Simulation.cc" />
+    <ClCompile Include="src\cuda\Cuda.cu" />
     <ClCompile Include="src\console\Command.cc" />
     <ClCompile Include="src\console\Console.cc" />
     <ClCompile Include="src\console\Utils.cc" />
@@ -170,6 +172,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="src\event\Global_Event_Base.cc" />
     <ClCompile Include="src\exception\Error.cc" />
     <ClCompile Include="src\format\Bitmap.cc" />
+    <ClCompile Include="src\glfw\GLFW_Controls.cc" />
+    <ClCompile Include="src\glfw\GLFW_Window.cc" />
     <ClCompile Include="src\opengl\Framebuffer.cc" />
     <ClCompile Include="src\opengl\GL_Renderable.cc" />
     <ClCompile Include="src\opengl\GL_Shared.cc" />
@@ -186,12 +190,17 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="src\thread\WorkerThread.cc" />
     <ClCompile Include="src\thread\WorkItem.cc" />
     <ClCompile Include="src\thread\WorkItemComparison.cc" />
+    <ClCompile Include="src\time\AllTimers.cc" />
+    <ClCompile Include="src\time\Time.cc" />
     <ClCompile Include="src\utility\String_Utilities.cc" />
-    <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Cuda.h" />
-    <ClInclude Include="src\Engine.h" />
+    <ClInclude Include="src\app\Canvas.h" />
+    <ClInclude Include="src\app\Engine.h" />
+    <ClInclude Include="src\app\Floor.h" />
+    <ClInclude Include="src\app\Particles.h" />
+    <ClInclude Include="src\app\Simulation.h" />
+    <ClInclude Include="src\cuda\Cuda.h" />
     <ClInclude Include="src\console\Command.h" />
     <ClInclude Include="src\console\Console.h" />
     <ClInclude Include="src\console\Utils.h" />
@@ -203,6 +212,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\event\Local_Defer_Call_Event.h" />
     <ClInclude Include="src\exception\Error.h" />
     <ClInclude Include="src\format\Bitmap.h" />
+    <ClInclude Include="src\glfw\GLFW_Controls.h" />
+    <ClInclude Include="src\glfw\GLFW_Window.h" />
     <ClInclude Include="src\opengl\Buffer.h" />
     <ClInclude Include="src\opengl\Framebuffer.h" />
     <ClInclude Include="src\opengl\GL_Renderable.h" />
@@ -234,8 +245,9 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\thread\WorkerThread.h" />
     <ClInclude Include="src\thread\WorkItem.h" />
     <ClInclude Include="src\thread\WorkItemComparison.h" />
+    <ClInclude Include="src\time\AllTimers.h" />
+    <ClInclude Include="src\time\Time.h" />
     <ClInclude Include="src\utility\String_Utilities.h" />
-    <ClInclude Include="src\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

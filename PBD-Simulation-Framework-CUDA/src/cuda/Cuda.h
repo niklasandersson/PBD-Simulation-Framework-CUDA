@@ -14,6 +14,9 @@ class Cuda {
 public:
   Cuda(const int computeCapabilityMajor, const int computeCapabilityMinor);
 
+  void initialize();
+  void cleanup();
+
 protected:
 
 private:

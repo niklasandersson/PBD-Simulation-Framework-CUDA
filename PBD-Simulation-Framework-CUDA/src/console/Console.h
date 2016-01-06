@@ -16,7 +16,6 @@
 #include "Command.h"
 #include "Utils.h"
 
-using namespace std;
 
 class Console {
 

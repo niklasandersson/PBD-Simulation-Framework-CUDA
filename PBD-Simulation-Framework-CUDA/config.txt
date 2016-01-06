@@ -1,0 +1,21 @@
+
+Application: 
+{
+  name = "PBD-Simulation-Framework CUDA";
+  version = 0.1;
+  authors = ["Joakim Deborg", "Niklas Andersson", "Gabriel Baravdish"];
+  license = "Do whatever you don't want to do, but praise us, the authors.";
+
+  displayApplicationInfo = false;
+
+  OpenGL: 
+  {
+    programDefinitions = "src/app/shader/programs.prog";
+    displayAvailableShaders = true;
+    displayAvailablePrograms = true;
+
+    width = 1024;
+    height = 768;
+  }
+
+}

@@ -8,7 +8,7 @@
 struct OBJMaterial {
 
 
-  OBJMaterial(const std::string& name) : name_{name} { 
+  OBJMaterial(const std::string& name) : name_(name) { 
     // std::cout << "New material: " << name << std::endl;
   }
 
