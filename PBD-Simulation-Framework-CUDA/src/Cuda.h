@@ -12,7 +12,7 @@
 class Cuda {
 
 public:
-  Cuda(const int computeCapabilityMajor = 2, const int computeCapabilityMinor = 0);
+  Cuda(const int computeCapabilityMajor, const int computeCapabilityMinor);
 
 protected:
 

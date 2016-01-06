@@ -1,8 +1,12 @@
+#include "cuda.h"
+
 #include <iostream>
 
 #include "Window.h"
 #include "Cuda.h"
 #include "Engine.h"
+
+
 
 __global__ void addKernel(int *c, const int *a, const int *b)
 {

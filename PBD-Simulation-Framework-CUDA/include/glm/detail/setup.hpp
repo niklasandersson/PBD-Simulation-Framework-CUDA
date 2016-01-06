@@ -38,6 +38,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 // Version
 
+#define CUDA_VERSION 3000
 #define GLM_VERSION					97
 #define GLM_VERSION_MAJOR			0
 #define GLM_VERSION_MINOR			9
