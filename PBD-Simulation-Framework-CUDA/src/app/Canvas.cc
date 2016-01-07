@@ -136,4 +136,6 @@ void Canvas::render() {
   glfwSwapBuffers(glfw_window_);
   glfwPollEvents();
 
+  glFinish();
+
 }

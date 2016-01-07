@@ -52,5 +52,4 @@ private:
 
 };
 
-
 #endif // PARTICLES_H

@@ -6,11 +6,6 @@ Cuda::Cuda(const int computeCapabilityMajor,
   : computeCapabilityMajor_(computeCapabilityMajor)
   , computeCapabilityMinor_(computeCapabilityMinor)
 {
- 
-}
-
-
-void Cuda::initialize() {
   memset(&properties_, 0, sizeof(properties_));
 
   properties_.major = computeCapabilityMajor_;
@@ -22,6 +17,7 @@ void Cuda::initialize() {
 }
 
 
-void Cuda::cleanup() {
-
+Cuda::~Cuda() {
+  CUDA(cudaDeviceReset());
 }
+
