@@ -14,7 +14,7 @@ class RecursiveParser : public Parser {
 
 public:
   RecursiveParser() = default;
-  ~RecursiveParser() = default;
+  virtual ~RecursiveParser() = default;
 
   // virtual std::string parseFile(const std::string& pathAndName) override {
   //   return Parser::parseFile(pathAndName);

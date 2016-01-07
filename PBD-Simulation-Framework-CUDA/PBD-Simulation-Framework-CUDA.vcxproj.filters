@@ -28,14 +28,14 @@
     <ClCompile Include="src\cuda\Cuda.cu" />
     <ClCompile Include="src\time\AllTimers.cc" />
     <ClCompile Include="src\time\Time.cc" />
-    <ClCompile Include="src\app\Engine.cc" />
     <ClCompile Include="src\app\Canvas.cc" />
     <ClCompile Include="src\glfw\GLFW_Controls.cc" />
     <ClCompile Include="src\glfw\GLFW_Window.cc" />
-    <ClCompile Include="src\app\Simulation.cc" />
     <ClCompile Include="src\app\rendering\Particles.cc" />
     <ClCompile Include="src\app\rendering\Floor.cc" />
-    <ClCompile Include="src\app\simulation\Collision.cc" />
+    <ClCompile Include="src\app\simulation\Collision.cu" />
+    <ClCompile Include="src\app\Simulation.cu" />
+    <ClCompile Include="src\app\Engine.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\console\Command.h" />
@@ -93,8 +93,11 @@
     <ClInclude Include="src\app\rendering\Particles.h" />
     <ClInclude Include="src\app\rendering\Floor.h" />
     <ClInclude Include="src\app\simulation\Collision.h" />
+    <ClInclude Include="src\cuda\Cuda_Computable.h" />
+    <ClInclude Include="src\app\simulation\kernel\AddKernel.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\AddKernel.cu" />
   </ItemGroup>
 </Project>

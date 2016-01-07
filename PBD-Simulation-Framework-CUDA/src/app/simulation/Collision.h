@@ -1,9 +1,19 @@
 #ifndef COLLISION_H
 #define COLLISION_H
 
-class Collision {
+#include <iostream>
+
+#include "cuda/Cuda.h"
+#include "cuda/Cuda_Computable.h"
+
+#include "kernel/AddKernel.h"
+
+class Collision : public Cuda_Computable {
 
 public:
+  Collision();
+
+  void compute() override;
 
 protected:
 

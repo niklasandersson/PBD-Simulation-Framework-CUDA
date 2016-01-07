@@ -19,6 +19,7 @@ protected:
 
 private:
   Cuda* cuda_;
+  Collision* collision_;
 
 };
 
