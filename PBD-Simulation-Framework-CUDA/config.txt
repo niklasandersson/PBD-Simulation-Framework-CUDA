@@ -1,4 +1,3 @@
-
 Application: 
 {
   name = "PBD-Simulation-Framework CUDA";
@@ -6,13 +5,13 @@ Application:
   authors = ["Joakim Deborg", "Niklas Andersson", "Gabriel Baravdish"];
   license = "Do whatever you don't want to do, but praise us, the authors.";
 
-  displayApplicationInfo = false;
+  displayApplicationInfo = 0;
 
   OpenGL: 
   {
     programDefinitions = "src/app/shader/programs.prog";
-    displayAvailableShaders = true;
-    displayAvailablePrograms = true;
+    displayAvailableShaders = 0;
+    displayAvailablePrograms = 0;
 
     width = 1024;
     height = 768;
