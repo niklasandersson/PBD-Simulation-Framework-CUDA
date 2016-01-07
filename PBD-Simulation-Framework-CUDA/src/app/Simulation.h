@@ -3,6 +3,8 @@
 
 #include "cuda/Cuda.h"
 
+#include "simulation/Collision.h"
+
 class Simulation {
 
 public:

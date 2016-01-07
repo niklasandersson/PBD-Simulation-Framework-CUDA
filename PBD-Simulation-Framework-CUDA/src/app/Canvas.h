@@ -13,8 +13,8 @@
 
 #include "event/Events.h"
 
-#include "Floor.h"
-#include "Particles.h"
+#include "rendering/Floor.h"
+#include "rendering/Particles.h"
 
 
 class Canvas : public GLFW_Window {

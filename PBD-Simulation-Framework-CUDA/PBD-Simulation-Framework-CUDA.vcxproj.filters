@@ -33,8 +33,9 @@
     <ClCompile Include="src\glfw\GLFW_Controls.cc" />
     <ClCompile Include="src\glfw\GLFW_Window.cc" />
     <ClCompile Include="src\app\Simulation.cc" />
-    <ClCompile Include="src\app\Particles.cc" />
-    <ClCompile Include="src\app\Floor.cc" />
+    <ClCompile Include="src\app\rendering\Particles.cc" />
+    <ClCompile Include="src\app\rendering\Floor.cc" />
+    <ClCompile Include="src\app\simulation\Collision.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\console\Command.h" />
@@ -84,13 +85,14 @@
     <ClInclude Include="src\time\AllTimers.h" />
     <ClInclude Include="src\time\Time.h" />
     <ClInclude Include="src\app\Engine.h" />
-    <ClInclude Include="src\app\Floor.h" />
-    <ClInclude Include="src\app\Particles.h" />
     <ClInclude Include="src\app\Canvas.h" />
     <ClInclude Include="src\glfw\GLFW_Controls.h" />
     <ClInclude Include="src\glfw\GLFW_Window.h" />
     <ClInclude Include="src\app\Simulation.h" />
     <ClInclude Include="src\cuda\cuda_call_error.h" />
+    <ClInclude Include="src\app\rendering\Particles.h" />
+    <ClInclude Include="src\app\rendering\Floor.h" />
+    <ClInclude Include="src\app\simulation\Collision.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />

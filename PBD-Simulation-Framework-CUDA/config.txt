@@ -9,7 +9,7 @@ Application:
 
   OpenGL: 
   {
-    programDefinitions = "src/app/shader/programs.prog";
+    programDefinitions = "src/app/rendering/shader/programs.prog";
     displayAvailableShaders = 0;
     displayAvailablePrograms = 0;
 
