@@ -257,15 +257,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\time\Time.h" />
     <ClInclude Include="src\utility\String_Utilities.h" />
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="assets\compass.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="assets\sphere.obj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="config.txt" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 7.5.targets" />

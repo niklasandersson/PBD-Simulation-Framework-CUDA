@@ -100,13 +100,4 @@
     <CudaCompile Include="src\app\main.cu" />
     <CudaCompile Include="src\app\simulation\kernel\AddKernel.cu" />
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="assets\compass.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="assets\sphere.obj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="config.txt" />
-  </ItemGroup>
 </Project>
