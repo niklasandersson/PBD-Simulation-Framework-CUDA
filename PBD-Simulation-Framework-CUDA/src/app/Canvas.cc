@@ -61,11 +61,20 @@ void Canvas::initialize() {
   floor_->setCameraNear(glfw_controls_->getCameraNear());
   floor_->setCameraFar(glfw_controls_->getCameraFar());
 
-  /*
+  
   particles_ = new Particles();
   particles_->setCameraNear(glfw_controls_->getCameraNear());
   particles_->setCameraFar(glfw_controls_->getCameraFar());
-  */
+  
+}
+
+
+void Canvas::set_glfw_window_hints() {
+  glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+  glfwWindowHint(GLFW_SAMPLES, multisampling_and_antialiasing_);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, opengl_major_version_);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, opengl_minor_version_);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 }
 
 
@@ -89,6 +98,14 @@ void Canvas::loadPrograms() {
 }
 
 
+void Canvas::cleanup() {
+  GLFW_Window::cleanup();
+  delete glfw_controls_;
+  delete floor_;
+  delete particles_;
+}
+
+
 void Canvas::render() {
   GLFW_Window::render();  
 
@@ -109,34 +126,14 @@ void Canvas::render() {
   floor_->setCurrentTime(current_time);
   floor_->render();
  
-  /*
   particles_->setViewMatrix(view_matrix);
   particles_->setProjectionMatrix(projection_matrix);
   particles_->setCameraPosition(camera_position);
   particles_->setViewDirection(view_direction);
   particles_->setCurrentTime(current_time);
   particles_->render();
-  */
-
+  
   glfwSwapBuffers(glfw_window_);
   glfwPollEvents();
 
 }
-
-
-void Canvas::cleanup() {
-  GLFW_Window::cleanup();
-  delete glfw_controls_;
-  delete floor_;
-  //delete particles_;
-}
-
-
-void Canvas::set_glfw_window_hints() {
-  glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-  glfwWindowHint(GLFW_SAMPLES, multisampling_and_antialiasing_);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, opengl_major_version_);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, opengl_minor_version_);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-}
-

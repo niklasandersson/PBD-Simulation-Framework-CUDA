@@ -20,4 +20,4 @@ private:
 
 };
 
-#endif 
+#endif // SIMULATION_H

@@ -34,10 +34,10 @@ private:
   Canvas* canvas_;
   Simulation* simulation_;
 
-  void addConsoleCommands();
-  inline void run();
   void initialize();
+  void addConsoleCommands();
   void cleanup();
+  inline void run();
 
 };
 

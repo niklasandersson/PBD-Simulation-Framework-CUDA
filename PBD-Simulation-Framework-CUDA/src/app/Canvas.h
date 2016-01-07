@@ -30,8 +30,9 @@ public:
   ~Canvas();
 
   void initialize() override;
-  void render() override;
   void cleanup() override;
+
+  void render() override;
 
 protected:
   void set_glfw_window_hints() override;
@@ -47,9 +48,9 @@ private:
   GLFW_Controls* glfw_controls_;
 
   Floor* floor_;
-  //Particles* particles_;
+  Particles* particles_;
 
 };
 
 
-#endif
+#endif // CANVAS_H

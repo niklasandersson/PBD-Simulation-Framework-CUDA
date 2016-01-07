@@ -60,19 +60,6 @@ void Engine::initialize() {
 }
 
 
-void Engine::run() {
-
-  simulation_->step();
-
-  canvas_->render();
-  
-  if( canvas_->should_close() ) {
-    stop();
-  }
-
-}
-
-
 void Engine::cleanup() {
   canvas_->cleanup();
   delete canvas_;
@@ -81,4 +68,17 @@ void Engine::cleanup() {
   delete simulation_;
 
   Console::getInstance()->close();
+}
+
+
+void Engine::run() {
+
+  simulation_->step();
+
+  canvas_->render();
+
+  if (canvas_->should_close()) {
+    stop();
+  }
+
 }

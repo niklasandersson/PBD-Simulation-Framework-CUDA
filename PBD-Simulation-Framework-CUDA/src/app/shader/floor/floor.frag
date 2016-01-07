@@ -47,13 +47,14 @@ void main() {
 
   if( position.z > 0 ) {
     frag_color.xyz = vec3(mix(frag_color.xyz, mix(COLOR1, COLOR2, smoothstep(0.0f, 1.0f, checker_value)), smoothstep(0.0f, 4.0f, position.z)));
-  }
+  } 
 
   // #define ORIGO 0.0f
   // if( (position.x > - 1.0f + ORIGO && position.x < 1.0f + ORIGO) && (position.z > - 1.0f + ORIGO && position.z < 1.0f + ORIGO) ) {
   //   frag_color = vec4(1.0f);
   // }
 
+  /*
   float mag = dot(position.xz, position.xz);
 
   if( mag < 1 ) {
@@ -65,6 +66,7 @@ void main() {
     float cmp = 1 - texture2D(compass, (uv + vec2(1, 1)) * 0.5).a;
     frag_color.rgb = mix(frag_color.rgb, texture2D(compass, (uv + vec2(1, 1)) * 0.5).rgb,  smoothstep(0, gl_FragCoord.z/10.0, 1-mag));
   }
+  */
 
 
   frag_color.w = gl_FragCoord.z; // HAX

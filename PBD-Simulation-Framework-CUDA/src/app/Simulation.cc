@@ -17,12 +17,12 @@ void Simulation::initialize() {
 }
 
 
-void Simulation::step() {
-
-}
-
-
 void Simulation::cleanup() {
   cuda_->cleanup();
   delete cuda_;
+}
+
+
+void Simulation::step() {
+
 }

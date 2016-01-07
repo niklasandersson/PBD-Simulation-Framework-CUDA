@@ -16,9 +16,9 @@ void Cuda::initialize() {
   properties_.major = computeCapabilityMajor_;
   properties_.minor = computeCapabilityMinor_;
 
-  cudaChooseDevice(&deviceId_, &properties_);
+  CUDA(cudaChooseDevice(&deviceId_, &properties_));
 
-  cudaGLSetGLDevice(deviceId_);
+  CUDA(cudaGLSetGLDevice(deviceId_));
 }
 
 
