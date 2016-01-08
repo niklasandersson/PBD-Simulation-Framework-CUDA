@@ -23,7 +23,18 @@ Canvas::~Canvas() {
 
 void Canvas::addConsoleCommands() {
   //Console::getInstance()->add("fps", dynamic_cast<GLFW_Window*>(this), &GLFW_Window::set_print_fps);
+  Console::getInstance()->add("fps", [&](const char* argv) {
+    std::istringstream is(argv);
+    bool printFps = false;
+    is >> printFps;
+    set_print_fps(printFps);
+  });
+
   //Console::getInstance()->add("freeze", dynamic_cast<GLFW_Window*>(this), &GLFW_Window::toggleFreeze);
+  Console::getInstance()->add("freeze", [&](const char* argv) {
+    toggleFreeze();
+  });
+
   Console::getInstance()->add("camera", [&](const char* argv) {
     if( glfw_controls_ ) {
       glm::vec3 positon = glfw_controls_->getCameraPosition();

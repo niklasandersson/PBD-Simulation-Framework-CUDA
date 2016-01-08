@@ -1,21 +1,28 @@
 #include "Collision.h"
 
-#include <thrust\device_vector.h>
-
 surface<void, cudaSurfaceType2D> surfD;
 texture<float4, 2, cudaReadModeElementType> texRef;
 
-__global__ void testKernel() {
+__global__ void testKernel(const unsigned int numberOfParticles,
+                           const unsigned int textureWidth) {
+
+  const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+  const unsigned int x = idx % textureWidth;
+  const unsigned int y = idx / textureWidth;
+
+  //printf("xy: %i, %i\n", x, y);
 
   float4 elementRead = make_float4(5.0f, 5.0f, 5.0f, 5.0f);
-  surf2Dread(&elementRead, surfD, 0, 0);
+  surf2Dread(&elementRead, surfD, x * sizeof(float4), y);
+
+  //__syncthreads();
   //printf("elementRead: %f, %f, %f\n", elementRead.x, elementRead.y, elementRead.z);
 
   float4 elementWrite = make_float4(1337.0f, 1337.0f, 1337.0f, 1337.0f);
 
   elementWrite = elementRead;
   elementWrite.y = elementWrite.y - 0.01f;
-  surf2Dwrite(elementWrite, surfD, 0, 0);
+  surf2Dwrite(elementWrite, surfD, x * sizeof(float4), y);
 
   //float4 elementRead2 = make_float4(3.0f, 3.0f, 3.0f, 3.0f);
   //surf2Dread(&elementRead2, surfD, 0, 0);
@@ -25,9 +32,7 @@ __global__ void testKernel() {
 
 
   /*
-  int x = threadIdx.x + blockIdx.x * blockDim.x;
-  int y = threadIdx.y + blockIdx.y * blockDim.y;
-  int offset = x + y * blockDim.x * gridDim.x;
+  
 
   float4 value = tex2D(texRef, 0, 0);
 
@@ -46,9 +51,6 @@ Collision::Collision() {
   GLuint pos = glShared_.get_texture("positions4")->texture_;
   GLuint ppos = glShared_.get_texture("predictedPositions4")->texture_;
   GLuint cols = glShared_.get_texture("colors4")->texture_;
-
-  std::cout << "pos = " << pos << std::endl;
-  std::cout << "ppos = " << ppos << std::endl;
 
   
   cudaStream_t cudaStream;
@@ -173,5 +175,15 @@ Collision::Collision() {
 
 void Collision::compute() {
   //std::cout << "Collision compute" << std::endl;
-  testKernel << <1, 1 >> >();
+
+  auto numberOfParticles = glShared_.get_unsigned_int_value("numberOfParticles");
+  unsigned int textureWidth = glShared_.get_texture("positions4")->width_;
+
+  //std::cout << "numberOfParticles: " << *numberOfParticles << std::endl;
+
+  dim3 blocks((*numberOfParticles)/128, 1, 1);
+  dim3 threads(128, 1, 1);
+
+  testKernel<<<blocks, threads>>>(*numberOfParticles, 
+                                  textureWidth);
 }
