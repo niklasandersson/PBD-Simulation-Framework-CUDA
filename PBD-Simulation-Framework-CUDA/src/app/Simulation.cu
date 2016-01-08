@@ -12,7 +12,7 @@ Simulation::~Simulation() {
 
 
 void Simulation::initialize() {
-  cuda_ = new Cuda(3, 0);
+  cuda_ = new Cuda(5, 0);
   collision_ = new Collision();
 }
 
