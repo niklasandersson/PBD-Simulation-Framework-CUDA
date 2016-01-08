@@ -12,6 +12,10 @@ __global__ void testKernel(const unsigned int numberOfParticles,
 
   //printf("xy: %i, %i\n", x, y);
 
+  //float2 tvo = make_float2(1.0f, 2.0f);
+  //printf("two: %f, %f\n", tvo.x, tvo.y);
+  //printf("length of two: %f\n", length(tvo));
+
   float4 elementRead = make_float4(5.0f, 5.0f, 5.0f, 5.0f);
   surf2Dread(&elementRead, surfD, x * sizeof(float4), y);
 

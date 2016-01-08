@@ -212,6 +212,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\console\Utils.h" />
     <ClInclude Include="src\cuda\cuda_call_error.h" />
     <ClInclude Include="src\cuda\Cuda_Computable.h" />
+    <ClInclude Include="src\cuda\Cuda_Helper_Math.h" />
     <ClInclude Include="src\event\Delegate.h" />
     <ClInclude Include="src\event\Direct_Call_Event.h" />
     <ClInclude Include="src\event\Events.h" />

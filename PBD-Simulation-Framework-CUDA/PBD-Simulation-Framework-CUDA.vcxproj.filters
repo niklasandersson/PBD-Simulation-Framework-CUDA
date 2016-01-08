@@ -94,6 +94,7 @@
     <ClInclude Include="src\app\simulation\Collision.h" />
     <ClInclude Include="src\cuda\Cuda_Computable.h" />
     <ClInclude Include="src\app\simulation\kernel\AddKernel.h" />
+    <ClInclude Include="src\cuda\Cuda_Helper_Math.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
