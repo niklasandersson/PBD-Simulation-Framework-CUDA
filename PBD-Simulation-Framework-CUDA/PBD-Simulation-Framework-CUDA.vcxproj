@@ -159,6 +159,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
+    <CudaCompile Include="src\app\simulation\Collision.cu" />
     <CudaCompile Include="src\app\simulation\kernel\AddKernel.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -167,7 +168,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="src\app\rendering\Floor.cc" />
     <ClCompile Include="src\app\rendering\Particles.cc" />
     <ClCompile Include="src\app\Simulation.cu" />
-    <ClCompile Include="src\app\simulation\Collision.cu" />
     <ClCompile Include="src\cuda\Cuda.cu" />
     <ClCompile Include="src\console\Command.cc" />
     <ClCompile Include="src\console\Console.cc" />

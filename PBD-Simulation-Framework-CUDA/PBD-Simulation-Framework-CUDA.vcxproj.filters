@@ -33,7 +33,6 @@
     <ClCompile Include="src\glfw\GLFW_Window.cc" />
     <ClCompile Include="src\app\rendering\Particles.cc" />
     <ClCompile Include="src\app\rendering\Floor.cc" />
-    <ClCompile Include="src\app\simulation\Collision.cu" />
     <ClCompile Include="src\app\Simulation.cu" />
     <ClCompile Include="src\app\Engine.cu" />
   </ItemGroup>
@@ -99,5 +98,6 @@
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
     <CudaCompile Include="src\app\simulation\kernel\AddKernel.cu" />
+    <CudaCompile Include="src\app\simulation\Collision.cu" />
   </ItemGroup>
 </Project>

@@ -8,4 +8,6 @@ __global__ void addKernel() {
   }
   */
 
+	printf("Spam");
+
 }
