@@ -5,7 +5,7 @@ Particles::Particles()
   // : GL_Renderable("program_particles_sprite")
   // : GL_Renderable("program_particles")
   , clicked_(Delegate<void(const double, const double, const int, const int, const int)>::from<Particles, &Particles::clickCallback>(this))
-  , numberOfParticles_(new unsigned int{ 0 })
+  , numberOfParticles_(new unsigned int{0})
 {
   Events::click.subscribe(clicked_);
 
