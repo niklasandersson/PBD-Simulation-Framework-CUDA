@@ -9,6 +9,12 @@
 
 #include "kernel/AddKernel.h"
 
+#include <thrust/device_vector.h>
+#include <thrust/device_ptr.h>
+#include <thrust/sort.h>
+#include <thrust/gather.h>
+#include <thrust/iterator/counting_iterator.h>
+
 class Collision : public Cuda_Computable {
 
 public:

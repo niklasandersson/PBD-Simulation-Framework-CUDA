@@ -15,6 +15,7 @@
 
 #include "rendering/Floor.h"
 #include "rendering/Particles.h"
+#include "rendering/Enclosure.h"
 
 
 class Canvas : public GLFW_Window {
@@ -49,6 +50,7 @@ private:
 
   Floor* floor_;
   Particles* particles_;
+  Enclosure* enclosure_;
 
 };
 

@@ -100,6 +100,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(CudaToolkitIncludeDir);$(ProjectDir)\include;%(Include);$(ProjectDir)\src;%(Src)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -165,6 +166,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   <ItemGroup>
     <ClCompile Include="src\app\Canvas.cc" />
     <ClCompile Include="src\app\Engine.cu" />
+    <ClCompile Include="src\app\rendering\Enclosure.cc" />
     <ClCompile Include="src\app\rendering\Floor.cc" />
     <ClCompile Include="src\app\rendering\Particles.cc" />
     <ClCompile Include="src\app\Simulation.cu" />
@@ -201,6 +203,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   <ItemGroup>
     <ClInclude Include="src\app\Canvas.h" />
     <ClInclude Include="src\app\Engine.h" />
+    <ClInclude Include="src\app\rendering\Enclosure.h" />
     <ClInclude Include="src\app\rendering\Floor.h" />
     <ClInclude Include="src\app\rendering\Particles.h" />
     <ClInclude Include="src\app\Simulation.h" />
@@ -257,6 +260,10 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\time\AllTimers.h" />
     <ClInclude Include="src\time\Time.h" />
     <ClInclude Include="src\utility\String_Utilities.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\app\rendering\shader\enclosure\enclosure.frag" />
+    <None Include="src\app\rendering\shader\enclosure\enclosure.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

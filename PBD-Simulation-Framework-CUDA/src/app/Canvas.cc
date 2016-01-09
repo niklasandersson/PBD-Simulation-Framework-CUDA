@@ -60,7 +60,7 @@ void Canvas::initialize() {
     glm::vec3(0, 0.2, -1),
     45.0f,
     0.1f,
-    100.0f,
+    200.0f,
     5.0f,
     0.002f
   };
@@ -76,7 +76,11 @@ void Canvas::initialize() {
   particles_ = new Particles();
   particles_->setCameraNear(glfw_controls_->getCameraNear());
   particles_->setCameraFar(glfw_controls_->getCameraFar());
-  
+
+  enclosure_ = new Enclosure();
+  enclosure_->setCameraNear(glfw_controls_->getCameraNear());
+  enclosure_->setCameraFar(glfw_controls_->getCameraFar());
+
 }
 
 
@@ -114,6 +118,7 @@ void Canvas::cleanup() {
   delete glfw_controls_;
   delete floor_;
   delete particles_;
+  delete enclosure_;
 }
 
 
@@ -143,6 +148,13 @@ void Canvas::render() {
   particles_->setViewDirection(view_direction);
   particles_->setCurrentTime(current_time);
   particles_->render();
+
+  enclosure_->setViewMatrix(view_matrix);
+  enclosure_->setProjectionMatrix(projection_matrix);
+  enclosure_->setCameraPosition(camera_position);
+  enclosure_->setViewDirection(view_direction);
+  enclosure_->setCurrentTime(current_time);
+  enclosure_->render();
   
   glfwSwapBuffers(glfw_window_);
   glfwPollEvents();

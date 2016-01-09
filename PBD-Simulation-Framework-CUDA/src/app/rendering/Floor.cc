@@ -38,14 +38,17 @@ Floor::~Floor() {
 
 
 void Floor::generateFloor() {
-  const float width = 16.0f;
+  const float width = 64.0f;
 
-  const float halfWidth = 0.99f * width / 2.0f;
+  vertices_.push_back({0.0f, 0.0f, 0.0f});
+  vertices_.push_back({width, 0.0f, width});
+  vertices_.push_back({0.0f, 0.0f, width});
+  vertices_.push_back({width, 0.0f, 0.0f});
 
-  vertices_.push_back({ -1.0f * halfWidth, 0.0f, -1.0f * halfWidth });
-  vertices_.push_back({ 1.0f * halfWidth, 0.0f, 1.0f * halfWidth });
-  vertices_.push_back({ -1.0f * halfWidth, 0.0f, 1.0f * halfWidth });
-  vertices_.push_back({ 1.0f * halfWidth, 0.0f, -1.0f * halfWidth });
+  vertices_.push_back({0.0f, width, 0.0f});
+  vertices_.push_back({width, width, width});
+  vertices_.push_back({0.0f, width, width});
+  vertices_.push_back({width, width, 0.0f});
 
   indices_.push_back((unsigned short)0);
   indices_.push_back((unsigned short)2);

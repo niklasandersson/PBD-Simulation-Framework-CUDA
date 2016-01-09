@@ -37,16 +37,20 @@ float checker(vec2 uv)
 
 
 void main() {
+	
+  vec3 pos = position;
+  pos.x = pos.x - 32.0f;
+  pos.z = pos.z - 32.0f;
 
   vec2 uv = position.xz;
 
   float checker_value = checker(uv);
 
   // frag_color = vec4(mix(COLOR1, COLOR2, smoothstep(0.0f, 1.0f, checker_value)), 1.0f);
-  frag_color = vec4(mix(mix(vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), smoothstep(-4.0f, 4.0f, position.x)), COLOR2, smoothstep(0.0f, 1.0f, checker_value)), 1.0f);
+  frag_color = vec4(mix(mix(vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f), smoothstep(-4.0f, 4.0f, pos.x)), COLOR2, smoothstep(0.0f, 1.0f, checker_value)), 1.0f);
 
-  if( position.z > 0 ) {
-    frag_color.xyz = vec3(mix(frag_color.xyz, mix(COLOR1, COLOR2, smoothstep(0.0f, 1.0f, checker_value)), smoothstep(0.0f, 4.0f, position.z)));
+  if( pos.z > 0 ) {
+    frag_color.xyz = vec3(mix(frag_color.xyz, mix(COLOR1, COLOR2, smoothstep(0.0f, 1.0f, checker_value)), smoothstep(0.0f, 4.0f, pos.z)));
   } 
 
   // #define ORIGO 0.0f

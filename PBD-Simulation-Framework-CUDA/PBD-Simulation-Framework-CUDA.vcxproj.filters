@@ -35,6 +35,7 @@
     <ClCompile Include="src\app\rendering\Floor.cc" />
     <ClCompile Include="src\app\Simulation.cu" />
     <ClCompile Include="src\app\Engine.cu" />
+    <ClCompile Include="src\app\rendering\Enclosure.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\console\Command.h" />
@@ -95,10 +96,15 @@
     <ClInclude Include="src\cuda\Cuda_Computable.h" />
     <ClInclude Include="src\app\simulation\kernel\AddKernel.h" />
     <ClInclude Include="src\cuda\Cuda_Helper_Math.h" />
+    <ClInclude Include="src\app\rendering\Enclosure.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
     <CudaCompile Include="src\app\simulation\kernel\AddKernel.cu" />
     <CudaCompile Include="src\app\simulation\Collision.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\app\rendering\shader\enclosure\enclosure.frag" />
+    <None Include="src\app\rendering\shader\enclosure\enclosure.vert" />
   </ItemGroup>
 </Project>
