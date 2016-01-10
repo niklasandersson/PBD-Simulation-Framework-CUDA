@@ -5,8 +5,6 @@
 #include <string>
 #include <limits>
 
-// #include "cub/cub.cuh"
-
 #include "cuda/Cuda.h"
 #include "cuda/Cuda_Helper_Math.h"
 

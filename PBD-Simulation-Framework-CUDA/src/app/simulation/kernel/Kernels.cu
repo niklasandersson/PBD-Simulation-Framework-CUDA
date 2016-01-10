@@ -1,4 +1,6 @@
 #include "Kernels.h"
+#include "cub/cub.cuh"
+
 
 surface<void, cudaSurfaceType2D> positions4;
 surface<void, cudaSurfaceType2D> predictedPositions4;
@@ -57,7 +59,7 @@ void cudaCallApplyForces() {
 
 // Expands a 10-bit integer into 30 bits
 // by inserting 2 zeros after each bit.
-__device__ inline unsigned int expandBits(unsigned int v)
+__device__ __forceinline__ unsigned int expandBits(unsigned int v)
 {
     v = (v * 0x00010001u) & 0xFF0000FFu;
     v = (v * 0x00000101u) & 0x0F00F00Fu;
@@ -68,7 +70,7 @@ __device__ inline unsigned int expandBits(unsigned int v)
 
 // Calculates a 30-bit Morton code for the
 // given 3D point located within the cube [0.0, 1023.0].
-__device__ inline unsigned int mortonCode(float4 pos)
+__device__ __forceinline__ unsigned int mortonCode(float4 pos)
 {
     pos.x = min(max(pos.x, 0.0f), 1023.0f);
     pos.y = min(max(pos.y, 0.0f), 1023.0f);
@@ -94,6 +96,8 @@ __global__ void initializeCellIds(const unsigned int numberOfParticles,
     float4 predictedPosition;
     surf2Dread(&predictedPosition, predictedPositions4, x, y);
     cellIdsIn[idx] = mortonCode(predictedPosition);
+  } else {
+    cellIdsIn[idx] = UINT_MAX;
   }
 }
 
@@ -113,7 +117,7 @@ void cudaCallInitializeCellIds() {
 void sortIds() {
   auto glShared = GL_Shared::getInstance();
   auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
-  /*
+  
   cub::DeviceRadixSort::SortPairs(d_sortTempStorage, 
                                   sortTempStorageBytes, 
                                   d_cellIds_in, 
@@ -121,10 +125,10 @@ void sortIds() {
                                   d_particleIds_in, 
                                   d_particleIds_out, 
                                   *numberOfParticles);
-  */
 }
 
 // --------------------------------------------------------------------------
+
 __global__ void updatePositions(const unsigned int numberOfParticles,
                                 const unsigned int textureWidth,
                                 const float deltaT) {
@@ -189,10 +193,10 @@ void initializeSort() {
   cudaMalloc((void**)&d_cellIds_in, maxParticles * sizeof(unsigned int));
 	cudaMalloc((void**)&d_cellIds_out, maxParticles * sizeof(unsigned int));
 	cudaMalloc((void**)&d_particleIds_in, maxParticles * sizeof(unsigned int));
-	cudaMalloc((void**)&d_particleIds_in, maxParticles * sizeof(unsigned int));
+	cudaMalloc((void**)&d_particleIds_out, maxParticles * sizeof(unsigned int));
 
   cudaCallInitializeParticleIds();
-  /*
+  
   cub::DeviceRadixSort::SortPairs(d_sortTempStorage, 
                                   sortTempStorageBytes,
 		                              d_cellIds_in, 
@@ -200,7 +204,7 @@ void initializeSort() {
                                   d_particleIds_in, 
                                   d_particleIds_out,
                                   maxParticles);
-*/
+
   cudaMalloc(&d_sortTempStorage, sortTempStorageBytes);
 }
 
