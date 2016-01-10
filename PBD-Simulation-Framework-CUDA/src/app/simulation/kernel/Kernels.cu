@@ -11,8 +11,67 @@ unsigned int* d_cellIds_out;
 unsigned int* d_particleIds_in;
 unsigned int* d_particleIds_out;
 
+const float gravity = -9.82;
+const float inverseMass = 1.0f;
 const float deltaT = 0.01f;
 const unsigned int maxParticles = 65536;
+
+const float restDensity = 1.0f;
+const float kernelWidth = 10.0f;
+
+// --------------------------------------------------------------------------
+
+__device__ void poly6(const unsigned int numberOfParticles,
+											const unsigned int textureWidth,
+											const float deltaT) 
+{
+	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+	const unsigned int x = (idx % textureWidth) * sizeof(float4);
+	const unsigned int y = idx / textureWidth;
+
+	if (idx < numberOfParticles) {
+		
+		float4 velocity;
+		surf2Dread(&velocity, velocities4, x, y);
+		velocity.y += inverseMass * gravity * deltaT;
+
+		float4 position;
+		surf2Dread(&position, positions4, x, y);
+
+		float4 predictedPosition = position + velocity * deltaT;
+		surf2Dwrite(predictedPosition, predictedPositions4, x, y);
+	}
+}
+
+void __global__ computeDensity(const unsigned int numberOfParticles, const unsigned int textureWidth)
+{
+	float particle_density = 0.0f;
+
+	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+	const unsigned int x = (idx % textureWidth) * sizeof(float4);
+	const unsigned int y = idx / textureWidth;
+
+	if (idx < numberOfParticles) {
+
+	}
+
+}
+
+void cudaCallComputeDensity() {
+
+	auto glShared = GL_Shared::getInstance();
+	const auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+	const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
+
+	const dim3 blocks((*numberOfParticles) / 128, 1, 1);
+	const dim3 threads(128, 1, 1);
+
+	
+	computeDensity <<< blocks, threads >>>(*numberOfParticles, textureWidth);
+
+
+}
+
 
 // --------------------------------------------------------------------------
 

@@ -15,5 +15,7 @@ void cudaCallApplyForces();
 void cudaCallInitializeCellIds();
 void cudaCallUpdatePositions();
 
+void cudaCallComputeDensity();
+
 
 #endif // KERNELS_H 

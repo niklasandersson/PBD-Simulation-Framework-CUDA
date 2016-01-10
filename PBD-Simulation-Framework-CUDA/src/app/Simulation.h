@@ -4,6 +4,7 @@
 #include "cuda/Cuda.h"
 
 #include "simulation/Collision.h"
+#include "simulation\Density.h"
 
 class Simulation {
 
@@ -20,6 +21,7 @@ protected:
 private:
   Cuda* cuda_;
   Collision* collision_;
+	Density* density_;
 
 };
 

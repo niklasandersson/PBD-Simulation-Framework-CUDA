@@ -80,6 +80,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(CudaToolkitIncludeDir);$(ProjectDir)\include;%(Include);$(ProjectDir)\src;%(Src)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -161,6 +162,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
     <CudaCompile Include="src\app\simulation\Collision.cu" />
+    <CudaCompile Include="src\app\simulation\Density.cu" />
     <CudaCompile Include="src\app\simulation\kernel\hash\Hash.cu" />
     <CudaCompile Include="src\app\simulation\kernel\Kernels.cu" />
   </ItemGroup>
@@ -209,6 +211,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\app\rendering\Particles.h" />
     <ClInclude Include="src\app\Simulation.h" />
     <ClInclude Include="src\app\simulation\Collision.h" />
+    <ClInclude Include="src\app\simulation\Density.h" />
     <ClInclude Include="src\app\simulation\kernel\hash\Hash.h" />
     <ClInclude Include="src\app\simulation\kernel\Kernels.h" />
     <ClInclude Include="src\cuda\Cuda.h" />
