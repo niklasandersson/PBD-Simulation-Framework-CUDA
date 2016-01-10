@@ -13,7 +13,7 @@
 #include <thrust/gather.h>
 #include <thrust/iterator/counting_iterator.h>
 
-#include "kernel/CudaGlobalVariables.h"
+#include "kernel/kernels.h"
 
 class Collision : public Cuda_Computable {
 

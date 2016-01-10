@@ -97,12 +97,12 @@
     <ClInclude Include="src\cuda\Cuda_Helper_Math.h" />
     <ClInclude Include="src\app\rendering\Enclosure.h" />
     <ClInclude Include="src\app\simulation\kernel\hash\Hash.h" />
-    <ClInclude Include="src\app\simulation\kernel\CudaGlobalVariables.h" />
+    <ClInclude Include="src\app\simulation\kernel\Kernels.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
     <CudaCompile Include="src\app\simulation\Collision.cu" />
     <CudaCompile Include="src\app\simulation\kernel\hash\Hash.cu" />
-    <CudaCompile Include="src\app\simulation\kernel\CudaGlobalVariables.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\Kernels.cu" />
   </ItemGroup>
 </Project>

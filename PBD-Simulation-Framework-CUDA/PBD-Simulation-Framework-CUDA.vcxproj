@@ -161,8 +161,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
     <CudaCompile Include="src\app\simulation\Collision.cu" />
-    <CudaCompile Include="src\app\simulation\kernel\CudaGlobalVariables.cu" />
     <CudaCompile Include="src\app\simulation\kernel\hash\Hash.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\Kernels.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\app\Canvas.cc" />
@@ -209,8 +209,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\app\rendering\Particles.h" />
     <ClInclude Include="src\app\Simulation.h" />
     <ClInclude Include="src\app\simulation\Collision.h" />
-    <ClInclude Include="src\app\simulation\kernel\CudaGlobalVariables.h" />
     <ClInclude Include="src\app\simulation\kernel\hash\Hash.h" />
+    <ClInclude Include="src\app\simulation\kernel\Kernels.h" />
     <ClInclude Include="src\cuda\Cuda.h" />
     <ClInclude Include="src\console\Command.h" />
     <ClInclude Include="src\console\Console.h" />
