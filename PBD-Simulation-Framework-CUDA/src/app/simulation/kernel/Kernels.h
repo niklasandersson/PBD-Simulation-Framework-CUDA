@@ -11,9 +11,9 @@
 
 void cudaInitializeKernels();
 
-__global__ void applyForces(const unsigned int numberOfParticles,
-                            const unsigned int textureWidth);
-
 void cudaCallApplyForces();
+void cudaCallInitializeCellIds();
+void cudaCallUpdatePositions();
+
 
 #endif // KERNELS_H 
