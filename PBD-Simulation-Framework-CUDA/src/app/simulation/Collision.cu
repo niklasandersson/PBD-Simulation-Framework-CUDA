@@ -1,5 +1,23 @@
 #include "Collision.h"
 
+#define N 1024
+
+// texture object is a kernel argument
+__global__ void kernel(cudaTextureObject_t tex) {
+  int i = blockIdx.x *blockDim.x + threadIdx.x;
+  float x = tex1Dfetch<float>(tex, i);
+  // do some work using x ...
+
+  printf("x: %f\n", x);
+}
+
+void call_kernel(cudaTextureObject_t tex) {
+  dim3 block(128,1,1);
+  dim3 grid(N/block.x,1,1);
+  kernel <<<grid, block>>>(tex);
+}
+
+
 surface<void, cudaSurfaceType2D> surfD;
 texture<float4, 2, cudaReadModeElementType> texRef;
 
@@ -49,7 +67,7 @@ __global__ void testKernel(const unsigned int numberOfParticles,
   */
 
 }
-
+/*
 void thrustSort(double V[], int P[], int N)
 {
   thrust::device_vector<int> d_P(N);
@@ -63,9 +81,66 @@ void thrustSort(double V[], int P[], int N)
   thrust::copy(d_P.begin(), d_P.end(), P);
 }
 
-
+*/
 Collision::Collision() {
+  
+  // declare and allocate memory
+  float *buffer;
+  cudaMalloc((void**)&buffer, N*sizeof(float));
 
+  
+  float arr[N];
+  for(int i =0;i<N;i++) {
+    arr[i] = (float)i;
+  }
+  cudaMemcpy(buffer, arr, N*sizeof(float), cudaMemcpyHostToDevice);
+  //cudaDeviceSynchronize();
+  
+  /*
+   for(int i =0;i<N;i++) {
+     arr[i] = 0.0f;
+   }
+  cudaMemcpy(arr, buffer, N*sizeof(float), cudaMemcpyDeviceToHost);
+  for(int i =0;i<N;i++) {
+    std::cout << "v: " << arr[i] << std::endl;
+  }
+  return;
+  */
+  
+
+
+  //cudaDeviceSynchronize();
+
+  // create texture object
+  cudaResourceDesc resDesc;
+  memset(&resDesc, 0, sizeof(resDesc));
+  resDesc.resType = cudaResourceTypeLinear;
+  resDesc.res.linear.devPtr = buffer;
+  resDesc.res.linear.desc.f = cudaChannelFormatKindFloat;
+  resDesc.res.linear.desc.x = 32; // bits per channel
+  resDesc.res.linear.sizeInBytes = N*sizeof(float);
+
+  cudaTextureDesc texDesc;
+  memset(&texDesc, 0, sizeof(texDesc));
+  texDesc.readMode = cudaReadModeElementType;
+
+  // create texture object: we only have to do this once!
+  cudaTextureObject_t tex=0;
+  cudaCreateTextureObject(&tex, &resDesc, &texDesc, nullptr);
+  /*
+  cudaSurface
+  cudaSurfaceObject_t surf = 0;
+  cudaCreateSurfaceObject(&surf, &resDesc);
+  */
+
+  call_kernel(tex); // pass texture as argument
+
+  // destroy texture object
+  cudaDestroyTextureObject(tex);
+
+  cudaFree(buffer);
+
+  
   GLuint pos = glShared_.get_texture("positions4")->texture_;
   GLuint ppos = glShared_.get_texture("predictedPositions4")->texture_;
   GLuint cols = glShared_.get_texture("colors4")->texture_;

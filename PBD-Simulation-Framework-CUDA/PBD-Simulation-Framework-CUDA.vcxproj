@@ -161,7 +161,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
     <CudaCompile Include="src\app\simulation\Collision.cu" />
-    <CudaCompile Include="src\app\simulation\kernel\AddKernel.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\CudaGlobalVariables.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\hash\Hash.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\app\Canvas.cc" />
@@ -208,7 +209,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\app\rendering\Particles.h" />
     <ClInclude Include="src\app\Simulation.h" />
     <ClInclude Include="src\app\simulation\Collision.h" />
-    <ClInclude Include="src\app\simulation\kernel\AddKernel.h" />
+    <ClInclude Include="src\app\simulation\kernel\CudaGlobalVariables.h" />
+    <ClInclude Include="src\app\simulation\kernel\hash\Hash.h" />
     <ClInclude Include="src\cuda\Cuda.h" />
     <ClInclude Include="src\console\Command.h" />
     <ClInclude Include="src\console\Console.h" />
@@ -260,10 +262,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\time\AllTimers.h" />
     <ClInclude Include="src\time\Time.h" />
     <ClInclude Include="src\utility\String_Utilities.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="src\app\rendering\shader\enclosure\enclosure.frag" />
-    <None Include="src\app\rendering\shader\enclosure\enclosure.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
