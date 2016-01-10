@@ -12,6 +12,8 @@ void Collision::compute() {
   cudaCallApplyForces();
 
   cudaCallInitializeCellIds();
+  
+  sortIds();
 
   cudaCallUpdatePositions();
 

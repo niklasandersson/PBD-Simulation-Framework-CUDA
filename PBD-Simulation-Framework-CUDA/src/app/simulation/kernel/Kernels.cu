@@ -11,6 +11,9 @@ unsigned int* d_cellIds_out;
 unsigned int* d_particleIds_in;
 unsigned int* d_particleIds_out;
 
+void* d_sortTempStorage = nullptr;
+size_t sortTempStorageBytes = 0;
+
 const float deltaT = 0.01f;
 const unsigned int maxParticles = 65536;
 
@@ -41,7 +44,7 @@ __global__ void applyForces(const unsigned int numberOfParticles,
 
 void cudaCallApplyForces() {
   auto glShared = GL_Shared::getInstance();
-  const auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
 
   const dim3 blocks((*numberOfParticles)/128, 1, 1);
@@ -96,7 +99,7 @@ __global__ void initializeCellIds(const unsigned int numberOfParticles,
 
 void cudaCallInitializeCellIds() {
   auto glShared = GL_Shared::getInstance();
-  const auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
 
   const dim3 blocks((*numberOfParticles)/128, 1, 1);
@@ -107,6 +110,21 @@ void cudaCallInitializeCellIds() {
 
 // --------------------------------------------------------------------------
 
+void sortIds() {
+  auto glShared = GL_Shared::getInstance();
+  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  /*
+  cub::DeviceRadixSort::SortPairs(d_sortTempStorage, 
+                                  sortTempStorageBytes, 
+                                  d_cellIds_in, 
+                                  d_cellIds_out, 
+                                  d_particleIds_in, 
+                                  d_particleIds_out, 
+                                  *numberOfParticles);
+  */
+}
+
+// --------------------------------------------------------------------------
 __global__ void updatePositions(const unsigned int numberOfParticles,
                                 const unsigned int textureWidth,
                                 const float deltaT) {
@@ -151,11 +169,12 @@ __global__ void initializeParticleIds(const unsigned int numberOfParticles,
   if( idx < numberOfParticles ) {
     particleIdsIn[idx] = idx;
   }
+
 }
 
 void cudaCallInitializeParticleIds() {
   auto glShared = GL_Shared::getInstance();
-  const auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
 
   const dim3 blocks((*numberOfParticles)/128, 1, 1);
@@ -166,10 +185,26 @@ void cudaCallInitializeParticleIds() {
 
 // --------------------------------------------------------------------------
 
+void initializeSort() {
+  cudaMalloc((void**)&d_cellIds_in, maxParticles * sizeof(unsigned int));
+	cudaMalloc((void**)&d_cellIds_out, maxParticles * sizeof(unsigned int));
+	cudaMalloc((void**)&d_particleIds_in, maxParticles * sizeof(unsigned int));
+	cudaMalloc((void**)&d_particleIds_in, maxParticles * sizeof(unsigned int));
 
+  cudaCallInitializeParticleIds();
+  /*
+  cub::DeviceRadixSort::SortPairs(d_sortTempStorage, 
+                                  sortTempStorageBytes,
+		                              d_cellIds_in, 
+                                  d_cellIds_out, 
+                                  d_particleIds_in, 
+                                  d_particleIds_out,
+                                  maxParticles);
+*/
+  cudaMalloc(&d_sortTempStorage, sortTempStorageBytes);
+}
 
-
-
+// --------------------------------------------------------------------------
 
 void initializeTexture(surface<void, cudaSurfaceType2D>& surf, const std::string name) {
   auto glShared = GL_Shared::getInstance();
@@ -196,6 +231,7 @@ void initializeTexture(surface<void, cudaSurfaceType2D>& surf, const std::string
 }
 #define CUDA_INITIALIZE_SHARED_TEXTURE(name) initializeTexture(name, #name)
 
+// --------------------------------------------------------------------------
 
 void cudaInitializeKernels() {
   CUDA_INITIALIZE_SHARED_TEXTURE(positions4);
@@ -203,10 +239,5 @@ void cudaInitializeKernels() {
   CUDA_INITIALIZE_SHARED_TEXTURE(velocities4);
   CUDA_INITIALIZE_SHARED_TEXTURE(colors4);
 
-  cudaMalloc((void**)&d_cellIds_in, maxParticles * sizeof(unsigned int));
-	cudaMalloc((void**)&d_cellIds_out, maxParticles * sizeof(unsigned int));
-	cudaMalloc((void**)&d_particleIds_in, maxParticles * sizeof(unsigned int));
-	cudaMalloc((void**)&d_particleIds_in, maxParticles * sizeof(unsigned int));
-
-  cudaCallInitializeParticleIds();
+  initializeSort();
 }
