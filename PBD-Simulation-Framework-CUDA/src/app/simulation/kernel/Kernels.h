@@ -18,6 +18,8 @@ void sortIds();
 void reorderStorage();
 void cudaCallResetCellInfo();
 void cudaCallComputeCellInfo();
+void cudaCallResetContacts();
+void cudaCallFindContacts();
 void cudaCallUpdatePositions();
 
 

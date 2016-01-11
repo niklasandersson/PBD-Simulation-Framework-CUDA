@@ -32,6 +32,9 @@ int* d_contactConstraintParticleUsed;
 float* densities;
 
 const float deltaT = 0.01f;
+const float particleRadius = 0.5f;
+const float particleDiameter = 2.0f * particleRadius;
+const unsigned int maxContactsPerCell = 12;
 
 // --------------------------------------------------------------------------
 
@@ -284,13 +287,117 @@ __global__ void computeCellInfo(const unsigned int numberOfParticles,
 
 void cudaCallComputeCellInfo() {
   auto glShared = GL_Shared::getInstance();
-  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
   
-  const dim3 blocks((*numberOfParticles)/128, 1, 1);
+  const dim3 blocks((numberOfParticles)/128, 1, 1);
   const dim3 threads(128, 1, 1);
 
-  computeCellInfo<<<blocks, threads>>>(*numberOfParticles, textureWidth, d_cellStarts, d_cellEndings, d_cellIds_out, d_particleIds_out);
+  computeCellInfo<<<blocks, threads>>>(numberOfParticles, textureWidth, d_cellStarts, d_cellEndings, d_cellIds_out, d_particleIds_out);
+}
+
+// --------------------------------------------------------------------------
+
+__global__ void resetContacts(unsigned int* contacts, 
+                              const unsigned int numberOfContacts) {
+  const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+  if( idx < numberOfContacts ) {
+    contacts[idx] = UINT_MAX;
+  }
+}
+
+void cudaCallResetContacts() {
+  auto glShared = GL_Shared::getInstance();
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int numberOfContacts = maxContactsPerCell * numberOfParticles;
+
+  const dim3 blocks((numberOfContacts)/128, 1, 1);
+  const dim3 threads(128, 1, 1);
+
+  resetContacts<<<blocks, threads>>>(d_contacts, numberOfContacts);
+}
+
+// --------------------------------------------------------------------------
+
+__global__ void findContacts(const unsigned int numberOfParticles,
+                             const unsigned int textureWidth,
+                             const unsigned int maxGrid,
+                             const unsigned int maxContactsPerCell,
+                             const float particleDiameter,
+                             unsigned int* cellStarts,
+                             unsigned int* contacts,
+                             unsigned int* cellIds,
+                             unsigned int* contactCounters,
+                             float* densities) {
+  const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+  const unsigned int x = (idx % textureWidth) * sizeof(float4);
+  const unsigned int y = idx / textureWidth;
+
+  contacts += maxContactsPerCell * idx;
+  unsigned int counter = 0;
+  float numberOfCloseNeighours = 0.0f;
+
+  if( idx < numberOfParticles ) {
+    float4 predictedPosition;
+    surf2Dread(&predictedPosition, predictedPositions4, x, y);
+    predictedPosition.w = 0.0f;
+
+    const int searchWidth = 1;
+    float4 tempPos;
+    unsigned int morton;
+    unsigned int start;
+    unsigned int index;
+    unsigned int x2;
+    unsigned int y2;
+    float distance;
+    float4 otherPredictedPosition; 
+    for(int i=-searchWidth; i<=searchWidth; i++) {
+      for(int j=-searchWidth; j<=searchWidth; j++) {
+        for(int k=-searchWidth; k<=searchWidth; k++) {
+          tempPos = predictedPosition;
+          tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+          morton = mortonCode(tempPos);
+          if( morton < maxGrid ) {
+            start = cellStarts[morton]; 
+            if( start != UINT_MAX ) {
+              index = start;
+              do {
+                numberOfCloseNeighours += 1.0f;
+                if( idx != index && index < numberOfParticles ) {
+                  x2 = (index % textureWidth) * sizeof(float4);
+                  y2 = index / textureWidth;
+                  surf2Dread(&otherPredictedPosition, predictedPositions4, x2, y2);
+                  otherPredictedPosition.w = 0.0f;
+                  distance = length(predictedPosition - otherPredictedPosition);
+                  if( distance < particleDiameter ) {
+                    contacts[counter++] = index;
+                  } 
+                }
+              } while( cellIds[++index] == morton && counter < maxContactsPerCell );
+            }
+          }
+
+        }
+      }
+    }
+
+  }
+  contactCounters[idx] = counter;
+  densities[idx] = numberOfCloseNeighours / 26.0f;
+
+}
+
+void cudaCallFindContacts() {
+  auto glShared = GL_Shared::getInstance();
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int maxGrid = *glShared.get_unsigned_int_value("maxGrid");
+  const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
+  
+  const dim3 blocks((numberOfParticles)/128, 1, 1);
+  const dim3 threads(128, 1, 1);
+
+  findContacts<<<blocks, threads>>>(numberOfParticles, textureWidth, maxGrid, maxContactsPerCell, particleDiameter, d_cellStarts, d_contacts , d_cellIds_out, d_contactCounters, densities);
+
 }
 
 // --------------------------------------------------------------------------
@@ -311,7 +418,7 @@ __global__ void updatePositions(const unsigned int numberOfParticles,
 
     float4 velocity = (predictedPosition - position) / deltaT;
 
-    surf2Dwrite(predictedPosition, positions4, x, y);
+    //surf2Dwrite(predictedPosition, positions4, x, y);
     surf2Dwrite(velocity, velocities4, x, y);
   }
 }
@@ -386,7 +493,7 @@ void initializeCellInfo() {
 
 void initializeCollision() {
   const unsigned int maxParticles = *GL_Shared::getInstance().get_unsigned_int_value("maxParticles");
-  const unsigned int maxContactConstraints = 12 * maxParticles;
+  const unsigned int maxContactConstraints = maxContactsPerCell * maxParticles;
   CUDA(cudaMalloc((void**)&d_contacts, maxContactConstraints * sizeof(unsigned int)));
   CUDA(cudaMalloc((void**)&d_contactCounters, maxParticles * sizeof(unsigned int)));
   CUDA(cudaMalloc((void**)&d_contactConstraintSucces, maxContactConstraints * sizeof(int)));

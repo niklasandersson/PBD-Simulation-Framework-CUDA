@@ -21,6 +21,10 @@ void Collision::compute() {
 
   cudaCallComputeCellInfo();
 
+  cudaCallResetContacts();
+
+  cudaCallFindContacts();
+
   cudaCallUpdatePositions();
 
 }

@@ -56,7 +56,7 @@ Particles::Particles()
   bufferData(GL_ARRAY_BUFFER, densities_.size() * sizeof(float), &densities_[0], GL_DYNAMIC_DRAW);
   enableVertexAttribArray(0);
   vertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, 0, nullptr);
-  vertexAttribDivisor(0, 0);
+  vertexAttribDivisor(0, 1);
 
 
   // bindBuffer("particle_vertices");
@@ -141,8 +141,8 @@ void Particles::generateParticles() {
 
 
   const float offset = 4;
-  const float scale = 1.5f;
-  const unsigned int width = 32;
+  const float scale = 1.0f; // 1.5f
+  const unsigned int width = 8; // 32
   for (unsigned int i = 0; i<width; i++) {
     for (unsigned int j = 0; j<width; j++) {
       for (unsigned int k = 0; k<width; k++) {
