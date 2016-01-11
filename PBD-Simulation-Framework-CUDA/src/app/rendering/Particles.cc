@@ -6,6 +6,8 @@ Particles::Particles()
   // : GL_Renderable("program_particles")
   , clicked_(Delegate<void(const double, const double, const int, const int, const int)>::from<Particles, &Particles::clickCallback>(this))
   , numberOfParticles_(new unsigned int{0})
+  , maxParticles_(new unsigned int{65536})
+  , maxGrid_(new unsigned int{128 * 128 * 128})
 {
   Events::click.subscribe(clicked_);
 
@@ -156,9 +158,10 @@ void Particles::generateParticles() {
   // std::cout << "positons4_.size() = " << positons4_.size() << std::endl;
 
   GL_Shared::getInstance().add_unsigned_int_value("numberOfParticles", numberOfParticles_);
-  GL_Shared::getInstance().add_unsigned_int_value("gridSize", std::shared_ptr<unsigned int>{new unsigned int{ 100 * 100 * 100 }});
   GL_Shared::getInstance().add_float_value("time", std::shared_ptr<float>{new float{ 0 }});
 
+  GL_Shared::getInstance().add_unsigned_int_value("maxParticles", maxParticles_);
+  GL_Shared::getInstance().add_unsigned_int_value("maxGrid", maxGrid_);
 }
 
 

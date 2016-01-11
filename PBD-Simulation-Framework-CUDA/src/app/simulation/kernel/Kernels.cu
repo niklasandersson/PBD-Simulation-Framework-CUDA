@@ -25,8 +25,6 @@ unsigned int* d_cellStarts;
 unsigned int* d_cellEndings;
 
 const float deltaT = 0.01f;
-const unsigned int maxParticles = 65536;
-const unsigned int maxGrid = 128 * 128 * 128;
 
 // --------------------------------------------------------------------------
 
@@ -55,13 +53,13 @@ __global__ void applyForces(const unsigned int numberOfParticles,
 
 void cudaCallApplyForces() {
   auto glShared = GL_Shared::getInstance();
-  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
 
-  const dim3 blocks((*numberOfParticles)/128, 1, 1);
+  const dim3 blocks((numberOfParticles)/128, 1, 1);
   const dim3 threads(128, 1, 1);
 
-  applyForces<<<blocks, threads>>>(*numberOfParticles, textureWidth, deltaT);
+  applyForces<<<blocks, threads>>>(numberOfParticles, textureWidth, deltaT);
 }
 
 // --------------------------------------------------------------------------
@@ -110,20 +108,20 @@ __global__ void initializeCellIds(const unsigned int numberOfParticles,
 
 void cudaCallInitializeCellIds() {
   auto glShared = GL_Shared::getInstance();
-  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
 
-  const dim3 blocks((*numberOfParticles)/128, 1, 1);
+  const dim3 blocks((numberOfParticles)/128, 1, 1);
   const dim3 threads(128, 1, 1);
 
-  initializeCellIds<<<blocks, threads>>>(*numberOfParticles, textureWidth, d_cellIds_in);
+  initializeCellIds<<<blocks, threads>>>(numberOfParticles, textureWidth, d_cellIds_in);
 }
 
 // --------------------------------------------------------------------------
 
 void sortIds() {
   auto glShared = GL_Shared::getInstance();
-  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
   
   cub::DeviceRadixSort::SortPairs(d_sortTempStorage, 
                                   sortTempStorageBytes, 
@@ -131,7 +129,7 @@ void sortIds() {
                                   d_cellIds_out, 
                                   d_particleIds_in, 
                                   d_particleIds_out, 
-                                  *numberOfParticles);
+                                  numberOfParticles);
 }
 
 // --------------------------------------------------------------------------
@@ -160,13 +158,13 @@ __global__ void copy(const unsigned int numberOfParticles,
 
 void cudaCallCopy() {
   auto glShared = GL_Shared::getInstance();
-  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
   
-  const dim3 blocks((*numberOfParticles)/128, 1, 1);
+  const dim3 blocks((numberOfParticles)/128, 1, 1);
   const dim3 threads(128, 1, 1);
 
-  copy<<<blocks, threads>>>(*numberOfParticles, textureWidth);
+  copy<<<blocks, threads>>>(numberOfParticles, textureWidth);
 }
 
 // --------------------------------------------------------------------------
@@ -207,13 +205,13 @@ __global__ void reorder(const unsigned int numberOfParticles,
 
 void cudaCallReorder() {
   auto glShared = GL_Shared::getInstance();
-  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
   
-  const dim3 blocks((*numberOfParticles)/128, 1, 1);
+  const dim3 blocks((numberOfParticles)/128, 1, 1);
   const dim3 threads(128, 1, 1);
 
-  reorder<<<blocks, threads>>>(*numberOfParticles, textureWidth, d_cellIds_out, d_particleIds_out);
+  reorder<<<blocks, threads>>>(numberOfParticles, textureWidth, d_cellIds_out, d_particleIds_out);
 }
 
 // --------------------------------------------------------------------------
@@ -239,13 +237,14 @@ __global__ void resetCellInfo(const unsigned int numberOfParticles,
 
 void cudaCallResetCellInfo() {
   auto glShared = GL_Shared::getInstance();
-  auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int maxGrid = *GL_Shared::getInstance().get_unsigned_int_value("maxGrid");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
   
   const dim3 blocks((maxGrid)/128, 1, 1);
   const dim3 threads(128, 1, 1);
 
-  resetCellInfo<<<blocks, threads>>>(*numberOfParticles, textureWidth, d_cellStarts, d_cellEndings);
+  resetCellInfo<<<blocks, threads>>>(numberOfParticles, textureWidth, d_cellStarts, d_cellEndings);
 }
 
 // --------------------------------------------------------------------------
@@ -349,6 +348,7 @@ void cudaCallInitializeParticleIds() {
 // --------------------------------------------------------------------------
 
 void initializeSort() {
+  const unsigned int maxParticles = *GL_Shared::getInstance().get_unsigned_int_value("maxParticles");
   CUDA(cudaMalloc((void**)&d_cellIds_in, maxParticles * sizeof(unsigned int)));
 	CUDA(cudaMalloc((void**)&d_cellIds_out, maxParticles * sizeof(unsigned int)));
 	CUDA(cudaMalloc((void**)&d_particleIds_in, maxParticles * sizeof(unsigned int)));
@@ -370,6 +370,7 @@ void initializeSort() {
 // --------------------------------------------------------------------------
 
 void initializeCellInfo() {
+  const unsigned int maxGrid = *GL_Shared::getInstance().get_unsigned_int_value("maxGrid");
   CUDA(cudaMalloc((void**)&d_cellStarts, maxGrid * sizeof(unsigned int)));
   CUDA(cudaMalloc((void**)&d_cellEndings, maxGrid * sizeof(unsigned int)));
 }
