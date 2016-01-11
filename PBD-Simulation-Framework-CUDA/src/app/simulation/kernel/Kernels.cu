@@ -24,6 +24,11 @@ size_t sortTempStorageBytes = 0;
 unsigned int* d_cellStarts;
 unsigned int* d_cellEndings;
 
+unsigned int* d_contacts;
+unsigned int* d_contactCounters;
+int* d_contactConstraintSucces;
+int* d_contactConstraintParticleUsed;
+
 float* densities;
 
 const float deltaT = 0.01f;
@@ -379,6 +384,17 @@ void initializeCellInfo() {
 
 // --------------------------------------------------------------------------
 
+void initializeCollision() {
+  const unsigned int maxParticles = *GL_Shared::getInstance().get_unsigned_int_value("maxParticles");
+  const unsigned int maxContactConstraints = 12 * maxParticles;
+  CUDA(cudaMalloc((void**)&d_contacts, maxContactConstraints * sizeof(unsigned int)));
+  CUDA(cudaMalloc((void**)&d_contactCounters, maxParticles * sizeof(unsigned int)));
+  CUDA(cudaMalloc((void**)&d_contactConstraintSucces, maxContactConstraints * sizeof(int)));
+  CUDA(cudaMalloc((void**)&d_contactConstraintParticleUsed, maxParticles * sizeof(int)));
+}
+
+// --------------------------------------------------------------------------
+
 void initializeTexture(surface<void, cudaSurfaceType2D>& surf, const std::string name) {
   auto glShared = GL_Shared::getInstance();
   GLuint gluint = glShared.get_texture(name)->texture_;
@@ -463,4 +479,5 @@ void cudaInitializeKernels() {
 
   initializeSort();
   initializeCellInfo();
+  initializeCollision();
 }
