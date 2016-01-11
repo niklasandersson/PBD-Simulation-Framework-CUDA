@@ -34,6 +34,8 @@ private:
 
   Delegate<void(const double, const double, const int, const int, const int)> clicked_;
   std::shared_ptr<unsigned int> numberOfParticles_;
+  std::shared_ptr<unsigned int> maxParticles_;
+  std::shared_ptr<unsigned int> maxGrid_;
 
   glm::vec3 light_direction_{1.0f, -1.0f, 0.0f};
 

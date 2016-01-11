@@ -15,6 +15,12 @@ void Collision::compute() {
   
   sortIds();
 
+  reorderStorage();
+
+  cudaCallResetCellInfo();
+
+  cudaCallComputeCellInfo();
+
   cudaCallUpdatePositions();
 
 }
