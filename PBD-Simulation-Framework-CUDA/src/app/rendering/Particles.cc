@@ -17,15 +17,21 @@ Particles::Particles()
   // add_shared_buffer("particle_colors");
   add_buffer("element_buffer");
 
+  const unsigned int textureWidth = 256;
 
   positons4_.resize(256 * 256);
   colors4_.resize(256 * 256);
   velocities4_.resize(256 * 256);
 
-  add_shared_texture2D("positions4", 256, 256, &positons4_[0][0]);
-  add_shared_texture2D("predictedPositions4", 256, 256, &positons4_[0][0]);
-  add_shared_texture2D("velocities4", 256, 256, &velocities4_[0][0]);
-  add_shared_texture2D("colors4", 256, 256, &colors4_[0][0]);
+  add_shared_texture2D("positions4", textureWidth, textureWidth, &positons4_[0][0]);
+  add_shared_texture2D("predictedPositions4", textureWidth, textureWidth, &positons4_[0][0]);
+  add_shared_texture2D("velocities4", textureWidth, textureWidth, &velocities4_[0][0]);
+  add_shared_texture2D("colors4", textureWidth, textureWidth, &colors4_[0][0]);
+
+  add_shared_texture2D("positions4Copy", textureWidth, textureWidth, &positons4_[0][0]);
+  add_shared_texture2D("predictedPositions4Copy", textureWidth, textureWidth, &positons4_[0][0]);
+  add_shared_texture2D("velocities4Copy", textureWidth, textureWidth, &velocities4_[0][0]);
+  add_shared_texture2D("colors4Copy", textureWidth, textureWidth, &colors4_[0][0]);
 
   generateResources();
 
