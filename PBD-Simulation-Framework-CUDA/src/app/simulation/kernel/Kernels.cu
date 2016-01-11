@@ -402,6 +402,182 @@ void cudaCallFindContacts() {
 
 // --------------------------------------------------------------------------
 
+__global__ void resetContactConstraintSuccess(const unsigned int maxContactConstraints,
+                                              int* contactConstraintSucces) {
+  const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+  if( idx < maxContactConstraints ) {
+    contactConstraintSucces[idx] = -1;
+  } 
+}
+
+void cudaCallResetContactConstraintSuccess() {
+  auto glShared = GL_Shared::getInstance();
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int maxContactConstraints = maxContactsPerCell * numberOfParticles;
+
+  const dim3 blocks((maxContactConstraints)/128, 1, 1);
+  const dim3 threads(128, 1, 1);
+
+  resetContactConstraintSuccess<<<blocks, threads>>>(maxContactConstraints, d_contactConstraintSucces);
+}
+
+// --------------------------------------------------------------------------
+
+__global__ void resetContactConstraintParticleUsed(const unsigned int numberOfParticles,
+                                                   int* contactConstraintParticleUsed) {
+  const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+  if( idx < numberOfParticles  ) {
+    contactConstraintParticleUsed[idx] = -1;
+  }
+}
+
+void cudaCallResetContactConstraintParticleUsed() {
+  auto glShared = GL_Shared::getInstance();
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
+
+  const dim3 blocks((numberOfParticles)/128, 1, 1);
+  const dim3 threads(128, 1, 1);
+
+  resetContactConstraintParticleUsed<<<blocks, threads>>>(numberOfParticles, d_contactConstraintParticleUsed);
+}
+
+// --------------------------------------------------------------------------
+
+__global__ void setupCollisionConstraintBatches(const unsigned int numberOfContactConstraints,
+                                                const unsigned int maxContactsPerCell,
+                                                unsigned int* contacts,
+                                                int* particleUsed,
+                                                int* constraintSucces) {
+  const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+  if( idx < numberOfContactConstraints ) {
+    const int success = constraintSucces[idx];
+    if( success < 0 ) { // If not success
+      const unsigned int particle1 = idx / maxContactsPerCell;
+      const unsigned int particle2 = contacts[idx];
+      if( particle2 != UINT_MAX ) {
+        const unsigned int localId = threadIdx.x;
+        const unsigned int localWorkSize = blockDim.x;
+        for(unsigned int i=0; i<localWorkSize; i++) {
+          if( (i == localId) && (particleUsed[particle1] < 0) && (particleUsed[particle2] < 0) ) {
+            if( particleUsed[particle1] == -1 ) {
+              particleUsed[particle1] = idx;
+            }
+            if( particleUsed[particle2] == -1 ) {
+              particleUsed[particle2] = idx;
+            }
+          }
+          __syncthreads();
+        }
+      }
+
+    }
+  }
+}
+
+void cudaCallSetupCollisionConstraintBatches() {
+  auto glShared = GL_Shared::getInstance();
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int maxContactConstraints = maxContactsPerCell * numberOfParticles;
+
+  const dim3 blocks((maxContactConstraints)/128, 1, 1);
+  const dim3 threads(128, 1, 1);
+
+  setupCollisionConstraintBatches<<<blocks, threads>>>(maxContactConstraints, maxContactsPerCell, d_contacts, d_contactConstraintParticleUsed, d_contactConstraintSucces);
+}
+
+// --------------------------------------------------------------------------
+
+__global__ void setupCollisionConstraintBatchesCheck(const unsigned int numberOfContactConstraints,
+                                                     const unsigned int maxContactsPerCell,
+                                                     const unsigned int textureWidth,
+                                                     const float particleDiameter,
+                                                     unsigned int* contacts,
+                                                     int* particleUsed,
+                                                     int* constraintSucces) {
+  const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+  if( idx < numberOfContactConstraints ) {
+    const unsigned int particle1 = idx / maxContactsPerCell;
+    const unsigned int particle2 = contacts[idx];
+    if( particle2 != UINT_MAX ) {
+       if( (particleUsed[particle1] == idx) && (particleUsed[particle2] == idx) ) {
+        constraintSucces[idx] = 1;
+
+        // Solve constraint for particle1 and particle2
+        const unsigned int x1 = (particle1 % textureWidth) * sizeof(float4);
+        const unsigned int y1 = particle1 / textureWidth;
+        const unsigned int x2 = (particle2 % textureWidth) * sizeof(float4);
+        const unsigned int y2 = particle2 / textureWidth;
+
+        float4 predictedPosition1;
+        surf2Dread(&predictedPosition1, predictedPositions4, x1, y1);
+        predictedPosition1.w = 0.0f;
+
+        float4 predictedPosition2;
+        surf2Dread(&predictedPosition2, predictedPositions4, x2, y2);
+        predictedPosition2.w = 0.0f;
+
+        const float distance = length(predictedPosition2 - predictedPosition1);
+        const float overlap = particleDiameter - distance;
+
+        if( overlap > 0 ) {
+          const float4 pos1ToPos2 = normalize(predictedPosition2 - predictedPosition1); 
+          const float halfOverlap = overlap / 2.0f;
+
+          const float4 addTo1 = -1.0 * pos1ToPos2 * halfOverlap;
+          const float4 addTo2 = pos1ToPos2 * halfOverlap;
+
+          predictedPosition1 += addTo1;
+          predictedPosition2 += addTo2;
+
+          surf2Dwrite(predictedPosition1, predictedPositions4, x1, y1);
+          surf2Dwrite(predictedPosition2, predictedPositions4, x2, y2);
+
+          float4 position1;
+          surf2Dread(&position1, positions4, x1, y1);
+       
+          float4 position2;
+          surf2Dread(&position2, positions4, x2, y2);
+
+          position1 += addTo1;
+          position2 += addTo2;
+
+          surf2Dwrite(position1, positions4, x1, y1);
+          surf2Dwrite(position2, positions4, x2, y2);
+        }
+        
+      } 
+    }
+  }
+}
+
+void cudaCallSetupCollisionConstraintBatchesCheck() {
+  auto glShared = GL_Shared::getInstance();
+  const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
+  const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
+  const unsigned int maxContactConstraints = maxContactsPerCell * numberOfParticles;
+
+  const dim3 blocks((maxContactConstraints)/128, 1, 1);
+  const dim3 threads(128, 1, 1);
+
+  setupCollisionConstraintBatchesCheck<<<blocks, threads>>>(maxContactConstraints, maxContactsPerCell, textureWidth, particleDiameter, d_contacts, d_contactConstraintParticleUsed, d_contactConstraintSucces);
+}
+
+// --------------------------------------------------------------------------
+
+void solveCollisions() {
+  cudaCallResetContacts();
+  cudaCallFindContacts();
+  cudaCallResetContactConstraintSuccess();
+  const unsigned int maxBatches = maxContactsPerCell;
+  for(unsigned int b=0; b<maxBatches; b++) {
+    cudaCallResetContactConstraintParticleUsed();
+    cudaCallSetupCollisionConstraintBatches();
+    cudaCallSetupCollisionConstraintBatchesCheck();
+  }
+}
+
+// --------------------------------------------------------------------------
+
 __global__ void updatePositions(const unsigned int numberOfParticles,
                                 const unsigned int textureWidth,
                                 const float deltaT) {
