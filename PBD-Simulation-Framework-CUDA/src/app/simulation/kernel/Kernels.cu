@@ -24,6 +24,8 @@ size_t sortTempStorageBytes = 0;
 unsigned int* d_cellStarts;
 unsigned int* d_cellEndings;
 
+float* densities;
+
 const float deltaT = 0.01f;
 
 // --------------------------------------------------------------------------
@@ -232,7 +234,7 @@ __global__ void resetCellInfo(const unsigned int numberOfParticles,
   const unsigned int y = idx / textureWidth;
   
   cellStarts[idx] = UINT_MAX;
-  cellEndings[idx] = 0;
+  cellEndings[idx] = numberOfParticles;
 }
 
 void cudaCallResetCellInfo() {
@@ -403,6 +405,48 @@ void initializeTexture(surface<void, cudaSurfaceType2D>& surf, const std::string
 #define CUDA_INITIALIZE_SHARED_TEXTURE(name) initializeTexture(name, #name)
 
 // --------------------------------------------------------------------------
+/*
+void initializeBuffer(float* buffer, const std::string name) {
+  auto glShared = GL_Shared::getInstance();
+  GLuint gluint = glShared.get_buffer(name)->buffer_;
+
+  cudaStream_t cudaStream;
+  CUDA(cudaStreamCreate(&cudaStream));
+
+  cudaGraphicsResource* resource;
+  CUDA(cudaGraphicsGLRegisterBuffer(&resource, gluint, cudaGraphicsMapFlagsNone));
+
+  CUDA(cudaGraphicsMapResources(1, &resource, cudaStream));
+ 
+  size_t size;
+  CUDA(cudaGraphicsResourceGetMappedPointer((void**)&densities, &size, resource));
+
+  CUDA(cudaGraphicsUnmapResources(1, &resource, cudaStream));
+  CUDA(cudaStreamDestroy(cudaStream));
+} */
+//#define CUDA_INITIALIZE_SHARED_BUFFER(name) initializeBuffer(name, #name)
+
+#define CUDA_INITIALIZE_SHARED_BUFFER(name) \
+  [&]{ \
+  auto glShared = GL_Shared::getInstance(); \
+  GLuint gluint = glShared.get_buffer(#name)->buffer_; \
+  \
+  cudaStream_t cudaStream; \
+  CUDA(cudaStreamCreate(&cudaStream)); \
+  \
+  cudaGraphicsResource* resource; \
+  CUDA(cudaGraphicsGLRegisterBuffer(&resource, gluint, cudaGraphicsMapFlagsNone)); \
+  \
+  CUDA(cudaGraphicsMapResources(1, &resource, cudaStream)); \
+  \
+  size_t size; \
+  CUDA(cudaGraphicsResourceGetMappedPointer((void**)&name, &size, resource)); \
+  \
+  CUDA(cudaGraphicsUnmapResources(1, &resource, cudaStream)); \
+  CUDA(cudaStreamDestroy(cudaStream)); \
+  }()
+
+// --------------------------------------------------------------------------
 
 void cudaInitializeKernels() {
   CUDA_INITIALIZE_SHARED_TEXTURE(positions4);
@@ -414,6 +458,8 @@ void cudaInitializeKernels() {
   CUDA_INITIALIZE_SHARED_TEXTURE(predictedPositions4Copy);
   CUDA_INITIALIZE_SHARED_TEXTURE(velocities4Copy);
   CUDA_INITIALIZE_SHARED_TEXTURE(colors4Copy);
+
+  CUDA_INITIALIZE_SHARED_BUFFER(densities);
 
   initializeSort();
   initializeCellInfo();

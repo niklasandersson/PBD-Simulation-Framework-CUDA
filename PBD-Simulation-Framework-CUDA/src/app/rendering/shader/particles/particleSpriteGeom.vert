@@ -6,6 +6,8 @@
 // layout(location = 1) in vec3 rawPosition;
 // layout(location = 2) in vec3 rawColor;
 
+layout(location = 0) in float density;
+
 uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
 
@@ -35,7 +37,8 @@ void main()
 
   vec3 pos = texture2D(positions4, uv).xyz;
 
-  colorVert = texture2D(colors4, uv).xyz;;
+  colorVert = texture2D(colors4, uv).xyz;
+  //colorVert = vec3(density, density, density);
   // colorVert = vec3(1,0,0);
   gl_Position = vec4(pos, 1.0);
 
