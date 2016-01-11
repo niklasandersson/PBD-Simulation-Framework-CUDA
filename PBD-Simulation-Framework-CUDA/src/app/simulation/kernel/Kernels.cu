@@ -1,9 +1,14 @@
 #include "Kernels.h"
 
+#define M_PI 3.14159265359
+
 surface<void, cudaSurfaceType2D> positions4;
 surface<void, cudaSurfaceType2D> predictedPositions4;
 surface<void, cudaSurfaceType2D> velocities4;
 surface<void, cudaSurfaceType2D> colors4;
+surface<void, cudaSurfaceType2D> densities;
+
+
 
 unsigned int* d_cellIds_in;
 unsigned int* d_cellIds_out;
@@ -17,33 +22,103 @@ const float deltaT = 0.01f;
 const unsigned int maxParticles = 65536;
 
 const float restDensity = 1.0f;
-const float kernelWidth = 10.0f;
+const int cellKernelWidth = 5;
 
 // --------------------------------------------------------------------------
 
-__device__ void poly6(const unsigned int numberOfParticles,
-											const unsigned int textureWidth,
-											const float deltaT) 
+__device__ float poly6(float4 p1, 
+											float4 p2,
+											float h,
+											const unsigned int numberOfParticles,
+											const unsigned int textureWidth)
 {
 	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
 	const unsigned int x = (idx % textureWidth) * sizeof(float4);
 	const unsigned int y = idx / textureWidth;
 
 	if (idx < numberOfParticles) {
-		
-		float4 velocity;
-		surf2Dread(&velocity, velocities4, x, y);
-		velocity.y += inverseMass * gravity * deltaT;
 
-		float4 position;
-		surf2Dread(&position, positions4, x, y);
+		float dist = length(make_float3(p1 - p2));
+		if (dist <= 0.0f)
+		{
+			return 0.0f;
+		}
 
-		float4 predictedPosition = position + velocity * deltaT;
-		surf2Dwrite(predictedPosition, predictedPositions4, x, y);
+		if (dist <= h)
+		{
+			return 315.0f * pow(h*h - dist*dist, 3) / (64.0f * M_PI * pow(h, 9));
+		}
+
 	}
 }
 
-void __global__ computeDensity(const unsigned int numberOfParticles, const unsigned int textureWidth)
+// ---------------------------------------------------------------------------
+
+__device__ float4 spiky(float4 p1,
+	float4 p2,
+	float h,
+	const unsigned int numberOfParticles,
+	const unsigned int textureWidth)
+{
+	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+	const unsigned int x = (idx % textureWidth) * sizeof(float4);
+	const unsigned int y = idx / textureWidth;
+	
+	float common = -1.0f;
+	float4 v = p1 - p2;
+	if (idx < numberOfParticles) {
+
+		float dist = length(make_float3(v));
+		if (dist <= 0.0f)
+		{
+			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+		
+		if (dist <= h)
+			common = 45.0f* pow(h - dist, 2) / (dist * M_PI *pow(h, 6));
+		else
+			common = 0.0f;
+	}
+	return common*v;
+}
+
+__global__ void computeLambda(const unsigned int numberOfParticles, 
+															const unsigned int textureWidth)
+{
+	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+	const unsigned int x = (idx % textureWidth) * sizeof(float4);
+	const unsigned int y = idx / textureWidth;
+
+	float density;
+	surf2Dread(&densities, density, x, y);
+	
+	float4 pred_pos;
+	surf2Dread(&predictedPositions4, pred_pos, x, y);
+
+
+	// Kolla kanterna
+	for (size_t i = -cellKernelWidth; i < cellKernelWidth; i++)
+	{
+		for (size_t j = -cellKernelWidth; j < cellKernelWidth; j++)
+		{
+			for (size_t k = -cellKernelWidth; k < cellKernelWidth; k++)
+			{
+				float4 cell_pos = make_float4(pred_pos.x + i, pred_pos.y + j, pred_pos.z + k, 0.0f);
+				unsigned int cell_id = mortonCode(cell_pos);
+			}
+		}
+	}
+
+	//density = inverseMass*poly6()
+
+}
+
+
+// 1. compute density (sum poly6)
+// 2. compute constraint value
+// 3. compute lambda
+
+__global__ void computeDensity(const unsigned int numberOfParticles, const unsigned int textureWidth)
 {
 	float particle_density = 0.0f;
 
@@ -51,7 +126,22 @@ void __global__ computeDensity(const unsigned int numberOfParticles, const unsig
 	const unsigned int x = (idx % textureWidth) * sizeof(float4);
 	const unsigned int y = idx / textureWidth;
 
+
+	// läs in predicted position och skicka p1.predictedPos i spiky som float3
+	//float4 predictedPosition = ;
+	//surf2Dwrite(predictedPosition, predictedPositions4, x, y);
+	
 	if (idx < numberOfParticles) {
+
+		// kör particle_density += computeParticleDensity() // poly6
+
+		// kör computeConstraintValue(particle_density)
+
+		// kör computeLambda
+
+		__syncthreads();
+
+		// kör computeDeltaP()
 
 	}
 
@@ -71,6 +161,11 @@ void cudaCallComputeDensity() {
 
 
 }
+
+
+
+
+
 
 
 // --------------------------------------------------------------------------
@@ -227,7 +322,7 @@ void cudaCallInitializeParticleIds() {
 
 
 
-
+//__device__ void findNeighbors(){}
 
 
 void initializeTexture(surface<void, cudaSurfaceType2D>& surf, const std::string name) {

@@ -21,11 +21,14 @@ Particles::Particles()
   positons4_.resize(256 * 256);
   colors4_.resize(256 * 256);
   velocities4_.resize(256 * 256);
+	density_.resize(256 * 256);
 
   add_shared_texture2D("positions4", 256, 256, &positons4_[0][0]);
   add_shared_texture2D("predictedPositions4", 256, 256, &positons4_[0][0]);
   add_shared_texture2D("velocities4", 256, 256, &velocities4_[0][0]);
   add_shared_texture2D("colors4", 256, 256, &colors4_[0][0]);
+
+	add_shared_buffer("densities");
 
   generateResources();
 
@@ -40,6 +43,7 @@ Particles::Particles()
 
 
   bindVertexArray("particles_vao");
+
 
   // bindBuffer("particle_vertices");
   // bufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(float), &vertices_[0], GL_STATIC_DRAW);
