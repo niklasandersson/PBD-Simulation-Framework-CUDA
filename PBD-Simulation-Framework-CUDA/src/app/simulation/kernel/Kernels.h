@@ -16,8 +16,8 @@ void cudaCallApplyForces();
 void cudaCallInitializeCellIds();
 void sortIds();
 void reorderStorage();
-void cudaCallResetCellStarts();
-void cudaCallComputeCellStarts();
+void cudaCallResetCellInfo();
+void cudaCallComputeCellInfo();
 void cudaCallUpdatePositions();
 
 

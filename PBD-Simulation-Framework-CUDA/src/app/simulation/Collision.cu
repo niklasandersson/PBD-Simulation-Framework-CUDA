@@ -17,9 +17,9 @@ void Collision::compute() {
 
   reorderStorage();
 
-  cudaCallResetCellStarts();
+  cudaCallResetCellInfo();
 
-  cudaCallComputeCellStarts();
+  cudaCallComputeCellInfo();
 
   cudaCallUpdatePositions();
 
