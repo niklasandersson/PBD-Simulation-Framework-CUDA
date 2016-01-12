@@ -321,6 +321,7 @@ __global__ void findContacts(const unsigned int numberOfParticles,
                              const unsigned int maxContactsPerCell,
                              const float particleDiameter,
                              unsigned int* cellStarts,
+                             unsigned int* cellEndings,
                              unsigned int* contacts,
                              unsigned int* cellIds,
                              unsigned int* contactCounters,
@@ -342,6 +343,7 @@ __global__ void findContacts(const unsigned int numberOfParticles,
     float4 tempPos;
     unsigned int morton;
     unsigned int start;
+    unsigned int end;
     unsigned int index;
     unsigned int x2;
     unsigned int y2;
@@ -355,9 +357,9 @@ __global__ void findContacts(const unsigned int numberOfParticles,
           morton = mortonCode(tempPos);
           if( morton < maxGrid ) {
             start = cellStarts[morton]; 
+            end = cellEndings[morton];
             if( start != UINT_MAX ) {
-              index = start;
-              do {
+              for(index=start; index<end && counter<maxContactsPerCell; index++) {
                 numberOfCloseNeighours += 1.0f;
                 if( idx != index && index < numberOfParticles ) {
                   x2 = (index % textureWidth) * sizeof(float4);
@@ -369,7 +371,7 @@ __global__ void findContacts(const unsigned int numberOfParticles,
                     contacts[counter++] = index;
                   } 
                 }
-              } while( cellIds[++index] == morton && counter < maxContactsPerCell );
+              }
             }
           }
 
@@ -380,7 +382,6 @@ __global__ void findContacts(const unsigned int numberOfParticles,
   }
   contactCounters[idx] = counter;
   densities[idx] = numberOfCloseNeighours / 26.0f;
-
 }
 
 void cudaCallFindContacts() {
@@ -392,8 +393,7 @@ void cudaCallFindContacts() {
   const dim3 blocks((numberOfParticles)/128, 1, 1);
   const dim3 threads(128, 1, 1);
 
-  findContacts<<<blocks, threads>>>(numberOfParticles, textureWidth, maxGrid, maxContactsPerCell, particleDiameter, d_cellStarts, d_contacts , d_cellIds_out, d_contactCounters, densities);
-
+  findContacts<<<blocks, threads>>>(numberOfParticles, textureWidth, maxGrid, maxContactsPerCell, particleDiameter, d_cellStarts, d_cellEndings, d_contacts , d_cellIds_out, d_contactCounters, densities);
 }
 
 // --------------------------------------------------------------------------
