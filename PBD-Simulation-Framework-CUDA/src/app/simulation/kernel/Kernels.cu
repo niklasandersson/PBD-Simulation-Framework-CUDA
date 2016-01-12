@@ -1,6 +1,11 @@
 #include "Kernels.h"
 
 #define M_PI 3.14159265359
+#define deltaT 0.01f
+#define restDensity 1.0f
+#define kernelWidth 10.0f
+#define cellKernelWidth kernelWidth/2
+#define epsilon = 0.00001f
 
 surface<void, cudaSurfaceType2D> positions4;
 surface<void, cudaSurfaceType2D> predictedPositions4;
@@ -19,21 +24,28 @@ unsigned int* d_cellIds_out;
 unsigned int* d_particleIds_in;
 unsigned int* d_particleIds_out;
 
+float* d_lambdas;
+float* lambdas;
+
+float* position_deltas;
+
 void* d_sortTempStorage = nullptr;
 size_t sortTempStorageBytes = 0;
 
 unsigned int* d_cellStarts;
 unsigned int* d_cellEndings;
 
-const float deltaT = 0.01f;
-
-const float restDensity = 1.0f;
-const int cellKernelWidth = 5;
+// TODO: GLÖM INTE ATT DEN SKA VARA SHARED 
+float3 gradC = make_float3(0.0f, 0.0f, 0.0f);
+// TODO: GLÖM INTE ATT DEN SKA VARA SHARED 
+float global_density = 0.0f;
+// TODO: GLÖM INTE ATT DEN SKA VARA SHARED 
+float global_denominator = 0.0f;
 
 // --------------------------------------------------------------------------
 
-__device__ float poly6(float4 p1, 
-											float4 p2,
+__device__ float poly6(float3 p1, 
+											float3 p2,
 											float h,
 											const unsigned int numberOfParticles,
 											const unsigned int textureWidth)
@@ -44,7 +56,7 @@ __device__ float poly6(float4 p1,
 
 	if (idx < numberOfParticles) {
 
-		float dist = length(make_float3(p1 - p2));
+		float dist = length((p1 - p2));
 		if (dist <= 0.0f)
 		{
 			return 0.0f;
@@ -60,8 +72,8 @@ __device__ float poly6(float4 p1,
 
 // ---------------------------------------------------------------------------
 
-__device__ float4 spiky(float4 p1,
-	float4 p2,
+__device__ float3 spiky(float3 p1,
+	float3 p2,
 	float h,
 	const unsigned int numberOfParticles,
 	const unsigned int textureWidth)
@@ -71,13 +83,13 @@ __device__ float4 spiky(float4 p1,
 	const unsigned int y = idx / textureWidth;
 	
 	float common = -1.0f;
-	float4 v = p1 - p2;
+	float3 v = p1 - p2;
 	if (idx < numberOfParticles) {
 
-		float dist = length(make_float3(v));
+		float dist = length((v));
 		if (dist <= 0.0f)
 		{
-			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+			return make_float3(0.0f, 0.0f, 0.0f);
 		}
 		
 		if (dist <= h)
@@ -89,18 +101,28 @@ __device__ float4 spiky(float4 p1,
 }
 
 __global__ void computeLambda(const unsigned int numberOfParticles, 
-															const unsigned int textureWidth)
+															const unsigned int textureWidth,
+															float* lambdas)
 {
 	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
 	const unsigned int x = (idx % textureWidth) * sizeof(float4);
 	const unsigned int y = idx / textureWidth;
 
-	float density;
-	surf2Dread(&densities, density, x, y);
+	float inverseMass = 0.0f;
+
+	float density = 0.0f;
+	surf2Dread(densities, density, x, y);
 	
 	float4 pred_pos;
 	surf2Dread(&predictedPositions4, pred_pos, x, y);
+	float3 pred_pos3 = make_float3(pred_pos.x, pred_pos.y, pred_pos.z);
 
+
+	float4 pred_pos_neigh;
+	unsigned int part_id;
+	unsigned int m;
+	unsigned int n;
+	float3 pred_pos_neigh3;
 
 	// Kolla kanterna
 	for (size_t i = -cellKernelWidth; i < cellKernelWidth; i++)
@@ -109,51 +131,36 @@ __global__ void computeLambda(const unsigned int numberOfParticles,
 		{
 			for (size_t k = -cellKernelWidth; k < cellKernelWidth; k++)
 			{
+			
 				float4 cell_pos = make_float4(pred_pos.x + i, pred_pos.y + j, pred_pos.z + k, 0.0f);
 				unsigned int cell_id = mortonCode(cell_pos);
+				unsigned int part_id_start = d_cellStarts[cell_id];
+				unsigned int part_id_end = d_cellEndings[cell_id];
+				for (size_t q = part_id_start; q < part_id_end; q++)
+				{
+					part_id = d_particleIds_out[q];
+					m = (part_id % textureWidth) * sizeof(int);
+					n = part_id / textureWidth;
+					
+					surf2Dread(&predictedPositions4, pred_pos_neigh, m, n);
+					pred_pos_neigh3 = make_float3(pred_pos_neigh);
+
+					global_density += inverseMass*(poly6(pred_pos3, pred_pos_neigh3, kernelWidth, numberOfParticles, textureWidth)/restDensity) - 1;
+					global_denominator += pow(length(spiky(pred_pos3, pred_pos_neigh3, kernelWidth, numberOfParticles, textureWidth)),2)/restDensity;
+				}
 			}
 		}
 	}
+
+	lambdas[idx] = -1*(global_density) / (global_denominator * 2);
+	
+
 
 	//density = inverseMass*poly6()
 
 }
 
-
-// 1. compute density (sum poly6)
-// 2. compute constraint value
-// 3. compute lambda
-
-__global__ void computeDensity(const unsigned int numberOfParticles, const unsigned int textureWidth)
-{
-	float particle_density = 0.0f;
-
-	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
-	const unsigned int x = (idx % textureWidth) * sizeof(float4);
-	const unsigned int y = idx / textureWidth;
-
-
-	// läs in predicted position och skicka p1.predictedPos i spiky som float3
-	//float4 predictedPosition = ;
-	//surf2Dwrite(predictedPosition, predictedPositions4, x, y);
-	
-	if (idx < numberOfParticles) {
-
-		// kör particle_density += computeParticleDensity() // poly6
-
-		// kör computeConstraintValue(particle_density)
-
-		// kör computeLambda
-
-		__syncthreads();
-
-		// kör computeDeltaP()
-
-	}
-
-}
-
-void cudaCallComputeDensity() {
+void cudaCallComputeLambda() {
 
 	auto glShared = GL_Shared::getInstance();
 	const auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
@@ -163,10 +170,81 @@ void cudaCallComputeDensity() {
 	const dim3 threads(128, 1, 1);
 
 	
-	computeDensity <<< blocks, threads >>>(*numberOfParticles, textureWidth);
-
+	computeLambda <<< blocks, threads >>>(*numberOfParticles, textureWidth, d_lambdas);
+	cudaDeviceSynchronize();
 
 }
+
+
+__global__ void computePositionDeltas(const unsigned int numberOfParticles,
+																			const unsigned int textureWidth,
+																			float* lambdas){
+
+
+	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+	const unsigned int x = (idx % textureWidth) * sizeof(float4);
+	const unsigned int y = idx / textureWidth;
+
+	float4 pred_pos;
+	surf2Dread(&predictedPositions4, pred_pos, x, y);
+	float3 pred_pos3 = make_float3(pred_pos.x, pred_pos.y, pred_pos.z);
+
+	float4 pred_pos_neigh;
+	unsigned int part_id;
+	unsigned int m;
+	unsigned int n;
+	float3 pred_pos_neigh3;
+
+	float lambda = lambdas[idx];
+	float3 position_delta;
+
+	// Kolla kanterna
+	for (size_t i = -cellKernelWidth; i < cellKernelWidth; i++)
+	{
+		for (size_t j = -cellKernelWidth; j < cellKernelWidth; j++)
+		{
+			for (size_t k = -cellKernelWidth; k < cellKernelWidth; k++)
+			{
+
+				float4 cell_pos = make_float4(pred_pos.x + i, pred_pos.y + j, pred_pos.z + k, 0.0f);
+				unsigned int cell_id = mortonCode(cell_pos);
+				unsigned int part_id_start = d_cellStarts[cell_id];
+				unsigned int part_id_end = d_cellEndings[cell_id];
+				for (size_t q = part_id_start; q < part_id_end; q++)
+				{
+					part_id = d_particleIds_out[q];
+					m = (part_id % textureWidth) * sizeof(int);
+					n = part_id / textureWidth;
+
+					surf2Dread(&predictedPositions4, pred_pos_neigh, m, n);
+					pred_pos_neigh3 = make_float3(pred_pos_neigh);
+
+					position_delta += (lambda + lambdas[part_id]) * spiky(pred_pos3, pred_pos_neigh3, kernelWidth, numberOfParticles, textureWidth);
+				}
+			}
+		}
+	}
+
+	position_delta = position_delta / restDensity;
+
+}
+
+void cudaCallComputePositionDeltas() {
+
+	auto glShared = GL_Shared::getInstance();
+	const auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+	const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
+
+	const dim3 blocks((*numberOfParticles) / 128, 1, 1);
+	const dim3 threads(128, 1, 1);
+
+
+	computePositionDeltas <<< blocks, threads >>>(*numberOfParticles, textureWidth, d_lambdas);
+	cudaDeviceSynchronize();
+
+}
+
+
 
 
 
@@ -499,7 +577,7 @@ void initializeSort() {
 	CUDA(cudaMalloc((void**)&d_cellIds_out, maxParticles * sizeof(unsigned int)));
 	CUDA(cudaMalloc((void**)&d_particleIds_in, maxParticles * sizeof(unsigned int)));
 	CUDA(cudaMalloc((void**)&d_particleIds_out, maxParticles * sizeof(unsigned int)));
-
+	CUDA(cudaMalloc((void**)&d_lambdas, maxParticles * sizeof(float)));
   cudaCallInitializeParticleIds();
   
 

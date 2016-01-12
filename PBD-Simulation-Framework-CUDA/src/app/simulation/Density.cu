@@ -10,6 +10,7 @@ Density::Density()
 
 void Density::compute()
 {
-	cudaCallComputeDensity();
+	cudaCallComputeLambda();
+	cudaCallComputePositionDeltas();
 
 }

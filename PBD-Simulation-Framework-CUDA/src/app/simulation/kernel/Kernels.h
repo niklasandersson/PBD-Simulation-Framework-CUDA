@@ -20,7 +20,7 @@ void cudaCallResetCellInfo();
 void cudaCallComputeCellInfo();
 void cudaCallUpdatePositions();
 
-void cudaCallComputeDensity();
-
+void cudaCallComputeLambda();
+void cudaCallComputePositionDeltas();
 
 #endif // KERNELS_H 
