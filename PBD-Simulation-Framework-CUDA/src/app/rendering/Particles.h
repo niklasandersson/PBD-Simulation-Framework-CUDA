@@ -48,6 +48,7 @@ private:
   std::vector<glm::vec4> positons4_;
   std::vector<glm::vec4> velocities4_;
   std::vector<glm::vec4> colors4_;
+  std::vector<float> densities_;
 
 	std::vector<float> density_;
 

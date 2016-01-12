@@ -18,6 +18,7 @@ void sortIds();
 void reorderStorage();
 void cudaCallResetCellInfo();
 void cudaCallComputeCellInfo();
+void solveCollisions();
 void cudaCallUpdatePositions();
 
 void cudaCallComputeLambda();

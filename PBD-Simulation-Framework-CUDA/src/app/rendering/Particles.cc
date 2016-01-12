@@ -21,10 +21,9 @@ Particles::Particles()
 
   const unsigned int textureWidth = 256;
 
-  positons4_.resize(256 * 256);
-  colors4_.resize(256 * 256);
-  velocities4_.resize(256 * 256);
-	density_.resize(256 * 256);
+  positons4_.resize(textureWidth * textureWidth);
+  colors4_.resize(textureWidth * textureWidth);
+  velocities4_.resize(textureWidth * textureWidth);
 
   add_shared_texture2D("positions4", textureWidth, textureWidth, &positons4_[0][0]);
   add_shared_texture2D("predictedPositions4", textureWidth, textureWidth, &positons4_[0][0]);
@@ -36,7 +35,7 @@ Particles::Particles()
   add_shared_texture2D("velocities4Copy", textureWidth, textureWidth, &velocities4_[0][0]);
   add_shared_texture2D("colors4Copy", textureWidth, textureWidth, &colors4_[0][0]);
 
-	add_shared_buffer("densities");
+  add_shared_buffer("densities");
 
   generateResources();
 
@@ -51,6 +50,13 @@ Particles::Particles()
 
 
   bindVertexArray("particles_vao");
+
+  densities_.resize(*maxParticles_);
+  bindBuffer("densities");
+  bufferData(GL_ARRAY_BUFFER, densities_.size() * sizeof(float), &densities_[0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(0);
+  vertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(0, 1);
 
 
   // bindBuffer("particle_vertices");
@@ -134,9 +140,9 @@ void Particles::generateParticles() {
   // }
 
 
-  const float offset = 4;
-  const float scale = 1.5f;
-  const unsigned int width = 32;
+  const float offset = 30;
+  const float scale = 0.9f; // 1.5f
+  const unsigned int width = 8; // 32
   for (unsigned int i = 0; i<width; i++) {
     for (unsigned int j = 0; j<width; j++) {
       for (unsigned int k = 0; k<width; k++) {
@@ -159,13 +165,19 @@ void Particles::generateParticles() {
   }
 
   *numberOfParticles_ = positons4_.size();
-  // std::cout << "positons4_.size() = " << positons4_.size() << std::endl;
+  
+
 
   GL_Shared::getInstance().add_unsigned_int_value("numberOfParticles", numberOfParticles_);
   GL_Shared::getInstance().add_float_value("time", std::shared_ptr<float>{new float{ 0 }});
 
   GL_Shared::getInstance().add_unsigned_int_value("maxParticles", maxParticles_);
   GL_Shared::getInstance().add_unsigned_int_value("maxGrid", maxGrid_);
+
+  for(unsigned int i=0; i<*maxParticles_; i++) {
+    densities_.push_back(0.0f);
+  }
+
 }
 
 
