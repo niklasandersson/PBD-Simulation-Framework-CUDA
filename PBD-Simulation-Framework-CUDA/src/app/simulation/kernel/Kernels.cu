@@ -191,12 +191,8 @@ __global__ void reorder(const unsigned int numberOfParticles,
     const unsigned int cellId = cellIdsOut[idx];
     const unsigned int particleId = particleIdsOut[idx];
 
-    //const unsigned int cellIdReadX = (cellId % textureWidth) * sizeof(float4);
-    //const unsigned int cellIdReadY = cellId / textureWidth;
-
     const unsigned int particleIdX = (particleId % textureWidth) * sizeof(float4);
     const unsigned int particleIdY = particleId / textureWidth;
-
     
     float4 data;
     surf2Dread(&data, positions4Copy, particleIdX, particleIdY);
@@ -510,7 +506,7 @@ __global__ void setupCollisionConstraintBatchesCheck(const unsigned int numberOf
 
         float4 predictedPosition1;
         surf2Dread(&predictedPosition1, predictedPositions4, x1, y1);
-        predictedPosition1.w = 0.0f;
+        predictedPosition1.w = 0.0f;  
 
         float4 predictedPosition2;
         surf2Dread(&predictedPosition2, predictedPositions4, x2, y2);
@@ -594,7 +590,11 @@ __global__ void updatePositions(const unsigned int numberOfParticles,
 
     float4 velocity = (predictedPosition - position) / deltaT;
 
-    //surf2Dwrite(predictedPosition, positions4, x, y);
+    if( predictedPosition.y < 1.5f ) {
+      predictedPosition.y = 1.5f;
+    }
+
+    surf2Dwrite(predictedPosition, positions4, x, y);
     surf2Dwrite(velocity, velocities4, x, y);
   }
 }
@@ -704,43 +704,18 @@ void initializeTexture(surface<void, cudaSurfaceType2D>& surf, const std::string
 #define CUDA_INITIALIZE_SHARED_TEXTURE(name) initializeTexture(name, #name)
 
 // --------------------------------------------------------------------------
-/*
-void initializeBuffer(float* buffer, const std::string name) {
-  auto glShared = GL_Shared::getInstance();
-  GLuint gluint = glShared.get_buffer(name)->buffer_;
-
-  cudaStream_t cudaStream;
-  CUDA(cudaStreamCreate(&cudaStream));
-
-  cudaGraphicsResource* resource;
-  CUDA(cudaGraphicsGLRegisterBuffer(&resource, gluint, cudaGraphicsMapFlagsNone));
-
-  CUDA(cudaGraphicsMapResources(1, &resource, cudaStream));
- 
-  size_t size;
-  CUDA(cudaGraphicsResourceGetMappedPointer((void**)&densities, &size, resource));
-
-  CUDA(cudaGraphicsUnmapResources(1, &resource, cudaStream));
-  CUDA(cudaStreamDestroy(cudaStream));
-} */
-//#define CUDA_INITIALIZE_SHARED_BUFFER(name) initializeBuffer(name, #name)
 
 #define CUDA_INITIALIZE_SHARED_BUFFER(name) \
   [&]{ \
   auto glShared = GL_Shared::getInstance(); \
   GLuint gluint = glShared.get_buffer(#name)->buffer_; \
-  \
   cudaStream_t cudaStream; \
   CUDA(cudaStreamCreate(&cudaStream)); \
-  \
   cudaGraphicsResource* resource; \
   CUDA(cudaGraphicsGLRegisterBuffer(&resource, gluint, cudaGraphicsMapFlagsNone)); \
-  \
   CUDA(cudaGraphicsMapResources(1, &resource, cudaStream)); \
-  \
   size_t size; \
   CUDA(cudaGraphicsResourceGetMappedPointer((void**)&name, &size, resource)); \
-  \
   CUDA(cudaGraphicsUnmapResources(1, &resource, cudaStream)); \
   CUDA(cudaStreamDestroy(cudaStream)); \
   }()

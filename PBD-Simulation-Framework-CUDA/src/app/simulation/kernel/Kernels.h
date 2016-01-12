@@ -18,12 +18,6 @@ void sortIds();
 void reorderStorage();
 void cudaCallResetCellInfo();
 void cudaCallComputeCellInfo();
-void cudaCallResetContacts();
-void cudaCallFindContacts();
-void cudaCallResetContactConstraintSuccess();
-void cudaCallResetContactConstraintParticleUsed();
-void cudaCallSetupCollisionConstraintBatches();
-void cudaCallSetupCollisionConstraintBatchesCheck();
 void solveCollisions();
 void cudaCallUpdatePositions();
 
