@@ -561,14 +561,16 @@ void cudaCallSetupCollisionConstraintBatchesCheck() {
 // --------------------------------------------------------------------------
 
 void solveCollisions() {
-  cudaCallResetContacts();
-  cudaCallFindContacts();
-  cudaCallResetContactConstraintSuccess();
-  const unsigned int maxBatches = maxContactsPerCell;
-  for(unsigned int b=0; b<maxBatches; b++) {
-    cudaCallResetContactConstraintParticleUsed();
-    cudaCallSetupCollisionConstraintBatches();
-    cudaCallSetupCollisionConstraintBatchesCheck();
+  for(unsigned int i=0; i<1; i++) {
+    cudaCallResetContacts();
+    cudaCallFindContacts();
+    cudaCallResetContactConstraintSuccess();
+    const unsigned int maxBatches = maxContactsPerCell;
+    for(unsigned int b=0; b<maxBatches; b++) {
+      cudaCallResetContactConstraintParticleUsed();
+      cudaCallSetupCollisionConstraintBatches();
+      cudaCallSetupCollisionConstraintBatchesCheck();
+    }
   }
 }
 
