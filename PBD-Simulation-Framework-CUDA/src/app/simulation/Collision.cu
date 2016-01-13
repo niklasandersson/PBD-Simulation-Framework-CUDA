@@ -23,6 +23,10 @@ void Collision::compute() {
 
   solveCollisions();
 
+	cudaCallComputeLambda();
+	cudaCallComputePositionDeltas();
+	//cudaCallApplyDensityConstraint();
+
   cudaCallUpdatePositions();
 
 }

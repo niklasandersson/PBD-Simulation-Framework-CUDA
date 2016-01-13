@@ -2,10 +2,10 @@
 #include "cub/cub.cuh"
 
 #define M_PI 3.14159265359
-#define restDensity 1.0f
+#define restDensity 1000.0f
 #define kernelWidth 10.0f
 #define cellKernelWidth kernelWidth/2
-#define epsilon = 0.00001f
+#define epsilon = 0.00000001f
 
 surface<void, cudaSurfaceType2D> positions4;
 surface<void, cudaSurfaceType2D> predictedPositions4;
@@ -44,7 +44,7 @@ const unsigned int maxContactsPerCell = 12;
 float* d_lambdas;
 float* lambdas;
 
-float* position_deltas;
+float4* d_position_deltas;
 
 // --------------------------------------------------------------------------
 
@@ -76,8 +76,8 @@ __device__ __forceinline__ unsigned int mortonCode(float4 pos) {
 
 // --------------------------------------------------------------------------
 
-__device__ float poly6(float3 p1,
-	float3 p2,
+__device__ float poly6(float4 p1,
+	float4 p2,
 	float h,
 	const unsigned int numberOfParticles,
 	const unsigned int textureWidth)
@@ -87,7 +87,8 @@ __device__ float poly6(float3 p1,
 	const unsigned int y = idx / textureWidth;
 
 	if (idx < numberOfParticles) {
-
+		p1.w = 0.0f;
+		p2.w = 0.0f;
 		float dist = length((p1 - p2));
 		if (dist <= 0.0f)
 		{
@@ -96,200 +97,257 @@ __device__ float poly6(float3 p1,
 
 		if (dist <= h)
 		{
-			return 315.0f * pow(h*h - dist*dist, 3) / (64.0f * M_PI * pow(h, 9));
+			float temp = 315.0f * pow(h*h - dist*dist, 3) / (64.0f * M_PI * pow(h, 9));
+			//printf("poly6 = %f \n ", temp);
+			return temp;
 		}
-
+		else
+			return 0.0f;
 	}
 }
 
 // ---------------------------------------------------------------------------
 
-__device__ float3 spiky(float3 p1,
-	float3 p2,
-	float h,
-	const unsigned int numberOfParticles,
-	const unsigned int textureWidth)
+__device__ float4 spiky(float4 p1,
+												float4 p2,
+												float h,
+												const unsigned int numberOfParticles,
+												const unsigned int textureWidth)
 {
+	
 	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
 	const unsigned int x = (idx % textureWidth) * sizeof(float4);
 	const unsigned int y = idx / textureWidth;
 
 	float common = -1.0f;
-	float3 v = p1 - p2;
+	float4 v = p1 - p2;
+	
 	if (idx < numberOfParticles) {
-
+		v.w = 0.0f;
 		float dist = length((v));
 		if (dist <= 0.0f)
 		{
-			return make_float3(0.0f, 0.0f, 0.0f);
+			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
 
 		if (dist <= h)
+		{
 			common = 45.0f* pow(h - dist, 2) / (dist * M_PI *pow(h, 6));
+		}
 		else
 			common = 0.0f;
 	}
+	//printf("spiky = %f, %f, %f \n ", common*v.x, common*v.y, common*v.z);
 	return common*v;
+
+	//return make_float4(1.0f, 1.0f, 1.0f, 0.0f);
 }
 
 __global__ void computeLambda(const unsigned int numberOfParticles,
 	const unsigned int textureWidth,
+	const unsigned int maxGrid,
+	const unsigned int maxContactsPerCell,
+	const float particleDiameter,
 	float* lambdas,
-	float* densities,
 	unsigned int* d_cellStarts,
-	unsigned int* d_cellEndings,
-	unsigned int* d_particleIds_out)
+	unsigned int* d_cellEndings)
 {
+
 	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
 	const unsigned int x = (idx % textureWidth) * sizeof(float4);
 	const unsigned int y = idx / textureWidth;
 
-	float inverseMass = 0.0f;
+	if (idx < numberOfParticles) {
+		
+		float inverseMass = 1.0f;
+		float4 myPredictedPos;
+		surf2Dread(&myPredictedPos, predictedPositions4, x, y);
+		float3 pred_pos3 = make_float3(myPredictedPos.x, myPredictedPos.y, myPredictedPos.z);
+	
+		float4 myNeighbourPredictedPos;
+		float global_density = 0.0f;
+		float global_denominator = 0.0f;
+		const int searchWidth = 1;
+		float4 tempPos;
+		unsigned int morton;
+		unsigned int start;
+		unsigned int end;
+		unsigned int index;
+		unsigned int x2;
+		unsigned int y2;
 
-	float density = densities[idx];
-
-	float4 pred_pos;
-	surf2Dread(&pred_pos, predictedPositions4, x, y);
-	float3 pred_pos3 = make_float3(pred_pos.x, pred_pos.y, pred_pos.z);
-
-
-	float4 pred_pos_neigh;
-	unsigned int part_id;
-	unsigned int m;
-	unsigned int n;
-	float3 pred_pos_neigh3;
-	float global_density = 0.0f;
-	float global_denominator = 0.0f;
-
-
-	// Kolla kanterna
-	for (size_t i = -cellKernelWidth; i < cellKernelWidth; i++)
-	{
-		for (size_t j = -cellKernelWidth; j < cellKernelWidth; j++)
-		{
-			for (size_t k = -cellKernelWidth; k < cellKernelWidth; k++)
-			{
-
-				float4 cell_pos = make_float4(pred_pos.x + i, pred_pos.y + j, pred_pos.z + k, 0.0f);
-				unsigned int cell_id = mortonCode(cell_pos);
-				unsigned int part_id_start = d_cellStarts[cell_id];
-				unsigned int part_id_end = d_cellEndings[cell_id];
-				for (size_t q = part_id_start; q < part_id_end; q++)
-				{
-					part_id = d_particleIds_out[q];
-					m = (part_id % textureWidth) * sizeof(int);
-					n = part_id / textureWidth;
-
-					surf2Dread(&pred_pos_neigh, predictedPositions4, m, n);
-					pred_pos_neigh3 = make_float3(pred_pos_neigh);
-
-					global_density += inverseMass*(poly6(pred_pos3, pred_pos_neigh3, kernelWidth, numberOfParticles, textureWidth) / restDensity) - 1;
-					global_denominator += pow(length(spiky(pred_pos3, pred_pos_neigh3, kernelWidth, numberOfParticles, textureWidth)), 2) / restDensity;
+		// Kolla kanterna
+		for (int i = -searchWidth; i <= searchWidth; i++) {
+			for (int j = -searchWidth; j <= searchWidth; j++) {
+				for (int k = -searchWidth; k <= searchWidth; k++) {
+					tempPos = myPredictedPos;
+					tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+					morton = mortonCode(tempPos);
+					if (morton < maxGrid) {
+						start = d_cellStarts[morton];
+						end = d_cellEndings[morton];
+						if (start != UINT_MAX) {
+							for (index = start; index < end; index++) {
+								if (idx != index && index < numberOfParticles) {
+									x2 = (index % textureWidth) * sizeof(float4);
+									y2 = index / textureWidth;
+									surf2Dread(&myNeighbourPredictedPos, predictedPositions4, x2, y2);
+									global_density += (inverseMass*poly6(myPredictedPos, myNeighbourPredictedPos, kernelWidth, numberOfParticles, textureWidth)/restDensity) - 1;
+									// SPIKY FLOAT4
+									global_denominator = pow(length(spiky(myPredictedPos, myNeighbourPredictedPos, kernelWidth, numberOfParticles, textureWidth)), 2);
+								}
+							}
+						}
+					}
 				}
 			}
 		}
+		
+		lambdas[idx] = -1 * (global_density) / (global_denominator);
+	  //printf("lambda[%i] = %f \n ", idx, lambdas[idx]);
 	}
-
-	lambdas[idx] = -1 * (global_density) / (global_denominator * 2);
-
-
-
-	//density = inverseMass*poly6()
-
 }
 
 void cudaCallComputeLambda() {
 
 	auto glShared = GL_Shared::getInstance();
 	const auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+	const unsigned int maxGrid = *glShared.get_unsigned_int_value("maxGrid");
 	const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
 
 	const dim3 blocks((*numberOfParticles) / 128, 1, 1);
 	const dim3 threads(128, 1, 1);
 
 
-	computeLambda << < blocks, threads >> >(*numberOfParticles, textureWidth, d_lambdas, densities, d_cellStarts, d_cellEndings, d_particleIds_out);
+	computeLambda << < blocks, threads >> >(*numberOfParticles, textureWidth, maxGrid, maxContactsPerCell, particleDiameter, d_lambdas, d_cellStarts, d_cellEndings);
 	cudaDeviceSynchronize();
-
 }
 
 
 __global__ void computePositionDeltas(const unsigned int numberOfParticles,
 	const unsigned int textureWidth,
+	const unsigned int maxGrid,
+	const unsigned int maxContactsPerCell,
+	const float particleDiameter,
 	float* lambdas,
 	unsigned int* d_cellStarts,
 	unsigned int* d_cellEndings,
-	unsigned int* d_particleIds_out){
-
+	float4* position_deltas)
+{
 
 	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
 	const unsigned int x = (idx % textureWidth) * sizeof(float4);
 	const unsigned int y = idx / textureWidth;
 
-	float4 pred_pos;
-	surf2Dread(&pred_pos, predictedPositions4, x, y);
-	float3 pred_pos3 = make_float3(pred_pos.x, pred_pos.y, pred_pos.z);
+	if (idx < numberOfParticles) {
 
-	float4 pred_pos_neigh;
-	unsigned int part_id;
-	unsigned int m;
-	unsigned int n;
-	float3 pred_pos_neigh3;
+		float inverseMass = 1.0f;
+		float4 myPredictedPos;
+		surf2Dread(&myPredictedPos, predictedPositions4, x, y);
+		float3 pred_pos3 = make_float3(myPredictedPos.x, myPredictedPos.y, myPredictedPos.z);
 
-	float lambda = lambdas[idx];
-	float3 position_delta;
+		float4 myNeighbourPredictedPos;
+		float global_density = 0.0f;
+		float global_denominator = 0.0f;
+		const int searchWidth = 1;
+		float4 tempPos;
+		unsigned int morton;
+		unsigned int start;
+		unsigned int end;
+		unsigned int index;
+		unsigned int x2;
+		unsigned int y2;
 
-	// Kolla kanterna
-	for (size_t i = -cellKernelWidth; i < cellKernelWidth; i++)
-	{
-		for (size_t j = -cellKernelWidth; j < cellKernelWidth; j++)
-		{
-			for (size_t k = -cellKernelWidth; k < cellKernelWidth; k++)
-			{
+		float4 position_delta = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-				float4 cell_pos = make_float4(pred_pos.x + i, pred_pos.y + j, pred_pos.z + k, 0.0f);
-				unsigned int cell_id = mortonCode(cell_pos);
-				unsigned int part_id_start = d_cellStarts[cell_id];
-				unsigned int part_id_end = d_cellEndings[cell_id];
-				for (size_t q = part_id_start; q < part_id_end; q++)
-				{
-					part_id = d_particleIds_out[q];
-					m = (part_id % textureWidth) * sizeof(int);
-					n = part_id / textureWidth;
+		// Kolla kanterna
+		for (int i = -searchWidth; i <= searchWidth; i++) {
+			for (int j = -searchWidth; j <= searchWidth; j++) {
+				for (int k = -searchWidth; k <= searchWidth; k++) {
+					tempPos = myPredictedPos;
+					tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+					morton = mortonCode(tempPos);
+					if (morton < maxGrid) {
+						start = d_cellStarts[morton];
+						end = d_cellEndings[morton];
+						if (start != UINT_MAX) {
+							for (index = start; index < end; index++) {
+								if (idx != index && index < numberOfParticles) {
+									x2 = (index % textureWidth) * sizeof(float4);
+									y2 = index / textureWidth;
+									surf2Dread(&myNeighbourPredictedPos, predictedPositions4, x2, y2);
+									position_delta += (lambdas[idx] - lambdas[index])*spiky(myPredictedPos, myNeighbourPredictedPos, kernelWidth, numberOfParticles, textureWidth);
 
-					surf2Dread(&pred_pos_neigh, predictedPositions4, m, n);
-					pred_pos_neigh3 = make_float3(pred_pos_neigh);
-
-					position_delta += (lambda + lambdas[part_id]) * spiky(pred_pos3, pred_pos_neigh3, kernelWidth, numberOfParticles, textureWidth);
+								}
+							}
+						}
+					}
 				}
 			}
 		}
+
+		position_deltas[idx] = position_delta / restDensity;
+		if (position_deltas[idx].x > 0.5f)
+			printf("position_deltas[%i] = %f, %f, %f \n", idx, position_deltas[idx].x, position_deltas[idx].y, position_deltas[idx].z);
 	}
-
-	position_delta = position_delta / restDensity;
-
 }
+
 
 void cudaCallComputePositionDeltas() {
 
 	auto glShared = GL_Shared::getInstance();
 	const auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+	const unsigned int maxGrid = *glShared.get_unsigned_int_value("maxGrid");
 	const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
 
 	const dim3 blocks((*numberOfParticles) / 128, 1, 1);
 	const dim3 threads(128, 1, 1);
 
 
-	computePositionDeltas << < blocks, threads >> >(*numberOfParticles, textureWidth, d_lambdas, d_cellStarts, d_cellEndings, d_particleIds_out);
+	computePositionDeltas << < blocks, threads >> >(*numberOfParticles, textureWidth, maxGrid, maxContactsPerCell, particleDiameter, d_lambdas, d_cellStarts, d_cellEndings, d_position_deltas);
 	cudaDeviceSynchronize();
 
 }
+
+__global__ void applyDensityConstraint(unsigned int numberOfParticles, unsigned int textureWidth, float4* position_deltas)
+{
+	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+	const unsigned int x = (idx % textureWidth) * sizeof(float4);
+	const unsigned int y = idx / textureWidth;
+
+	if (idx < numberOfParticles) {
+		
+		float4 predictedPosition;
+		
+		surf2Dread(&predictedPosition, predictedPositions4, x, y);
+		predictedPosition += position_deltas[idx];
+
+		surf2Dwrite(predictedPosition, predictedPositions4, x, y);
+	}
+}
+
+void cudaCallApplyDensityConstraint() {
+	auto glShared = GL_Shared::getInstance();
+	const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
+	const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
+
+	const dim3 blocks((numberOfParticles) / 128, 1, 1);
+	const dim3 threads(128, 1, 1);
+
+	applyDensityConstraint << < blocks, threads >> >(numberOfParticles, textureWidth, d_position_deltas);
+	cudaDeviceSynchronize();
+}
+
+
+
+
 
 // --------------------------------------------------------------------------
 
 __global__ void applyForces(const unsigned int numberOfParticles,
 	const unsigned int textureWidth,
 	const float deltaT) {
+	
 	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
 	const unsigned int x = (idx % textureWidth) * sizeof(float4);
 	const unsigned int y = idx / textureWidth;
@@ -300,8 +358,9 @@ __global__ void applyForces(const unsigned int numberOfParticles,
 
 		float4 velocity;
 		surf2Dread(&velocity, velocities4, x, y);
-		velocity.y += inverseMass * gravity * deltaT;
 
+		velocity.y += inverseMass * gravity * deltaT;
+		
 		float4 position;
 		surf2Dread(&position, positions4, x, y);
 
@@ -318,7 +377,7 @@ void cudaCallApplyForces() {
 	const dim3 blocks((numberOfParticles) / 128, 1, 1);
 	const dim3 threads(128, 1, 1);
 
-	applyForces << <blocks, threads >> >(numberOfParticles, textureWidth, deltaT);
+	applyForces<<< blocks, threads >>>(numberOfParticles, textureWidth, deltaT);
 }
 
 // --------------------------------------------------------------------------
@@ -1050,4 +1109,6 @@ void cudaInitializeKernels() {
 	auto glShared = GL_Shared::getInstance();
 	const unsigned int maxParticles = *glShared.get_unsigned_int_value("maxParticles");
 	CUDA(cudaMalloc((void**)&d_lambdas, maxParticles * sizeof(float)));
+	CUDA(cudaMalloc((void**)&d_position_deltas, maxParticles * sizeof(float4)));
+
 }

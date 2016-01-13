@@ -11,7 +11,8 @@ Engine::Engine()
 
   initialize();
   while( !stop_.load() ) {
-    run();
+
+		run();
   }
   cleanup();
 

@@ -23,5 +23,5 @@ void cudaCallUpdatePositions();
 
 void cudaCallComputeLambda();
 void cudaCallComputePositionDeltas();
-
+void cudaCallApplyDensityConstraint();
 #endif // KERNELS_H 

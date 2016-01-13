@@ -28,8 +28,13 @@ void Simulation::cleanup() {
 void Simulation::step() {
 
   collision_->compute();
-	density_->compute();
-
-  CUDA(cudaDeviceSynchronize());
+	
+  cudaError_t error = cudaDeviceSynchronize();
+	if (error != cudaSuccess)
+	{
+		// print the CUDA error message and exit
+		printf("CUDA error: %s\n", cudaGetErrorString(error));
+		exit(-1);
+	}
 
 }
