@@ -11,8 +11,6 @@ layout (max_vertices = 4) out;
 uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
 
-uniform sampler2D positions4;
-
 in vec3 colorVert[];
 
 out vec3 color;

@@ -10,6 +10,8 @@
 
 #include "opengl/GL_Shared.h"
 
+void initializeFrame();
+
 void cudaInitializeKernels();
 
 void cudaCallApplyForces();

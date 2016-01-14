@@ -9,6 +9,8 @@ Collision::Collision() {
 
 void Collision::compute() {
 
+  initializeFrame();
+  /*
   cudaCallApplyForces();
 
   cudaCallInitializeCellIds();
@@ -17,12 +19,13 @@ void Collision::compute() {
 
   reorderStorage();
 
-  //cudaCallResetCellInfo();
+  cudaCallResetCellInfo();
 
   cudaCallComputeCellInfo();
 
   solveCollisions();
 
   cudaCallUpdatePositions();
+  */
 
 }

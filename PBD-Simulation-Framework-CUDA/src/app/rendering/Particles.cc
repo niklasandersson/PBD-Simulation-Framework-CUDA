@@ -14,7 +14,7 @@ Particles::Particles()
   generateParticles();
 
   add_vao("particles_vao");
-  // add_buffer("particle_vertices");
+  // add_shared_buffer("d_vertices");
   // add_shared_buffer("particle_positions");
   // add_shared_buffer("particle_colors");
   add_buffer("element_buffer");
@@ -35,7 +35,8 @@ Particles::Particles()
   add_shared_texture2D("velocities4Copy", textureWidth, textureWidth, &velocities4_[0][0]);
   add_shared_texture2D("colors4Copy", textureWidth, textureWidth, &colors4_[0][0]);
 
-  add_shared_buffer("densities");
+  add_shared_buffer("d_densities");
+  add_shared_buffer("d_positions");
 
   generateResources();
 
@@ -52,12 +53,18 @@ Particles::Particles()
   bindVertexArray("particles_vao");
 
   densities_.resize(*maxParticles_);
-  bindBuffer("densities");
+  bindBuffer("d_densities");
   bufferData(GL_ARRAY_BUFFER, densities_.size() * sizeof(float), &densities_[0], GL_DYNAMIC_DRAW);
   enableVertexAttribArray(0);
   vertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, 0, nullptr);
   vertexAttribDivisor(0, 1);
 
+  vertices_.resize(*maxParticles_);
+  bindBuffer("d_positions");
+  bufferData(GL_ARRAY_BUFFER, positons4_.size() * sizeof(float), &positons4_[0][0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(1);
+  vertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(1, 1);
 
   // bindBuffer("particle_vertices");
   // bufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(float), &vertices_[0], GL_STATIC_DRAW);
@@ -142,7 +149,7 @@ void Particles::generateParticles() {
 
   const float offset = 30;
   const float scale = 0.9f; // 1.5f
-  const unsigned int width = 8; // 32
+  const unsigned int width = 16; // 32
   for (unsigned int i = 0; i<width; i++) {
     for (unsigned int j = 0; j<width; j++) {
       for (unsigned int k = 0; k<width; k++) {

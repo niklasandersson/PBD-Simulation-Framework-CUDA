@@ -1,12 +1,11 @@
 #version 330
-// #version 330 core
-// #extension GL_EXT_gpu_shader4 : enable
 
 // layout(location = 0) in vec3 rawVertex;
 // layout(location = 1) in vec3 rawPosition;
 // layout(location = 2) in vec3 rawColor;
 
 layout(location = 0) in float density;
+layout(location = 1) in vec4 position;
 
 uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
@@ -31,7 +30,6 @@ void main()
   const float one_divided_by_width_minus_onef = 1.0 / 255.0;
   const float one_divided_by_height_minus_onef = 1.0 / 255.0;
 
-
   vec2 uv = vec2( (gl_InstanceID % widthi) * one_divided_by_width_minus_onef, 
                   (gl_InstanceID / widthi) * one_divided_by_height_minus_onef );
 
@@ -39,8 +37,10 @@ void main()
 
   colorVert = texture2D(colors4, uv).xyz;
   //colorVert = vec3(density, density, density);
-  // colorVert = vec3(1,0,0);
+  pos = position.xyz;
   gl_Position = vec4(pos, 1.0);
+
+
 
 
   // // vec3 lightPos = vec3(0.577, 0.577, 0.577);
