@@ -76,71 +76,32 @@ __device__ __forceinline__ unsigned int mortonCode(float4 pos) {
 
 // --------------------------------------------------------------------------
 
-__device__ float poly6(float4 p1,
-	float4 p2,
-	float h,
-	const unsigned int numberOfParticles,
-	const unsigned int textureWidth)
+__device__ float poly6(float4 pi,
+	float4 pj,
+	float kernel_width)
 {
-	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
-	const unsigned int x = (idx % textureWidth) * sizeof(float4);
-	const unsigned int y = idx / textureWidth;
+	pi.w = 0.0f;
+	pj.w = 0.0f;
+	float distance = length(pi - pj);
 
-	if (idx < numberOfParticles) {
-		p1.w = 0.0f;
-		p2.w = 0.0f;
-		float dist = length((p1 - p2));
-		if (dist <= 0.0f)
-		{
-			return 0.0f;
-		}
-
-		if (dist <= h)
-		{
-			float temp = 315.0f * pow(h*h - dist*dist, 3) / (64.0f * M_PI * pow(h, 9));
-			//printf("poly6 = %f \n ", temp);
-			return temp;
-		}
-		else
-			return 0.0f;
-	}
+	float numerator_term = kernel_width * kernel_width - distance * distance;
+	return (315.0f * numerator_term * numerator_term) / (64.0f * M_PI * pow(kernel_width, 9));
 }
 
 // ---------------------------------------------------------------------------
 
-__device__ float4 spiky(float4 p1,
-												float4 p2,
-												float h,
-												const unsigned int numberOfParticles,
-												const unsigned int textureWidth)
-{
-	
-	const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
-	const unsigned int x = (idx % textureWidth) * sizeof(float4);
-	const unsigned int y = idx / textureWidth;
+__device__ float4 spiky(float4 pi,
+	float4 pj,
+	float kernel_width) {
 
-	float common = -1.0f;
-	float4 v = p1 - p2;
-	
-	if (idx < numberOfParticles) {
-		v.w = 0.0f;
-		float dist = length((v));
-		if (dist <= 0.0f)
-		{
-			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-		}
+	pi.w = 0.0f;
+	pj.w = 0.0f;
+	float4 r = pi - pj;
+	float distance = length(r);
 
-		if (dist <= h)
-		{
-			common = 45.0f* pow(h - dist, 2) / (dist * M_PI *pow(h, 6));
-		}
-		else
-			common = 0.0f;
-	}
-	//printf("spiky = %f, %f, %f \n ", common*v.x, common*v.y, common*v.z);
-	return common*v;
-
-	//return make_float4(1.0f, 1.0f, 1.0f, 0.0f);
+	float numerator_term = kernel_width - distance;
+	float denominator_term = M_PI * pow(kernel_width, 6) * (distance + 0.001f);
+	return 45.0f * numerator_term / denominator_term * r;
 }
 
 __global__ void computeLambda(const unsigned int numberOfParticles,
@@ -192,9 +153,9 @@ __global__ void computeLambda(const unsigned int numberOfParticles,
 									x2 = (index % textureWidth) * sizeof(float4);
 									y2 = index / textureWidth;
 									surf2Dread(&myNeighbourPredictedPos, predictedPositions4, x2, y2);
-									global_density += (inverseMass*poly6(myPredictedPos, myNeighbourPredictedPos, kernelWidth, numberOfParticles, textureWidth)/restDensity) - 1;
+									global_density += (inverseMass*poly6(myPredictedPos, myNeighbourPredictedPos, kernelWidth)/restDensity) - 1;
 									// SPIKY FLOAT4
-									global_denominator = pow(length(spiky(myPredictedPos, myNeighbourPredictedPos, kernelWidth, numberOfParticles, textureWidth)), 2);
+									global_denominator = pow(length(spiky(myPredictedPos, myNeighbourPredictedPos, kernelWidth)), 2);
 								}
 							}
 						}
@@ -276,7 +237,7 @@ __global__ void computePositionDeltas(const unsigned int numberOfParticles,
 									x2 = (index % textureWidth) * sizeof(float4);
 									y2 = index / textureWidth;
 									surf2Dread(&myNeighbourPredictedPos, predictedPositions4, x2, y2);
-									position_delta += (lambdas[idx] - lambdas[index])*spiky(myPredictedPos, myNeighbourPredictedPos, kernelWidth, numberOfParticles, textureWidth);
+									position_delta += (lambdas[idx] - lambdas[index])*spiky(myPredictedPos, myNeighbourPredictedPos, kernelWidth);
 
 								}
 							}
