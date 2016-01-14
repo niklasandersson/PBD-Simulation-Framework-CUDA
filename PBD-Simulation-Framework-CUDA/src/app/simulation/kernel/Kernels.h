@@ -10,6 +10,8 @@
 
 #include "opengl/GL_Shared.h"
 
+#include "Util.h"
+
 void initializeFrame();
 
 void cudaInitializeKernels();
@@ -22,6 +24,8 @@ void cudaCallResetCellInfo();
 void cudaCallComputeCellInfo();
 void solveCollisions();
 void cudaCallUpdatePositions();
+
+
 
 
 #endif // KERNELS_H 

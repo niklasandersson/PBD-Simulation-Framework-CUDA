@@ -28,6 +28,8 @@ unsigned int* d_contactCounters;
 int* d_contactConstraintSucces;
 int* d_contactConstraintParticleUsed;
 
+  float* d_densities;
+  /*
 struct Buffers {
   float* d_densities;
   float4* d_positions;
@@ -43,6 +45,7 @@ struct Buffers {
 };
 
 Buffers buffers;
+*/
 
 struct SimulationParameters {
   unsigned int numberOfParticles;
@@ -717,64 +720,20 @@ void initializeCollision() {
 
 // --------------------------------------------------------------------------
 
-void initializeTexture(surface<void, cudaSurfaceType2D>& surf, const std::string name) {
-  auto glShared = GL_Shared::getInstance();
-  GLuint gluint = glShared.get_texture(name)->texture_;
-
-  cudaStream_t cudaStream;
-  CUDA(cudaStreamCreate(&cudaStream));
-
-  cudaGraphicsResource* resource;
-  CUDA(cudaGraphicsGLRegisterImage(&resource,
-                                   gluint,
-                                   GL_TEXTURE_2D,
-                                   cudaGraphicsRegisterFlagsSurfaceLoadStore));
-
-  CUDA(cudaGraphicsMapResources(1, &resource, cudaStream));
-
-  cudaArray* array;
-  CUDA(cudaGraphicsSubResourceGetMappedArray(&array, resource, 0, 0));
-
-  CUDA(cudaBindSurfaceToArray(surf, array));
-
-  CUDA(cudaGraphicsUnmapResources(1, &resource, cudaStream));
-  CUDA(cudaStreamDestroy(cudaStream));
-}
-#define CUDA_INITIALIZE_SHARED_TEXTURE(name) initializeTexture(name, #name)
-
-// --------------------------------------------------------------------------
-
-#define CUDA_INITIALIZE_SHARED_BUFFER(name) \
-  [&]{ \
-  auto glShared = GL_Shared::getInstance(); \
-  GLuint gluint = glShared.get_buffer(#name)->buffer_; \
-  cudaStream_t cudaStream; \
-  CUDA(cudaStreamCreate(&cudaStream)); \
-  cudaGraphicsResource* resource; \
-  CUDA(cudaGraphicsGLRegisterBuffer(&resource, gluint, cudaGraphicsMapFlagsNone)); \
-  CUDA(cudaGraphicsMapResources(1, &resource, cudaStream)); \
-  size_t size; \
-  CUDA(cudaGraphicsResourceGetMappedPointer((void**)&name, &size, resource)); \
-  CUDA(cudaGraphicsUnmapResources(1, &resource, cudaStream)); \
-  CUDA(cudaStreamDestroy(cudaStream)); \
-  }()
-
-// --------------------------------------------------------------------------
-
 void cudaInitializeKernels() {
   initializeFrame();
 
-  CUDA_INITIALIZE_SHARED_TEXTURE(positions4);
-  CUDA_INITIALIZE_SHARED_TEXTURE(predictedPositions4);
-  CUDA_INITIALIZE_SHARED_TEXTURE(velocities4);
-  CUDA_INITIALIZE_SHARED_TEXTURE(colors4);
+  initializeSharedTexture(positions4, "positions4");
+  initializeSharedTexture(predictedPositions4, "predictedPositions4");
+  initializeSharedTexture(velocities4, "velocities4");
+  initializeSharedTexture(colors4, "colors4");
 
-  CUDA_INITIALIZE_SHARED_TEXTURE(positions4Copy);
-  CUDA_INITIALIZE_SHARED_TEXTURE(predictedPositions4Copy);
-  CUDA_INITIALIZE_SHARED_TEXTURE(velocities4Copy);
-  CUDA_INITIALIZE_SHARED_TEXTURE(colors4Copy);
+  initializeSharedTexture(positions4Copy, "positions4Copy");
+  initializeSharedTexture(predictedPositions4Copy, "predictedPositions4Copy");
+  initializeSharedTexture(velocities4Copy, "velocities4Copy");
+  initializeSharedTexture(colors4Copy, "colors4Copy");
 
-  CUDA_INITIALIZE_SHARED_BUFFER(d_densities);
+  initializeSharedBuffer(d_densities, "d_densities");
 
   initializeSort();
   initializeCellInfo();

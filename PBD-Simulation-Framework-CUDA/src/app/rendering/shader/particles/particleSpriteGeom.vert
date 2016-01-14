@@ -37,7 +37,7 @@ void main()
 
   colorVert = texture2D(colors4, uv).xyz;
   //colorVert = vec3(density, density, density);
-  pos = position.xyz;
+ // pos = position.xyz;
   gl_Position = vec4(pos, 1.0);
 
 

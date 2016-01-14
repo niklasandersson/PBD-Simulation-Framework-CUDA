@@ -98,11 +98,13 @@
     <ClInclude Include="src\app\rendering\Enclosure.h" />
     <ClInclude Include="src\app\simulation\kernel\hash\Hash.h" />
     <ClInclude Include="src\app\simulation\kernel\Kernels.h" />
+    <ClInclude Include="src\app\simulation\kernel\Util.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
     <CudaCompile Include="src\app\simulation\Collision.cu" />
     <CudaCompile Include="src\app\simulation\kernel\hash\Hash.cu" />
     <CudaCompile Include="src\app\simulation\kernel\Kernels.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\Util.cu" />
   </ItemGroup>
 </Project>

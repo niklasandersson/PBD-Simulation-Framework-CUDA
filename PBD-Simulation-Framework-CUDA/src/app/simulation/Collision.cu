@@ -10,9 +10,9 @@ Collision::Collision() {
 void Collision::compute() {
 
   initializeFrame();
-  /*
-  cudaCallApplyForces();
 
+  cudaCallApplyForces();
+  
   cudaCallInitializeCellIds();
   
   sortIds();
@@ -26,6 +26,5 @@ void Collision::compute() {
   solveCollisions();
 
   cudaCallUpdatePositions();
-  */
 
 }
