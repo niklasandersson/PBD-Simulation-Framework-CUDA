@@ -166,7 +166,7 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
         for(int j=-shell; j<=shell; j++) {
           abj = abs(j);
           for(int k=-shell; k<=shell; k++) {
-            if( (abi!=shell) || (abj!=shell) || (abs(k)!=shell) ) continue;
+            if( (abi!=shell) && (abj!=shell) && (abs(k)!=shell) ) continue;
 
             tempPos = predictedPosition1Org;
             tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
