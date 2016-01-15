@@ -3,7 +3,9 @@
 
 #include "cuda/Cuda.h"
 
-#include "simulation/Collision.h"
+#include "simulation/Parameters.h"
+#include "simulation/Fluid.h"
+
 
 class Simulation {
 
@@ -19,7 +21,8 @@ protected:
 
 private:
   Cuda* cuda_;
-  Collision* collision_;
+  Parameters* parameters_;
+  Fluid* fluid_;
 
 };
 

@@ -13,19 +13,25 @@
 #include <thrust/gather.h>
 #include <thrust/iterator/counting_iterator.h>
 
-#include "kernel/kernels.h"
+#include "Parameters.h"
 
-class Collision : public Cuda_Computable {
+#include "kernel/forces/ApplyForces.h"
+#include "kernel/update/UpdatePositions.h"
+
+
+class Fluid : public Cuda_Computable {
 
 public:
-  Collision();
+  Fluid(Parameters* parameters);
 
   void compute() override;
 
 protected:
 
 private:
+  Parameters* parameters_;
 
 };
+
 
 #endif // COLLISION_H

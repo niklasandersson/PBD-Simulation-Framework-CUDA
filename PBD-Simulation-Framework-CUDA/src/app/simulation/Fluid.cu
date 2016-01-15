@@ -1,18 +1,24 @@
-#include "Collision.h"
+#include "Fluid.h"
 
-Collision::Collision() {
 
-  cudaInitializeKernels();
+Fluid::Fluid(Parameters* parameters) : parameters_(parameters){
+
+  //cudaInitializeKernels();
 
 }
 
 
-void Collision::compute() {
+void Fluid::compute() {
 
+  cudaCallApplyForces(parameters_);
+
+  cudaCallUpdatePositions(parameters_);
+
+   /*
   initializeFrame();
 
   cudaCallApplyForces();
-  
+ 
   cudaCallInitializeCellIds();
   
   sortIds();
@@ -26,5 +32,6 @@ void Collision::compute() {
   solveCollisions();
 
   cudaCallUpdatePositions();
+  */
 
 }

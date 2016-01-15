@@ -13,19 +13,24 @@ Simulation::~Simulation() {
 
 void Simulation::initialize() {
   cuda_ = new Cuda(5, 0);
-  collision_ = new Collision();
+  parameters_ = new Parameters();
+  fluid_ = new Fluid(parameters_);
 }
 
 
 void Simulation::cleanup() {
-  delete collision_;
+  //delete collision_;
+  //delete parameters_;
+  delete parameters_;
   delete cuda_;
 }
 
 
 void Simulation::step() {
+  
+  parameters_->update();
 
-  collision_->compute();
+  fluid_->compute();
 
   CUDA(cudaDeviceSynchronize());
 

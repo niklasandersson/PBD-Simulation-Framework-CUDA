@@ -37,6 +37,15 @@ Particles::Particles()
 
   add_shared_buffer("d_densities");
   add_shared_buffer("d_positions");
+  add_shared_buffer("d_predictedPositions");
+  add_shared_buffer("d_velocities");
+  add_shared_buffer("d_colors");
+
+  add_shared_buffer("d_densitiesCopy");
+  add_shared_buffer("d_positionsCopy");
+  add_shared_buffer("d_predictedPositionsCopy");
+  add_shared_buffer("d_velocitiesCopy");
+  add_shared_buffer("d_colorsCopy");
 
   generateResources();
 
@@ -59,12 +68,69 @@ Particles::Particles()
   vertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, 0, nullptr);
   vertexAttribDivisor(0, 1);
 
-  vertices_.resize(*maxParticles_);
+  positons4_.resize(*maxParticles_);
   bindBuffer("d_positions");
-  bufferData(GL_ARRAY_BUFFER, positons4_.size() * sizeof(float), &positons4_[0][0], GL_DYNAMIC_DRAW);
+  bufferData(GL_ARRAY_BUFFER, positons4_.size() * 4 * sizeof(float), &positons4_[0][0], GL_DYNAMIC_DRAW);
   enableVertexAttribArray(1);
   vertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
   vertexAttribDivisor(1, 1);
+
+  positons4_.resize(*maxParticles_);
+  bindBuffer("d_predictedPositions");
+  bufferData(GL_ARRAY_BUFFER, positons4_.size() * 4 * sizeof(float), &positons4_[0][0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(2);
+  vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(2, 1);
+
+  velocities4_.resize(*maxParticles_);
+  bindBuffer("d_velocities");
+  bufferData(GL_ARRAY_BUFFER, velocities4_.size() * 4 * sizeof(float), &velocities4_[0][0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(3);
+  vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(3, 1);
+
+  colors4_.resize(*maxParticles_);
+  bindBuffer("d_colors");
+  bufferData(GL_ARRAY_BUFFER, colors4_.size() * 4 * sizeof(float), &colors4_[0][0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(4);
+  vertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(4, 1);
+
+  densities_.resize(*maxParticles_);
+  bindBuffer("d_densitiesCopy");
+  bufferData(GL_ARRAY_BUFFER, densities_.size() * sizeof(float), &densities_[0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(5);
+  vertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(5, 1);
+
+  positons4_.resize(*maxParticles_);
+  bindBuffer("d_positionsCopy");
+  bufferData(GL_ARRAY_BUFFER, positons4_.size() * 4 * sizeof(float), &positons4_[0][0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(6);
+  vertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(6, 1);
+
+  positons4_.resize(*maxParticles_);
+  bindBuffer("d_predictedPositionsCopy");
+  bufferData(GL_ARRAY_BUFFER, positons4_.size() * 4 * sizeof(float), &positons4_[0][0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(7);
+  vertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(7, 1);
+
+  velocities4_.resize(*maxParticles_);
+  bindBuffer("d_velocitiesCopy");
+  bufferData(GL_ARRAY_BUFFER, velocities4_.size() * 4 * sizeof(float), &velocities4_[0][0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(8);
+  vertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(8, 1);
+
+  colors4_.resize(*maxParticles_);
+  bindBuffer("d_colorsCopy");
+  bufferData(GL_ARRAY_BUFFER, colors4_.size() * 4 * sizeof(float), &colors4_[0][0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(9);
+  vertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(9, 1);
+
 
   // bindBuffer("particle_vertices");
   // bufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(float), &vertices_[0], GL_STATIC_DRAW);

@@ -28,36 +28,8 @@ unsigned int* d_contactCounters;
 int* d_contactConstraintSucces;
 int* d_contactConstraintParticleUsed;
 
-  float* d_densities;
-  /*
-struct Buffers {
-  float* d_densities;
-  float4* d_positions;
-  float4* d_predictedPositions;
-  float4* d_velocities;
-  float4* d_colors;
+float* d_densities;
 
-  float* d_densities;
-  float4* d_positions;
-  float4* d_predictedPositions;
-  float4* d_velocities;
-  float4* d_colors;
-};
-
-Buffers buffers;
-*/
-
-struct SimulationParameters {
-  unsigned int numberOfParticles;
-  unsigned int textureWidth;
-  unsigned int maxContactsPerParticle;
-  unsigned int maxContactConstraints;
-  unsigned int maxGrid;
-  unsigned int maxParticles;
-  float particleRadius;
-  float particleDiameter;
-  float deltaT;
-};
 
 __constant__ SimulationParameters d_simulationParameters;
 
@@ -734,6 +706,7 @@ void cudaInitializeKernels() {
   initializeSharedTexture(colors4Copy, "colors4Copy");
 
   initializeSharedBuffer(d_densities, "d_densities");
+
 
   initializeSort();
   initializeCellInfo();

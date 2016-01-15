@@ -92,19 +92,20 @@
     <ClInclude Include="src\cuda\cuda_call_error.h" />
     <ClInclude Include="src\app\rendering\Particles.h" />
     <ClInclude Include="src\app\rendering\Floor.h" />
-    <ClInclude Include="src\app\simulation\Collision.h" />
     <ClInclude Include="src\cuda\Cuda_Computable.h" />
     <ClInclude Include="src\cuda\Cuda_Helper_Math.h" />
     <ClInclude Include="src\app\rendering\Enclosure.h" />
-    <ClInclude Include="src\app\simulation\kernel\hash\Hash.h" />
-    <ClInclude Include="src\app\simulation\kernel\Kernels.h" />
-    <ClInclude Include="src\app\simulation\kernel\Util.h" />
+    <ClInclude Include="src\app\simulation\Util.h" />
+    <ClInclude Include="src\app\simulation\kernel\Forces\ApplyForces.h" />
+    <ClInclude Include="src\app\simulation\Parameters.h" />
+    <ClInclude Include="src\app\simulation\Fluid.h" />
+    <ClInclude Include="src\app\simulation\kernel\update\UpdatePositions.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
-    <CudaCompile Include="src\app\simulation\Collision.cu" />
-    <CudaCompile Include="src\app\simulation\kernel\hash\Hash.cu" />
-    <CudaCompile Include="src\app\simulation\kernel\Kernels.cu" />
-    <CudaCompile Include="src\app\simulation\kernel\Util.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\Forces\ApplyForces.cu" />
+    <CudaCompile Include="src\app\simulation\Parameters.cu" />
+    <CudaCompile Include="src\app\simulation\Fluid.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\update\UpdatePositions.cu" />
   </ItemGroup>
 </Project>
