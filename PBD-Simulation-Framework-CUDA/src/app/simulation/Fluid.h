@@ -17,7 +17,7 @@
 
 #include "kernel/forces/ApplyForces.h"
 #include "kernel/update/UpdatePositions.h"
-
+#include "kernel/collision/Collision.h"
 
 class Fluid : public Cuda_Computable {
 

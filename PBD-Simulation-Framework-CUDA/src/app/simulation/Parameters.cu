@@ -14,6 +14,8 @@ Parameters::Parameters() {
   initializeSharedBuffer(deviceBuffers.d_predictedPositionsCopy, "d_predictedPositionsCopy");
   initializeSharedBuffer(deviceBuffers.d_velocitiesCopy, "d_velocitiesCopy");
   initializeSharedBuffer(deviceBuffers.d_colorsCopy, "d_colorsCopy");
+
+  update();
 }
 
 
@@ -31,7 +33,7 @@ void Parameters::update() {
 
   deviceParameters.numberOfParticles = numberOfParticles;
   deviceParameters.textureWidth = textureWidth;
-  deviceParameters.maxContactsPerParticle = 12;
+  deviceParameters.maxContactsPerParticle = 32;
   deviceParameters.maxContactConstraints = deviceParameters.maxContactsPerParticle * deviceParameters.numberOfParticles;
   deviceParameters.maxGrid = maxGrid;
   deviceParameters.maxParticles = maxParticles;
