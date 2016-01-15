@@ -23,7 +23,7 @@
 struct DeviceParameters{
   unsigned int numberOfParticles;
   unsigned int textureWidth;
-  unsigned int maxContactsPerParticle;
+  unsigned int maxContactsPerParticle;  
   unsigned int maxContactConstraints;
   unsigned int maxGrid;
   unsigned int maxParticles;

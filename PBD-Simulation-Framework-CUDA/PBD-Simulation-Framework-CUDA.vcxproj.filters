@@ -101,6 +101,8 @@
     <ClInclude Include="src\app\simulation\Fluid.h" />
     <ClInclude Include="src\app\simulation\kernel\update\UpdatePositions.h" />
     <ClInclude Include="src\app\simulation\kernel\collision\Collision.h" />
+    <ClInclude Include="src\app\simulation\kernel\density\DensityKernels.h" />
+    <ClInclude Include="src\app\simulation\kernel\density\Density.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
@@ -109,5 +111,7 @@
     <CudaCompile Include="src\app\simulation\Fluid.cu" />
     <CudaCompile Include="src\app\simulation\kernel\update\UpdatePositions.cu" />
     <CudaCompile Include="src\app\simulation\kernel\collision\Collision.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\density\Density.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\density\DensityKernels.cu" />
   </ItemGroup>
 </Project>
