@@ -12,8 +12,9 @@ void Fluid::compute() {
 
   cudaCallApplyForces(parameters_);
 
-  cudaCallUpdatePositions(parameters_);
+  solveCollisions(parameters_);
 
+  cudaCallUpdatePositions(parameters_);
 
 /*
   initializeFrame();

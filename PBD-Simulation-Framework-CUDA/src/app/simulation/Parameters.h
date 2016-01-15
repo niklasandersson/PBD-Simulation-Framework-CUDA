@@ -15,21 +15,24 @@
 #define GET_INDEX const unsigned int index = threadIdx.x + blockIdx.x * blockDim.x;
 
 #define PARTICLE_BASED parameters->cudaCallParameters.blocksParticleBased,parameters->cudaCallParameters.threadsParticleBased
-#define CONTACTS_BASED parameters->cudaCallParameters.blocksContactBased,parameters->cudaCallParameters.threadsContactBased
+#define CONTACT_BASED parameters->cudaCallParameters.blocksContactBased,parameters->cudaCallParameters.threadsContactBased
 #define GRID_BASED parameters->cudaCallParameters.blocksGridBased,parameters->cudaCallParameters.threadsGridBased
 
 #define M_PI 3.14159265359
+#define MAX_NEIGHBOURS_PER_PARTICLE 32
+#define KERNEL_WIDTH 3
 
 struct DeviceParameters{
   unsigned int numberOfParticles;
   unsigned int textureWidth;
-  unsigned int maxContactsPerParticle;  
+  unsigned int maxNeighboursPerParticle;
   unsigned int maxContactConstraints;
   unsigned int maxGrid;
   unsigned int maxParticles;
   float particleRadius;
   float particleDiameter;
   float deltaT;
+  unsigned int kernelWidth;
 };
 
 struct DeviceBuffers {
@@ -59,7 +62,7 @@ struct DeviceBuffers {
   unsigned int* d_cellStarts;
   unsigned int* d_cellEndings;
 
-  unsigned int* d_contacts;
+  unsigned int* d_neighbours;
   unsigned int* d_contactCounters;
   unsigned int* d_neighbourCounters;
 

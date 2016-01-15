@@ -2,7 +2,7 @@
 
 
 Parameters::Parameters() {
-  initializeSharedBuffer(deviceBuffers.d_densities, "d_densities");
+
   initializeSharedBuffer(deviceBuffers.d_densities, "d_densities");
   initializeSharedBuffer(deviceBuffers.d_positions, "d_positions");
   initializeSharedBuffer(deviceBuffers.d_predictedPositions, "d_predictedPositions");
@@ -33,11 +33,12 @@ void Parameters::update() {
 
   deviceParameters.numberOfParticles = numberOfParticles;
   deviceParameters.textureWidth = textureWidth;
-  deviceParameters.maxContactsPerParticle = 32;
-  deviceParameters.maxContactConstraints = deviceParameters.maxContactsPerParticle * deviceParameters.numberOfParticles;
+  deviceParameters.maxNeighboursPerParticle = MAX_NEIGHBOURS_PER_PARTICLE;
+  deviceParameters.maxContactConstraints = deviceParameters.maxNeighboursPerParticle * deviceParameters.numberOfParticles;
   deviceParameters.maxGrid = maxGrid;
   deviceParameters.maxParticles = maxParticles;
   deviceParameters.deltaT = 0.01f;
+  deviceParameters.kernelWidth = KERNEL_WIDTH;
   deviceParameters.particleRadius = 0.5f;
   deviceParameters.particleDiameter = 2.0f * deviceParameters.particleRadius;
 
