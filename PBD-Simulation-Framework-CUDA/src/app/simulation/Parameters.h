@@ -18,6 +18,8 @@
 #define CONTACTS_BASED parameters->cudaCallParameters.blocksContactBased,parameters->cudaCallParameters.threadsContactBased
 #define GRID_BASED parameters->cudaCallParameters.blocksGridBased,parameters->cudaCallParameters.threadsGridBased
 
+#define M_PI 3.14159265359
+
 struct DeviceParameters{
   unsigned int numberOfParticles;
   unsigned int textureWidth;
