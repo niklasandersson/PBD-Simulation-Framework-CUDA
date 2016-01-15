@@ -4,7 +4,7 @@
 Fluid::Fluid(Parameters* parameters) : parameters_(parameters){
 
   //cudaInitializeKernels();
-
+  initializeCollision(parameters_);
 }
 
 
@@ -14,7 +14,8 @@ void Fluid::compute() {
 
   cudaCallUpdatePositions(parameters_);
 
-   /*
+
+/*
   initializeFrame();
 
   cudaCallApplyForces();

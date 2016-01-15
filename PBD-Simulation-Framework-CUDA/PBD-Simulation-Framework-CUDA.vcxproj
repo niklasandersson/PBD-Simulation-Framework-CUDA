@@ -161,6 +161,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
     <CudaCompile Include="src\app\simulation\Fluid.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\collision\Collision.cu" />
     <CudaCompile Include="src\app\simulation\kernel\Forces\ApplyForces.cu" />
     <CudaCompile Include="src\app\simulation\kernel\update\UpdatePositions.cu" />
     <CudaCompile Include="src\app\simulation\Parameters.cu" />
@@ -210,6 +211,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\app\rendering\Particles.h" />
     <ClInclude Include="src\app\Simulation.h" />
     <ClInclude Include="src\app\simulation\Fluid.h" />
+    <ClInclude Include="src\app\simulation\kernel\collision\Collision.h" />
     <ClInclude Include="src\app\simulation\kernel\Forces\ApplyForces.h" />
     <ClInclude Include="src\app\simulation\kernel\update\UpdatePositions.h" />
     <ClInclude Include="src\app\simulation\Parameters.h" />

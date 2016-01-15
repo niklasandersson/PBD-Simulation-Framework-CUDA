@@ -12,6 +12,8 @@
 
 #include "Util.h"
 
+#define GET_INDEX const unsigned int index = threadIdx.x + blockIdx.x * blockDim.x;
+
 #define PARTICLE_BASED parameters->cudaCallParameters.blocksParticleBased,parameters->cudaCallParameters.threadsParticleBased
 #define CONTACTS_BASED parameters->cudaCallParameters.blocksContactBased,parameters->cudaCallParameters.threadsContactBased
 #define GRID_BASED parameters->cudaCallParameters.blocksGridBased,parameters->cudaCallParameters.threadsGridBased
@@ -29,6 +31,7 @@ struct DeviceParameters{
 };
 
 struct DeviceBuffers {
+  // Shared buffers
   float* d_densities;
   float4* d_positions;
   float4* d_predictedPositions;
@@ -40,6 +43,26 @@ struct DeviceBuffers {
   float4* d_predictedPositionsCopy;
   float4* d_velocitiesCopy;
   float4* d_colorsCopy;
+
+  // Only for simulation
+  unsigned int* d_cellIds_in;
+  unsigned int* d_cellIds_out;
+
+  unsigned int* d_particleIds_in;
+  unsigned int* d_particleIds_out;
+
+  void* d_sortTempStorage = nullptr;
+  size_t sortTempStorageBytes = 0;
+
+  unsigned int* d_cellStarts;
+  unsigned int* d_cellEndings;
+
+  unsigned int* d_contacts;
+  unsigned int* d_contactCounters;
+  unsigned int* d_neighbourCounters;
+
+  int* d_contactConstraintSucces;
+  int* d_contactConstraintParticleUsed;
 };
 
 struct CudaCallParameters {
