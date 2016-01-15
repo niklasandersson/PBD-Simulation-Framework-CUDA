@@ -101,6 +101,7 @@
     <ClInclude Include="src\app\simulation\Fluid.h" />
     <ClInclude Include="src\app\simulation\kernel\update\UpdatePositions.h" />
     <ClInclude Include="src\app\simulation\kernel\collision\Collision.h" />
+    <ClInclude Include="src\app\simulation\kernel\collision\Hash.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
