@@ -160,15 +160,13 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
 
     int abi = 0;
     int abj = 0;
-    int abk = 0;
     for(int shell=2; shell<kernelWidth; shell++) {
       for(int i=-shell; i<=shell; i++) {
         abi = abs(i);
         for(int j=-shell; j<=shell; j++) {
           abj = abs(j);
           for(int k=-shell; k<=shell; k++) {
-            abj = abs(k);
-            if( (abi!=shell) || (abj!=shell) || (abk!=shell) ) continue;
+            if( (abi!=shell) && (abj!=shell) && (abs(k)!=shell) ) continue;
 
             tempPos = predictedPosition1Org;
             tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
