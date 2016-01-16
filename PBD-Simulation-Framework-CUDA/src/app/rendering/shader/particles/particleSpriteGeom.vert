@@ -6,6 +6,9 @@
 
 layout(location = 0) in float density;
 layout(location = 1) in vec4 position;
+layout(location = 2) in vec4 predictedPosition;
+layout(location = 3) in vec4 velocity;
+layout(location = 4) in vec4 color;
 
 uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
@@ -21,9 +24,7 @@ out vec3 L;
 
 void main()
 {
-  //color = vec3(1,0,1);
-
-
+	/*
   const int widthi = 256; 
   // const int heighti = 512;
 
@@ -36,9 +37,11 @@ void main()
   vec3 pos = texture2D(positions4, uv).xyz;
 
   colorVert = texture2D(colors4, uv).xyz;
-  //colorVert = vec3(density, density, density);
-  pos = position.xyz;
   gl_Position = vec4(pos, 1.0);
+  */
+  //colorVert = vec3(density, density, density);
+  colorVert = color.rgb;
+  gl_Position = vec4(position.xyz, 1.0);
 
 
 

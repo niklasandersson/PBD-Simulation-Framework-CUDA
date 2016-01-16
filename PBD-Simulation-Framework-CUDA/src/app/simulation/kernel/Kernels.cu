@@ -30,6 +30,18 @@ int* d_contactConstraintParticleUsed;
 
 float* d_densities;
 
+struct SimulationParameters{
+  unsigned int numberOfParticles;
+  unsigned int textureWidth;
+  unsigned int maxContactsPerParticle;
+  unsigned int maxContactConstraints;
+  unsigned int maxGrid;
+  unsigned int maxParticles;
+  float particleRadius;
+  float particleDiameter;
+  float deltaT;
+  unsigned int kernelWidth;
+};
 
 __constant__ SimulationParameters d_simulationParameters;
 

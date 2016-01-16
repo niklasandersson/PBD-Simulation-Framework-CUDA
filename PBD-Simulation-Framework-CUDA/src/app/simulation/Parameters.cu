@@ -16,6 +16,7 @@ Parameters::Parameters() {
   initializeSharedBuffer(deviceBuffers.d_colorsCopy, "d_colorsCopy");
 
   update();
+
 }
 
 

@@ -9,7 +9,7 @@ Fluid::Fluid(Parameters* parameters) : parameters_(parameters){
 
 
 void Fluid::compute() {
-
+  
   cudaCallApplyForces(parameters_);
 
   hashSortReorder(parameters_);
@@ -17,7 +17,7 @@ void Fluid::compute() {
   solveCollisions(parameters_);
 
   cudaCallUpdatePositions(parameters_);
-
+   
 /*
   initializeFrame();
 
@@ -36,6 +36,6 @@ void Fluid::compute() {
   solveCollisions();
 
   cudaCallUpdatePositions();
-  */
+ */
 
 }

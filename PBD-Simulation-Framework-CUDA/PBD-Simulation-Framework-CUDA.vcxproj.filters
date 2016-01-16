@@ -103,6 +103,7 @@
     <ClInclude Include="src\app\simulation\kernel\collision\Collision.h" />
     <ClInclude Include="src\app\simulation\kernel\density\DensityKernels.h" />
     <ClInclude Include="src\app\simulation\kernel\density\Density.h" />
+    <ClInclude Include="src\app\simulation\kernel\collision\Hash.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />

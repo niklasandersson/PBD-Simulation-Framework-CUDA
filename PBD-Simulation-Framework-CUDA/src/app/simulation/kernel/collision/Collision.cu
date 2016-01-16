@@ -182,7 +182,6 @@ __global__ void reorder(unsigned int* particleIdsOut,
   if( index < numberOfParticles ) {
     const unsigned int previousIndex = particleIdsOut[index];
     positions[index] = positionsCopy[previousIndex];
-    __syncthreads();
     predictedPositions[index] = predictedPositionsCopy[previousIndex];
     velocities[index] = velocitiesCopy[previousIndex];
     colors[index] = colorsCopy[previousIndex];
@@ -321,7 +320,7 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
     }
 
     contactCounters[index] = counter;
-
+    
     int abi = 0;
     int abj = 0;
     for(int shell=2; shell<kernelWidth; shell++) {

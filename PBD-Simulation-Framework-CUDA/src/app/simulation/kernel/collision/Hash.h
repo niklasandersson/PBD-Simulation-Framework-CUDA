@@ -31,4 +31,5 @@ __device__ __forceinline__ unsigned int getHash(float4 pos) {
    return mortonCode(pos);
 }
 
+
 #endif // HASH_H
