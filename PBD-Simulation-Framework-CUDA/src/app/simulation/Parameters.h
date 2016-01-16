@@ -32,6 +32,7 @@ struct DeviceParameters{
   float particleRadius;
   float particleDiameter;
   float deltaT;
+	float restDensity;
   unsigned int kernelWidth;
 };
 
@@ -68,6 +69,9 @@ struct DeviceBuffers {
 
   int* d_contactConstraintSucces;
   int* d_contactConstraintParticleUsed;
+
+	float* d_lambdas;
+	float4* d_deltaPositions;
 };
 
 struct CudaCallParameters {
