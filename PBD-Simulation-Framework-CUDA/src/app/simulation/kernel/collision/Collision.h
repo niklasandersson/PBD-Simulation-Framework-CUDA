@@ -8,6 +8,7 @@
 #include "Hash.h"
 
 void initializeCollision(Parameters* parameters);
+void hashSortReorder(Parameters* parameters);
 void solveCollisions(Parameters* parameters);
 
 #endif // SORT_H

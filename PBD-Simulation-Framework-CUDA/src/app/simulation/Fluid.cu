@@ -12,6 +12,8 @@ void Fluid::compute() {
 
   cudaCallApplyForces(parameters_);
 
+  hashSortReorder(parameters_);
+
   solveCollisions(parameters_);
 
   cudaCallUpdatePositions(parameters_);
