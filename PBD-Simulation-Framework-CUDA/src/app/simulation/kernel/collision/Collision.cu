@@ -292,7 +292,6 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
       return;
     }
 
-    // Find contacts
     for(int i=-1; i<=1; i++) {
       for(int j=-1; j<=1; j++) {
         for(int k=-1; k<=1; k++) {
@@ -304,7 +303,7 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
             start = cellStarts[hash]; 
             end = cellEndings[hash];
             if( start != UINT_MAX ) {
-              for(index2=start; index2<end && counter<maxNeighboursPerParticle; index2++) {
+              for(index2=start; index2<end; index2++) {
                 if( index != index2 && index2 < numberOfParticles ) {
                   neighbours[counter++] = index2;
                   if( counter == maxNeighboursPerParticle ) {
@@ -323,7 +322,7 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
     
     int abi = 0;
     int abj = 0;
-    for(int shell=2; shell<kernelWidth; shell++) {
+    for(int shell=2; shell<=kernelWidth; shell++) {
       for(int i=-shell; i<=shell; i++) {
         abi = abs(i);
         for(int j=-shell; j<=shell; j++) {
@@ -338,7 +337,7 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
               start = cellStarts[hash]; 
               end = cellEndings[hash];
               if( start != UINT_MAX ) {
-                for(index2=start; index2<end && counter<maxNeighboursPerParticle; index2++) {
+                for(index2=start; index2<end; index2++) {
                   if( index != index2 && index2 < numberOfParticles ) {
                     neighbours[counter++] = index2;
                     if( counter == maxNeighboursPerParticle ) {

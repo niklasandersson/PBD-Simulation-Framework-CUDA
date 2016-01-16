@@ -39,6 +39,7 @@ void Parameters::update() {
   deviceParameters.maxGrid = maxGrid;
   deviceParameters.maxParticles = maxParticles;
   deviceParameters.deltaT = 0.01f;
+	deviceParameters.restDensity = 1000.0f;
   deviceParameters.kernelWidth = KERNEL_WIDTH;
   deviceParameters.particleRadius = 0.5f;
   deviceParameters.particleDiameter = 2.0f * deviceParameters.particleRadius;
