@@ -50,4 +50,14 @@ __global__ void computeDeltaPositions(const unsigned int numberOfParticles,
 	float4* deltaPositions
 	);
 
+void cudaCallComputeOmega(Parameters* parameters);
+__global__ void computeOmega(const unsigned int numberOfParticles,
+														float4* predictedPositions,
+														unsigned int* neighbors,
+														unsigned int* numberOfNeighbors,
+														unsigned int maxNumberOfNeighbors,
+														float kernelWidth,
+														float4* velocity,
+														float3* omegas);
+
 #endif

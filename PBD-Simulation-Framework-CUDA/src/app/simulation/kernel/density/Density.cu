@@ -3,6 +3,8 @@
 void initilizeDensity(Parameters* parameters) {
 	CUDA(cudaMalloc((void**)&parameters->deviceBuffers.d_lambdas, parameters->deviceParameters.maxParticles * sizeof(float)));
 	CUDA(cudaMalloc((void**)&parameters->deviceBuffers.d_deltaPositions, parameters->deviceParameters.maxParticles * sizeof(float4)));
+	CUDA(cudaMalloc((void**)&parameters->deviceBuffers.d_omegas, parameters->deviceParameters.maxParticles * sizeof(float3)));
+
 }
 
 __device__ float poly6(float4 pi,
@@ -31,6 +33,87 @@ __device__ float4 spiky(float4 pi,
   float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0000001f);
   return 45.0f * numeratorTerm / denominatorTerm * r;
 }
+
+void cudaCallComputeOmega(Parameters* parameters) {
+
+	computeOmega << < PARTICLE_BASED >> >(parameters->deviceParameters.numberOfParticles,
+		parameters->deviceBuffers.d_predictedPositions,
+		parameters->deviceBuffers.d_neighbours,
+		parameters->deviceBuffers.d_neighbourCounters,
+		parameters->deviceParameters.maxNeighboursPerParticle,
+		parameters->deviceParameters.kernelWidth,
+		parameters->deviceBuffers.d_velocities,
+		parameters->deviceBuffers.d_omegas);
+
+}
+
+__global__ void computeOmega(const unsigned int numberOfParticles,
+	float4* predictedPositions,
+	unsigned int* neighbors,
+	unsigned int* numberOfNeighbors,
+	unsigned int maxNumberOfNeighbors,
+	float kernelWidth,
+	float4* velocities,
+	float3* omegas
+	) {
+	GET_INDEX
+
+	float4 pi = predictedPositions[index];
+	float4 vi = velocities[index];
+	unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
+	float3 omega = make_float3(0.0f, 0.0f, 0.0f);
+
+	for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
+		unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
+		float4 pj = predictedPositions[neighborIndex];
+		float4 vij = velocities[neighborIndex] - vi;
+		float3 vij3 = make_float3(vij.x, vij.y, vij.z);
+		float4 spike = spiky(pi, pj, kernelWidth);
+
+		float3 spike3 = make_float3(spike.x, spike.y, spike.z);
+
+		omega += cross(vij3, spike3);
+	}
+	omegas[index] = omega;
+}
+
+__global__ void computeVorticity(const unsigned int numberOfParticles,
+	float4* predictedPositions,
+	unsigned int* neighbors,
+	unsigned int* numberOfNeighbors,
+	unsigned int maxNumberOfNeighbors,
+	float kernelWidth,
+	float4* velocities,
+	float3* omegas
+	) {
+	GET_INDEX
+
+	float4 pi = predictedPositions[index];
+	float4 vi = velocities[index];
+	float3 omegai = omegas[index];
+	unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
+	
+	float3 gradient = make_float3(0.0f, 0.0f, 0.0f);
+
+	for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
+		unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
+		float4 pj = predictedPositions[neighborIndex];
+		float3 omegaj = omegas[neighborIndex];
+		float4 vij = velocities[neighborIndex] - vi;
+		float omegaLength = length(omegaj - omegai);
+		float4 pij = pj - pi;
+
+		gradient.x += omegaLength / pij.x;
+		gradient.y += omegaLength / pij.y;
+		gradient.z += omegaLength / pij.z;
+	}
+
+	float3 N = 1.0f / (length(gradient) + 0.00001f) * gradient;
+	float epsilon = 0.0001f;
+	float3 vorticity = epsilon * cross(N, omegas[index]);
+
+}
+
 
 void cudaCallComputeDeltaPositions(Parameters* parameters) {
 
