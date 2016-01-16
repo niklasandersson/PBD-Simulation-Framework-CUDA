@@ -282,6 +282,11 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
     unsigned int end;
     unsigned int index2;
     float distance;
+    float overlap;
+    float halfOverlap;
+    float4 addTo1;
+    float4 addTo2;
+    float4 pos1ToPos2;
     float4 predictedPosition2; 
     
     if( counter == maxNeighboursPerParticle ) {
@@ -306,6 +311,51 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
               for(index2=start; index2<end; index2++) {
                 if( index != index2 && index2 < numberOfParticles ) {
                   neighbours[counter++] = index2;
+
+                  predictedPosition1 = predictedPositions[index]; 
+                  predictedPosition2 = predictedPositions[index2]; 
+
+                  distance = length(predictedPosition2 - predictedPosition1);
+                  overlap = particleDiameter - distance;
+
+                  if( overlap > 0 ) {
+                    pos1ToPos2 = normalize(predictedPosition2 - predictedPosition1); 
+                    halfOverlap = overlap / 2.0f;
+
+                    addTo1 = -1.0 * pos1ToPos2 * halfOverlap;
+                    addTo2 = pos1ToPos2 * halfOverlap;
+
+                    //predictedPosition1 += addTo1;
+                    //predictedPosition2 += addTo2;
+
+                    //predictedPositions[index] = predictedPosition1;
+                    //predictedPositions[index2] = predictedPosition2;
+
+                    atomicAdd(&(predictedPositions[index].x), addTo1.x);
+                    atomicAdd(&(predictedPositions[index].y), addTo1.y);
+                    atomicAdd(&(predictedPositions[index].z), addTo1.z);
+       
+                    atomicAdd(&(predictedPositions[index2].x), addTo2.x);
+                    atomicAdd(&(predictedPositions[index2].y), addTo2.y);
+                    atomicAdd(&(predictedPositions[index2].z), addTo2.z);
+
+                    //float4 position1 = positions[index]; 
+                    //float4 position2 = positions[index2];
+
+                    //position1 += addTo1;
+                    //position2 += addTo2;
+
+                    //positions[index] = position1;
+                    //positions[index2] = position2;
+               
+                    atomicAdd(&(positions[index].x), addTo1.x);
+                    atomicAdd(&(positions[index].y), addTo1.y);
+                    atomicAdd(&(positions[index].z), addTo1.z);
+       
+                    atomicAdd(&(positions[index2].x), addTo2.x);
+                    atomicAdd(&(positions[index2].y), addTo2.y);
+                    atomicAdd(&(positions[index2].z), addTo2.z);
+                  }
                   if( counter == maxNeighboursPerParticle ) {
                     goto both;
                   }
@@ -319,7 +369,7 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
     }
 
     contactCounters[index] = counter;
-    
+
     int abi = 0;
     int abj = 0;
     for(int shell=2; shell<=kernelWidth; shell++) {
@@ -352,7 +402,6 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
         }
       }
     }
-    
     neighbourCounters[index] = counter;
   }
 
