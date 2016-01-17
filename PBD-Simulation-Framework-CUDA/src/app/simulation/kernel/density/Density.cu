@@ -1,10 +1,13 @@
 #include "Density.h"
-
+float const EPSILON = 0.000000001f;
+// GLÖM INTE cudaFree
+// ---------------------------------
 void initilizeDensity(Parameters* parameters) {
 	CUDA(cudaMalloc((void**)&parameters->deviceBuffers.d_lambdas, parameters->deviceParameters.maxParticles * sizeof(float)));
 	CUDA(cudaMalloc((void**)&parameters->deviceBuffers.d_deltaPositions, parameters->deviceParameters.maxParticles * sizeof(float4)));
 	CUDA(cudaMalloc((void**)&parameters->deviceBuffers.d_omegas, parameters->deviceParameters.maxParticles * sizeof(float3)));
-
+	CUDA(cudaMalloc((void**)&parameters->deviceBuffers.d_externalForces, parameters->deviceParameters.maxParticles * sizeof(float4)));
+	cudaMemset(parameters->deviceBuffers.d_externalForces, 0.0f, parameters->deviceParameters.maxParticles * sizeof(float4));
 }
 
 __device__ float poly6(float4 pi,
@@ -35,15 +38,36 @@ __device__ float4 spiky(float4 pi,
   pj.w = 0.0f;
   float4 r = pi - pj;
   float distance = length(r);
-	if (distance < 0 || distance > kernelWidth)
-	{
-		float numeratorTerm = pow(kernelWidth - distance, 3);
-		float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0000001f);
-		return 45.0f * numeratorTerm / denominatorTerm * r;
-	}
-	else
-		return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	
+	
+	float numeratorTerm = pow(kernelWidth - distance, 3);
+	float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0000001f);
+	//printf("numeratorTerm = %f ", numeratorTerm);
+	//printf("denominatorTerm = %f ", denominatorTerm);
+
+	return 45.0f * numeratorTerm / (denominatorTerm * r);
+
 }
+
+void cudaApplyDeltaPositions(Parameters* parameters)
+{
+		applyDeltaPositions<<< PARTICLE_BASED >>>(parameters->deviceParameters.numberOfParticles,
+		parameters->deviceBuffers.d_predictedPositions,
+		parameters->deviceBuffers.d_deltaPositions);
+}
+
+__global__ void applyDeltaPositions(const unsigned int numberOfParticles,
+	float4* predictedPositions,
+	float4* d_deltaPositions)
+{
+	GET_INDEX
+	if (index < numberOfParticles) {
+		//printf("d_deltaPositions.x = %f, d_deltaPositions.y = %f, d_deltaPositions.z = %f \n", d_deltaPositions[index].x, d_deltaPositions[index].y, d_deltaPositions[index].z);
+		//predictedPositions[index] = predictedPositions[index] + d_deltaPositions[index];
+	}
+}
+
+
 
 void cudaCallComputeViscosity(Parameters* parameters) {
 
@@ -80,6 +104,7 @@ __global__ void computeViscosity(const unsigned int numberOfParticles,
 	}
 
 	float4 vNew = vi + c*vSum;
+	velocities[index] = vNew;
 }
 
 
@@ -120,23 +145,23 @@ __global__ void computeOmega(const unsigned int numberOfParticles,
 		float4 spike = spiky(pi, pj, kernelWidth);
 
 		float3 spike3 = make_float3(spike.x, spike.y, spike.z);
-
 		omega += cross(vij3, spike3);
 	}
 	omegas[index] = omega;
-}
 
+}
 
 void cudaCallComputeVorticity(Parameters* parameters) {
 
-	computeOmega << < PARTICLE_BASED >> >(parameters->deviceParameters.numberOfParticles,
+	computeVorticity << < PARTICLE_BASED >> >(parameters->deviceParameters.numberOfParticles,
 		parameters->deviceBuffers.d_predictedPositions,
 		parameters->deviceBuffers.d_neighbours,
 		parameters->deviceBuffers.d_neighbourCounters,
 		parameters->deviceParameters.maxNeighboursPerParticle,
 		parameters->deviceParameters.kernelWidth,
 		parameters->deviceBuffers.d_velocities,
-		parameters->deviceBuffers.d_omegas);
+		parameters->deviceBuffers.d_omegas,
+		parameters->deviceBuffers.d_externalForces);
 
 }
 
@@ -147,7 +172,8 @@ __global__ void computeVorticity(const unsigned int numberOfParticles,
 	unsigned int maxNumberOfNeighbors,
 	float kernelWidth,
 	float4* velocities,
-	float3* omegas
+	float3* omegas,
+	float4* externalForces
 	) {
 	GET_INDEX
 
@@ -155,28 +181,35 @@ __global__ void computeVorticity(const unsigned int numberOfParticles,
 	float4 vi = velocities[index];
 	float3 omegai = omegas[index];
 	unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
-	
-	float3 gradient = make_float3(0.0f, 0.0f, 0.0f);
 
+	float3 gradient = make_float3(0.0f, 0.0f, 0.0f);
+	const float EPSILON = 0.000001f;
 	for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
 		unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
+		//printf("neighborIndex = %i \n", neighborIndex);
 		float4 pj = predictedPositions[neighborIndex];
+		//printf("pj = %f, %f, %f, \n", pj.x, pj.y, pj.z);
 		float3 omegaj = omegas[neighborIndex];
+		printf("omegaj = %f, %f, %f, \n", omegaj.x, omegaj.y, omegaj.z);
 		float4 vij = velocities[neighborIndex] - vi;
+		//printf("vij= %f, %f, %f, \n", vij.x, vij.y, vij.z);
 		float omegaLength = length(omegaj - omegai);
-		float4 pij = pj - pi;
+		float4 pij = pj - pi + EPSILON;
 
 		gradient.x += omegaLength / pij.x;
 		gradient.y += omegaLength / pij.y;
 		gradient.z += omegaLength / pij.z;
+		//printf("gradient = %f, %f, %f, \n", gradient.x, gradient.y, gradient.z);
 	}
 
 	float3 N = (1.0f / (length(gradient) + 0.00001f)) * gradient;
-	float epsilon = 0.0001f;
+	float epsilon = 1.0f;
 	float3 vorticity = epsilon * cross(N, omegas[index]);
-
+	//if (vorticity.x > 10 || vorticity.y > 10 || vorticity.z > 10 || vorticity.x < -10 || vorticity.y < -10 || vorticity.z < -10)
+		
+	externalForces[index] = make_float4(vorticity.x, vorticity.y, vorticity.z, 0.0f);
+	//printf("vorticity.x = %f, vorticity.y = %f, vorticity.z = %f \n", externalForces[index].x, externalForces[index].y, externalForces[index].z);
 }
-
 
 void cudaCallComputeDeltaPositions(Parameters* parameters) {
 
@@ -218,9 +251,9 @@ __global__ void computeDeltaPositions(const unsigned int numberOfParticles,
 			float lambdaj = lambdas[neighborIndex];
 			float absQ = 0.1f*kernelWidth;
 			float4 deltaQ = make_float4(1.0f, 1.0f, 1.0f, 0.0f) * absQ + pi;
-			sCorr = -k * pow(poly6(pi, pj, kernelWidth), n) / poly6(deltaQ, make_float4(0.0f, 0.0f, 0.0f, 0.0f), kernelWidth);
+			//sCorr = -k * pow(poly6(pi, pj, kernelWidth), n) / poly6(deltaQ, make_float4(0.0f, 0.0f, 0.0f, 0.0f), kernelWidth);
 
-			deltaPosition += (lambdai + lambdaj + sCorr) * spiky(pi, pj, kernelWidth);
+			deltaPosition += (lambdai + lambdaj) * spiky(pi, pj, kernelWidth);
 		}
 
 		deltaPositions[index] = deltaPosition / restDensity;
@@ -257,23 +290,31 @@ __global__ void computeLambda(const unsigned int numberOfParticles,
   restDensity, kernelWidth, neighbors, numberOfNeighbors, maxNumberOfNeighbors);
 
   float gradientValue = 0.0f;
+	const float EPSILON = 0.00000001f;
+
   unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
 
   for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
     unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
     float4 pj = predictedPositions[neighborIndex];
     float4 gradient = -1.0f * spiky(pi, pj, kernelWidth) / restDensity;
-    float gradientLength = length(gradient);
+		//printf("gradient.x = %f , gradient.y = %f , gradient.z = %f  \n", gradient.x, gradient.y, gradient.z);
+    float gradientLength = length(make_float3(gradient.x, gradient.y, gradient.z));
+		//printf("gradLength = %f \n", gradientLength);
+		//printf("gradient.x = %f , gradient.y = %f , gradient.z = %f, gradLength = %f \n", gradient.x, gradient.y, gradient.z, gradientLength);
     gradientValue += gradientLength * gradientLength;
   }
 
   float4 gradientAtSelf = computeGradientAtSelf(index, pi, predictedPositions,
     restDensity, kernelWidth, neighbors, numberOfNeighbors, maxNumberOfNeighbors);
 
-  float gradientAtSelfLength = length(gradientAtSelf);
+	float gradientAtSelfLength = length(make_float3(gradientAtSelf.x, gradientAtSelf.y, gradientAtSelf.z));
   gradientValue += gradientAtSelfLength * gradientAtSelfLength;
 
-	lambdas[index] = -1.0f * ci / gradientValue;
+	//if (gradientValue == 0.0f)
+		//printf("gradientValue = %f \n", gradientValue);
+	//printf("ci = %f \n", ci);
+	lambdas[index] = -1.0f * ci / (gradientValue + EPSILON);
 }
 
 __device__ float computeConstraintValue(const unsigned int index,

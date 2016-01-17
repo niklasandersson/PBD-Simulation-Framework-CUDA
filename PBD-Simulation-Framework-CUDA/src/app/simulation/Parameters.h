@@ -20,7 +20,7 @@
 
 #define M_PI 3.14159265359
 #define MAX_NEIGHBOURS_PER_PARTICLE 32
-#define KERNEL_WIDTH 3
+#define KERNEL_WIDTH 10
 
 struct DeviceParameters{
   unsigned int numberOfParticles;
@@ -74,6 +74,7 @@ struct DeviceBuffers {
 	float4* d_deltaPositions;
 	float3* d_omegas;
 	float4 viscosity;
+	float4* d_externalForces;
 };
 
 struct CudaCallParameters {

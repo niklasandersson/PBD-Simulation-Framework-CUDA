@@ -15,21 +15,31 @@ void Fluid::compute() {
 
   hashSortReorder(parameters_);
 
-  solveCollisions(parameters_);
-
-  cudaCallUpdatePositions(parameters_);
+  solveCollisions(parameters_); // find neighbors && solve collisions
 
 	cudaCallComputeLambda(parameters_);
 	
 	cudaCallComputeDeltaPositions(parameters_);
 
+	//cudaApplyCollision()
+
+	cudaApplyDeltaPositions(parameters_);
+
 	cudaCallComputeOmega(parameters_);
 
 	cudaCallComputeVorticity(parameters_);
 
-	cudaCallComputeViscosity(parameters_);
+	//cudaCallComputeViscosity(parameters_);
+
+	cudaCallUpdatePositions(parameters_); // vel = (pj - pi)/dt && pos = predPos
 
 
+	char a;
+	std::cin >> a;
+
+	
+
+	
 
 /*
   initializeFrame();
