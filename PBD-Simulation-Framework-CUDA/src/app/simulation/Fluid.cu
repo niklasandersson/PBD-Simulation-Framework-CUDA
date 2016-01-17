@@ -23,6 +23,14 @@ void Fluid::compute() {
 	
 	cudaCallComputeDeltaPositions(parameters_);
 
+	cudaCallComputeOmega(parameters_);
+
+	cudaCallComputeVorticity(parameters_);
+
+	cudaCallComputeViscosity(parameters_);
+
+
+
 /*
   initializeFrame();
 

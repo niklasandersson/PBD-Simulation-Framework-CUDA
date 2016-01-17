@@ -73,6 +73,7 @@ struct DeviceBuffers {
 	float* d_lambdas;
 	float4* d_deltaPositions;
 	float3* d_omegas;
+	float4 viscosity;
 };
 
 struct CudaCallParameters {

@@ -60,4 +60,26 @@ __global__ void computeOmega(const unsigned int numberOfParticles,
 														float4* velocity,
 														float3* omegas);
 
+void cudaCallComputeVorticity(Parameters* parameters);
+__global__ void computeVorticity(const unsigned int numberOfParticles,
+	float4* predictedPositions,
+	unsigned int* neighbors,
+	unsigned int* numberOfNeighbors,
+	unsigned int maxNumberOfNeighbors,
+	float kernelWidth,
+	float4* velocities,
+	float3* omegas
+	);
+
+
+void cudaCallComputeViscosity(Parameters* parameters);
+__global__ void computeViscosity(const unsigned int numberOfParticles,
+	float4* predictedPositions,
+	unsigned int* neighbors,
+	unsigned int* numberOfNeighbors,
+	unsigned int maxNumberOfNeighbors,
+	float kernelWidth,
+	float4* velocity);
+
+
 #endif

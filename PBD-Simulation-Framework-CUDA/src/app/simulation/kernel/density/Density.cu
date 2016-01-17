@@ -34,6 +34,44 @@ __device__ float4 spiky(float4 pi,
   return 45.0f * numeratorTerm / denominatorTerm * r;
 }
 
+void cudaCallComputeViscosity(Parameters* parameters) {
+
+	computeViscosity << < PARTICLE_BASED >> >(parameters->deviceParameters.numberOfParticles,
+			parameters->deviceBuffers.d_predictedPositions,
+			parameters->deviceBuffers.d_neighbours,
+			parameters->deviceBuffers.d_neighbourCounters,
+			parameters->deviceParameters.maxNeighboursPerParticle,
+			parameters->deviceParameters.kernelWidth,
+			parameters->deviceBuffers.d_velocities);
+}
+
+
+__global__ void computeViscosity(const unsigned int numberOfParticles,
+	float4* predictedPositions,
+	unsigned int* neighbors,
+	unsigned int* numberOfNeighbors,
+	unsigned int maxNumberOfNeighbors,
+	float kernelWidth,
+	float4* velocities) {
+	GET_INDEX
+
+	float4 pi = predictedPositions[index];
+	float4 vi = velocities[index];
+	unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
+	float4 vSum = make_float4(0.0, 0.0, 0.0, 0.0);
+	float c = 0.001;
+
+	for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
+		unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
+		float4 pj = predictedPositions[neighborIndex];
+		float4 vij = velocities[neighborIndex] - vi;
+		vSum += vij*poly6(pi, pj, kernelWidth);
+	}
+
+	float4 vNew = vi + c*vSum;
+}
+
+
 void cudaCallComputeOmega(Parameters* parameters) {
 
 	computeOmega << < PARTICLE_BASED >> >(parameters->deviceParameters.numberOfParticles,
@@ -77,6 +115,20 @@ __global__ void computeOmega(const unsigned int numberOfParticles,
 	omegas[index] = omega;
 }
 
+
+void cudaCallComputeVorticity(Parameters* parameters) {
+
+	computeOmega << < PARTICLE_BASED >> >(parameters->deviceParameters.numberOfParticles,
+		parameters->deviceBuffers.d_predictedPositions,
+		parameters->deviceBuffers.d_neighbours,
+		parameters->deviceBuffers.d_neighbourCounters,
+		parameters->deviceParameters.maxNeighboursPerParticle,
+		parameters->deviceParameters.kernelWidth,
+		parameters->deviceBuffers.d_velocities,
+		parameters->deviceBuffers.d_omegas);
+
+}
+
 __global__ void computeVorticity(const unsigned int numberOfParticles,
 	float4* predictedPositions,
 	unsigned int* neighbors,
@@ -108,7 +160,7 @@ __global__ void computeVorticity(const unsigned int numberOfParticles,
 		gradient.z += omegaLength / pij.z;
 	}
 
-	float3 N = 1.0f / (length(gradient) + 0.00001f) * gradient;
+	float3 N = (1.0f / (length(gradient) + 0.00001f)) * gradient;
 	float epsilon = 0.0001f;
 	float3 vorticity = epsilon * cross(N, omegas[index]);
 
