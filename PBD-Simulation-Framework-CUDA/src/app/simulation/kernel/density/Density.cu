@@ -16,8 +16,15 @@ __device__ float poly6(float4 pi,
 
   float distance = length(pi - pj);
 
-  float numeratorTerm = pow(kernelWidth * kernelWidth - distance * distance, 3);
-  return (315.0f * numeratorTerm * numeratorTerm) / (64.0f * M_PI * pow(kernelWidth, 9));
+	if (distance < 0 || distance > kernelWidth)
+	{
+		float numeratorTerm = pow(kernelWidth * kernelWidth - distance * distance, 3);
+		return (315.0f * numeratorTerm * numeratorTerm) / (64.0f * M_PI * pow(kernelWidth, 9));
+	}
+	else
+		return 0.0f;
+
+  
 }
 
 __device__ float4 spiky(float4 pi,
@@ -28,10 +35,14 @@ __device__ float4 spiky(float4 pi,
   pj.w = 0.0f;
   float4 r = pi - pj;
   float distance = length(r);
-
-  float numeratorTerm = pow(kernelWidth - distance, 3);
-  float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0000001f);
-  return 45.0f * numeratorTerm / denominatorTerm * r;
+	if (distance < 0 || distance > kernelWidth)
+	{
+		float numeratorTerm = pow(kernelWidth - distance, 3);
+		float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0000001f);
+		return 45.0f * numeratorTerm / denominatorTerm * r;
+	}
+	else
+		return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 void cudaCallComputeViscosity(Parameters* parameters) {
