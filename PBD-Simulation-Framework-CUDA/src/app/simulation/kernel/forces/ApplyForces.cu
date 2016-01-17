@@ -15,7 +15,8 @@ __global__ void applyForces(const unsigned int numberOfParticles,
 	
     float4 velocity = velocities[index];
 		velocity += (inverseMass * gravity + externalForces[index]) * deltaT;
-		//printf("velocity.x = %f , velocity.y = %f, velocity.z = %f \n", velocity.x, velocity.y, velocity.z);
+		//printf("at index = %i : velocity.x = %f , velocity.y = %f, velocity.z = %f \n", index, velocity.x, velocity.y, velocity.z);
+		
     float4 position = positions[index];
 
     float4 predictedPosition = position + velocity * deltaT;

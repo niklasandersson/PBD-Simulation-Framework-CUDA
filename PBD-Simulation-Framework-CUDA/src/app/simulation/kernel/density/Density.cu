@@ -37,37 +37,15 @@ __device__ float4 spiky(float4 pi,
   pi.w = 0.0f;
   pj.w = 0.0f;
   float4 r = pi - pj;
-  float distance = length(r);
+  float distance = length(make_float3(r.x, r.y, r.z));
 	
 	
 	float numeratorTerm = pow(kernelWidth - distance, 3);
 	float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0000001f);
-	//printf("numeratorTerm = %f ", numeratorTerm);
-	//printf("denominatorTerm = %f ", denominatorTerm);
 
-	return 45.0f * numeratorTerm / (denominatorTerm * r);
+	return 45.0f * numeratorTerm / (denominatorTerm * r + make_float4(0.000001f, 0.000001f, 0.000001f, 0.0f));
 
 }
-
-void cudaApplyDeltaPositions(Parameters* parameters)
-{
-		applyDeltaPositions<<< PARTICLE_BASED >>>(parameters->deviceParameters.numberOfParticles,
-		parameters->deviceBuffers.d_predictedPositions,
-		parameters->deviceBuffers.d_deltaPositions);
-}
-
-__global__ void applyDeltaPositions(const unsigned int numberOfParticles,
-	float4* predictedPositions,
-	float4* d_deltaPositions)
-{
-	GET_INDEX
-	if (index < numberOfParticles) {
-		//printf("d_deltaPositions.x = %f, d_deltaPositions.y = %f, d_deltaPositions.z = %f \n", d_deltaPositions[index].x, d_deltaPositions[index].y, d_deltaPositions[index].z);
-		//predictedPositions[index] = predictedPositions[index] + d_deltaPositions[index];
-	}
-}
-
-
 
 void cudaCallComputeViscosity(Parameters* parameters) {
 
@@ -90,6 +68,10 @@ __global__ void computeViscosity(const unsigned int numberOfParticles,
 	float4* velocities) {
 	GET_INDEX
 
+	if (index < numberOfParticles)
+	{
+
+
 	float4 pi = predictedPositions[index];
 	float4 vi = velocities[index];
 	unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
@@ -105,6 +87,7 @@ __global__ void computeViscosity(const unsigned int numberOfParticles,
 
 	float4 vNew = vi + c*vSum;
 	velocities[index] = vNew;
+	}
 }
 
 
@@ -132,23 +115,66 @@ __global__ void computeOmega(const unsigned int numberOfParticles,
 	) {
 	GET_INDEX
 
+	if (index < numberOfParticles)
+	{
+
 	float4 pi = predictedPositions[index];
 	float4 vi = velocities[index];
 	unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
 	float3 omega = make_float3(0.0f, 0.0f, 0.0f);
 
 	for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
+		
 		unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
 		float4 pj = predictedPositions[neighborIndex];
+
 		float4 vij = velocities[neighborIndex] - vi;
 		float3 vij3 = make_float3(vij.x, vij.y, vij.z);
-		float4 spike = spiky(pi, pj, kernelWidth);
 
+		float4 spike = spiky(pi, pj, kernelWidth);
 		float3 spike3 = make_float3(spike.x, spike.y, spike.z);
+		/*
+		if (isnan(spike3.x))
+		{
+			printf("isnan at index %i X = %f \n ", index, spike3.x);
+		}
+		if (isnan(spike3.y))
+		{
+			printf("isnan at index %i Y = %f \n ", index, spike3.y);
+		}
+		if (isnan(spike3.z))
+		{
+			printf("isnan at index %i Z = %f \n ", index, spike3.z);
+		}*/
+
 		omega += cross(vij3, spike3);
+		/*
+		if (isnan(omega.x))
+		{
+			printf("isnan at neighbor %i X = %f \n ", i, omega.x);
+		}
+		if (isnan(omega.y))
+		{
+			printf("isnan at neighbor %i Y = %f \n ", i, omega.y);
+		}
+		if (isnan(omega.z))
+		{
+			printf("isnan at neighbor %i Z = %f \n ", i, omega.z);
+		}*/
 	}
+	
+	/*
+	if (isnan(omega.z))
+		printf("isnan at X index = %i \n ", index);
+	else if (omega.y == omega.y)
+		printf("isnan at Y index = %i \n ", index);
+	else if (omega.z == omega.z)
+		printf("isnan at Z index = %i \n ", index);
+		*/
+
 	omegas[index] = omega;
 
+	}
 }
 
 void cudaCallComputeVorticity(Parameters* parameters) {
@@ -176,6 +202,9 @@ __global__ void computeVorticity(const unsigned int numberOfParticles,
 	float4* externalForces
 	) {
 	GET_INDEX
+	if (index < numberOfParticles)
+	{
+
 
 	float4 pi = predictedPositions[index];
 	float4 vi = velocities[index];
@@ -183,14 +212,14 @@ __global__ void computeVorticity(const unsigned int numberOfParticles,
 	unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
 
 	float3 gradient = make_float3(0.0f, 0.0f, 0.0f);
-	const float EPSILON = 0.000001f;
+	const float EPSILON = 0.00000001f;
 	for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
 		unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
 		//printf("neighborIndex = %i \n", neighborIndex);
 		float4 pj = predictedPositions[neighborIndex];
 		//printf("pj = %f, %f, %f, \n", pj.x, pj.y, pj.z);
 		float3 omegaj = omegas[neighborIndex];
-		printf("omegaj = %f, %f, %f, \n", omegaj.x, omegaj.y, omegaj.z);
+		//printf("omegaj = %f, %f, %f, \n", omegaj.x, omegaj.y, omegaj.z);
 		float4 vij = velocities[neighborIndex] - vi;
 		//printf("vij= %f, %f, %f, \n", vij.x, vij.y, vij.z);
 		float omegaLength = length(omegaj - omegai);
@@ -202,13 +231,37 @@ __global__ void computeVorticity(const unsigned int numberOfParticles,
 		//printf("gradient = %f, %f, %f, \n", gradient.x, gradient.y, gradient.z);
 	}
 
-	float3 N = (1.0f / (length(gradient) + 0.00001f)) * gradient;
+	float3 N = (1.0f / (length(gradient) + EPSILON)) * (gradient + EPSILON);
 	float epsilon = 1.0f;
 	float3 vorticity = epsilon * cross(N, omegas[index]);
 	//if (vorticity.x > 10 || vorticity.y > 10 || vorticity.z > 10 || vorticity.x < -10 || vorticity.y < -10 || vorticity.z < -10)
 		
 	externalForces[index] = make_float4(vorticity.x, vorticity.y, vorticity.z, 0.0f);
 	//printf("vorticity.x = %f, vorticity.y = %f, vorticity.z = %f \n", externalForces[index].x, externalForces[index].y, externalForces[index].z);
+	}
+}
+
+void cudaApplyDeltaPositions(Parameters* parameters)
+{
+	applyDeltaPositions << < PARTICLE_BASED >> >(parameters->deviceParameters.numberOfParticles,
+		parameters->deviceBuffers.d_predictedPositions,
+		parameters->deviceBuffers.d_deltaPositions);
+}
+
+__global__ void applyDeltaPositions(const unsigned int numberOfParticles,
+	float4* predictedPositions,
+	float4* d_deltaPositions)
+{
+	GET_INDEX
+	if (index < numberOfParticles) {
+		if (isnan(d_deltaPositions[index].x) || isnan(d_deltaPositions[index].y) || isnan(d_deltaPositions[index].z))
+			printf("d_deltaPositions.x = %f, d_deltaPositions.y = %f, d_deltaPositions.z = %f \n", d_deltaPositions[index].x, d_deltaPositions[index].y, d_deltaPositions[index].z);
+
+		if (isnan(predictedPositions[index].x) || isnan(predictedPositions[index].y) || isnan(predictedPositions[index].z))
+			printf("predictedPositions[index].x = %f, predictedPositions[index].y = %f, predictedPositions[index].z = %f \n", predictedPositions[index].x, predictedPositions[index].y, predictedPositions[index].z);
+
+		predictedPositions[index] = predictedPositions[index] + d_deltaPositions[index];
+	}
 }
 
 void cudaCallComputeDeltaPositions(Parameters* parameters) {
@@ -236,7 +289,10 @@ __global__ void computeDeltaPositions(const unsigned int numberOfParticles,
 	float4* deltaPositions
 	) {
 	GET_INDEX
+	if (index < numberOfParticles)
+	{
 
+	
 		float4 pi = predictedPositions[index];
 		unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
 		float lambdai = lambdas[index];
@@ -257,6 +313,9 @@ __global__ void computeDeltaPositions(const unsigned int numberOfParticles,
 		}
 
 		deltaPositions[index] = deltaPosition / restDensity;
+		if (isnan(deltaPositions[index].x) || isnan(deltaPositions[index].y) || isnan(deltaPositions[index].z))
+			printf("deltaPositions[index] = %f , %f , %f ...... at = computeDeltaPositions()  \n", deltaPositions[index].x, deltaPositions[index].y, deltaPositions[index].z);
+	}
 }
 
 // ------------------------------------------
@@ -284,6 +343,8 @@ __global__ void computeLambda(const unsigned int numberOfParticles,
 	float* lambdas
   ) {
   GET_INDEX
+	if (index < numberOfParticles)
+	{
 
   float4 pi = predictedPositions[index];
   float ci = computeConstraintValue(index, pi, predictedPositions,
@@ -315,6 +376,10 @@ __global__ void computeLambda(const unsigned int numberOfParticles,
 		//printf("gradientValue = %f \n", gradientValue);
 	//printf("ci = %f \n", ci);
 	lambdas[index] = -1.0f * ci / (gradientValue + EPSILON);
+	if (isnan(lambdas[index]))
+		printf("lambdas[index] = %f , at = computeLambda()  \n", lambdas[index]);
+	}
+
 }
 
 __device__ float computeConstraintValue(const unsigned int index,
