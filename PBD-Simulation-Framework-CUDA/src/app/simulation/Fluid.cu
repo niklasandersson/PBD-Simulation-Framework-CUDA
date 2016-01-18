@@ -30,15 +30,15 @@ void Fluid::compute() {
  
   cudaCallInitializeCellIds();
 
-  //sortIds();
+  sortIds();
 
-  //reorderStorage();
+  reorderStorage();
 
-  //cudaCallResetCellInfo();
+  cudaCallResetCellInfo();
 
-  //cudaCallComputeCellInfo();
+  cudaCallComputeCellInfo();
 
-  //collisionHandling();
+  collisionHandling();
 
   cudaCallUpdatePositions();
 

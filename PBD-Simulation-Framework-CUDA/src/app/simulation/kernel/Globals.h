@@ -36,6 +36,17 @@ float4* d_deltaPositions;
 float4* d_externalForces;
 float3* d_omegas;
 
+struct Bound {
+  float min;
+  float max;
+};
+
+struct Bounds {
+  Bound x;
+  Bound y;
+  Bound z;
+};
+
 struct SimulationParameters{
   unsigned int numberOfParticles;
   unsigned int textureWidth;
@@ -48,6 +59,8 @@ struct SimulationParameters{
   float deltaT;
   unsigned int kernelWidth;
 	float restDensity;
+  Bounds bounds;
+  unsigned int randomStart;
 };
 
 __constant__ SimulationParameters params;
@@ -72,6 +85,7 @@ CudaCallParameters cudaCallParameters;
 #define FOR_EACH_CELL cudaCallParameters.blocksForGridBased,cudaCallParameters.threadsForGridBased
 
 #define M_PI 3.14159265359
+#define M_E 2.71828182845
 
 #define GET_INDEX const unsigned int index = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
 #define GET_TEXTUREWIDTH const unsigned int textureWidth = params.textureWidth;
