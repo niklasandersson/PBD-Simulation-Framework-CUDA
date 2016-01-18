@@ -1,6 +1,9 @@
 #ifndef INITIALIZE_H
 #define INITIALIZE_H
 
+#include <stdlib.h> 
+#include <time.h> 
+
 #include "Kernels.h"
 #include "Globals.h"
 #include "SortReorder.h"
@@ -25,6 +28,15 @@ void initializeFrame() {
   simulationParameters.particleRadius = 0.5f;
   simulationParameters.particleDiameter = 2.0f * simulationParameters.particleRadius;
   simulationParameters.kernelWidth = 3;
+
+  simulationParameters.bounds.x.min = 25.0f;
+  simulationParameters.bounds.x.max = 40.0f - 1.5f;
+  simulationParameters.bounds.y.min = 1.5f;
+  simulationParameters.bounds.y.max = 64.0f - 1.5f;
+  simulationParameters.bounds.z.min = 25.0f;
+  simulationParameters.bounds.z.max = 40.0f - 1.5f;
+
+  simulationParameters.randomStart = rand() % simulationParameters.maxNeighboursPerParticle;
 
   CUDA(cudaMemcpyToSymbol(params, &simulationParameters, sizeof(SimulationParameters)));
 
@@ -58,6 +70,8 @@ void initializeShared() {
 // --------------------------------------------------------------------------
 
 void cudaInitializeKernels() {
+   srand(time(NULL));
+
   initializeFrame();
   initializeShared();
   initializeSortReorder();
