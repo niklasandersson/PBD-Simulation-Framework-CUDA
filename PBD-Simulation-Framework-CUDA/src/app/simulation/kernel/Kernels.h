@@ -24,4 +24,9 @@ void collisionHandling();
 void cudaCallUpdatePositions();
 void cudaCallComputeLambda();
 void cudaCallComputeDeltaPositions();
+void cudaCallApplyDeltaPositions();
+void cudaCallComputeOmegas();
+void cudaCallComputeVorticity();
+void cudaComputeViscosity();
+
 #endif // KERNELS_H 

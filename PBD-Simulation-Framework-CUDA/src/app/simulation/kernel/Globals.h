@@ -33,6 +33,8 @@ int* d_contactConstraintParticleUsed;
 float* d_densities;
 float* d_lambdas;
 float4* d_deltaPositions;
+float4* d_externalForces;
+float3* d_omegas;
 
 struct SimulationParameters{
   unsigned int numberOfParticles;

@@ -8,7 +8,7 @@ Fluid::Fluid(Parameters* parameters) : parameters_(parameters){
 	//initilizeDensity(parameters_);
 }
 
-
+#include <iostream>
 void Fluid::compute() {
   /*
   cudaCallApplyForces(parameters_);
@@ -29,20 +29,29 @@ void Fluid::compute() {
   cudaCallApplyForces();
  
   cudaCallInitializeCellIds();
-  
-  sortIds();
 
-  reorderStorage();
+  //sortIds();
 
-  cudaCallResetCellInfo();
+  //reorderStorage();
 
-  cudaCallComputeCellInfo();
+  //cudaCallResetCellInfo();
 
-  collisionHandling();
+  //cudaCallComputeCellInfo();
+
+  //collisionHandling();
 
   cudaCallUpdatePositions();
 
-	cudaCallComputeLambda();
+	//cudaCallComputeLambda();
 
-	cudaCallComputeDeltaPositions();
+	//cudaCallComputeDeltaPositions();
+	
+	//cudaCallApplyDeltaPositions();
+
+	//cudaCallComputeOmegas();
+
+	//cudaCallComputeVorticity();
+	//std::cout << "hej " << std::endl;
+	
+	//cudaComputeViscosity();
 }
