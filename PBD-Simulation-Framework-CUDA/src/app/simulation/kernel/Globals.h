@@ -31,17 +31,8 @@ int* d_contactConstraintSucces;
 int* d_contactConstraintParticleUsed;
 
 float* d_densities;
-
-struct Bound {
-  float min;
-  float max;
-};
-
-struct Bounds {
-  Bound x;
-  Bound y;
-  Bound z;
-};
+float* d_lambdas;
+float4* d_deltaPositions;
 
 struct SimulationParameters{
   unsigned int numberOfParticles;
@@ -54,8 +45,7 @@ struct SimulationParameters{
   float particleDiameter;
   float deltaT;
   unsigned int kernelWidth;
-  Bounds bounds;
-  int randomStart;
+	float restDensity;
 };
 
 __constant__ SimulationParameters params;
@@ -80,7 +70,6 @@ CudaCallParameters cudaCallParameters;
 #define FOR_EACH_CELL cudaCallParameters.blocksForGridBased,cudaCallParameters.threadsForGridBased
 
 #define M_PI 3.14159265359
-#define M_E 2.71828182845
 
 #define GET_INDEX const unsigned int index = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
 #define GET_TEXTUREWIDTH const unsigned int textureWidth = params.textureWidth;

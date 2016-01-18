@@ -22,5 +22,6 @@ void cudaCallResetCellInfo();
 void cudaCallComputeCellInfo();
 void collisionHandling();
 void cudaCallUpdatePositions();
-
+void cudaCallComputeLambda();
+void cudaCallComputeDeltaPositions();
 #endif // KERNELS_H 

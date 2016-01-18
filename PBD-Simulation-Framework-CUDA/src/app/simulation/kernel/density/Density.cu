@@ -44,7 +44,6 @@ __device__ float4 spiky(float4 pi,
 	float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0000001f);
 
 	return 45.0f * numeratorTerm / (denominatorTerm * r + make_float4(0.000001f, 0.000001f, 0.000001f, 0.0f));
-
 }
 
 void cudaCallComputeViscosity(Parameters* parameters) {
