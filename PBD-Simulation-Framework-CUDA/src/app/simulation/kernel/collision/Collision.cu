@@ -306,12 +306,12 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
           hash = getHash(tempPos);
           if( hash < maxGrid ) {
             start = cellStarts[hash]; 
-            end = cellEndings[hash];
             if( start != UINT_MAX ) {
+              end = cellEndings[hash];
               for(index2=start; index2<end; index2++) {
                 if( index != index2 && index2 < numberOfParticles ) {
                   neighbours[counter++] = index2;
-
+                  /*
                   predictedPosition1 = predictedPositions[index]; 
                   predictedPosition2 = predictedPositions[index2]; 
 
@@ -323,7 +323,7 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
                     halfOverlap = overlap / 2.0f;
 
                     addTo1 = -1.0 * pos1ToPos2 * halfOverlap;
-                    addTo2 = pos1ToPos2 * halfOverlap;
+                    // addTo2 = pos1ToPos2 * halfOverlap;
 
                     //predictedPosition1 += addTo1;
                     //predictedPosition2 += addTo2;
@@ -335,9 +335,9 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
                     atomicAdd(&(predictedPositions[index].y), addTo1.y);
                     atomicAdd(&(predictedPositions[index].z), addTo1.z);
        
-                    atomicAdd(&(predictedPositions[index2].x), addTo2.x);
-                    atomicAdd(&(predictedPositions[index2].y), addTo2.y);
-                    atomicAdd(&(predictedPositions[index2].z), addTo2.z);
+                    //atomicAdd(&(predictedPositions[index2].x), addTo2.x);
+                    //atomicAdd(&(predictedPositions[index2].y), addTo2.y);
+                    //atomicAdd(&(predictedPositions[index2].z), addTo2.z);
 
                     //float4 position1 = positions[index]; 
                     //float4 position2 = positions[index2];
@@ -352,10 +352,11 @@ __global__ void findNeighbours(const unsigned int numberOfParticles,
                     atomicAdd(&(positions[index].y), addTo1.y);
                     atomicAdd(&(positions[index].z), addTo1.z);
        
-                    atomicAdd(&(positions[index2].x), addTo2.x);
-                    atomicAdd(&(positions[index2].y), addTo2.y);
-                    atomicAdd(&(positions[index2].z), addTo2.z);
-                  }
+                    //atomicAdd(&(positions[index2].x), addTo2.x);
+                    //atomicAdd(&(positions[index2].y), addTo2.y);
+                    //atomicAdd(&(positions[index2].z), addTo2.z);
+                  }*/
+                  
                   if( counter == maxNeighboursPerParticle ) {
                     goto both;
                   }
@@ -427,9 +428,235 @@ void cudaCallFindNeighbours(Parameters* parameters) {
 }
 
 
-void solveCollisions(Parameters* parameters) {
+__global__ void solveCollisions(const unsigned int numberOfParticles,
+                                const unsigned int maxGrid,
+                                const unsigned int maxNeighboursPerParticle,
+                                const float particleDiameter,
+                                const unsigned int kernelWidth,
+                                float4* predictedPositions,
+                                float4* positions,
+                                unsigned int* cellStarts,
+                                unsigned int* cellEndings,
+                                unsigned int* neighbours,
+                                unsigned int* cellIds,
+                                unsigned int* contactCounters,
+                                unsigned int* neighbourCounters,
+                                float* densities) {
+  GET_INDEX
+
+  if( index < numberOfParticles ) {
+    neighbours += maxNeighboursPerParticle * index;
+
+    float4 predictedPosition1 = predictedPositions[index]; 
+    float4 predictedPosition2;
+    float4 pos1ToPos2;
+    float4 addTo1;
+    unsigned int index2;
+    float halfOverlap;
+
+    const unsigned int numberOfContacts = contactCounters[index];
+
+    for(unsigned int i=0; i<numberOfContacts; i++) {
+      index2 = neighbours[i];
+      
+      predictedPosition2 = predictedPositions[index2]; 
+
+      halfOverlap = (particleDiameter - length(predictedPosition2 - predictedPosition1)) / 2.0f;
+
+      if( halfOverlap > 0 ) {
+        pos1ToPos2 = normalize(predictedPosition2 - predictedPosition1); 
+
+        addTo1 = -1.0 * pos1ToPos2 * halfOverlap;
+
+        predictedPosition1 += addTo1;
+
+        predictedPositions[index] += addTo1;
+        positions[index] += addTo1;
+
+        /*
+        atomicAdd(&(predictedPositions[index].x), addTo1.x);
+        atomicAdd(&(predictedPositions[index].y), addTo1.y);
+        atomicAdd(&(predictedPositions[index].z), addTo1.z);
+  
+        atomicAdd(&(positions[index].x), addTo1.x);
+        atomicAdd(&(positions[index].y), addTo1.y);
+        atomicAdd(&(positions[index].z), addTo1.z);
+        */
+      }
+    }
+  }
+
+}
+
+
+void cudaCallSolveCollisions(Parameters* parameters) {
+    solveCollisions<<<PARTICLE_BASED>>>
+                  (parameters->deviceParameters.numberOfParticles,
+                   parameters->deviceParameters.maxGrid,
+                   parameters->deviceParameters.maxNeighboursPerParticle,
+                   parameters->deviceParameters.particleDiameter,
+                   parameters->deviceParameters.kernelWidth,
+                   parameters->deviceBuffers.d_predictedPositions, 
+                   parameters->deviceBuffers.d_positions, 
+                   parameters->deviceBuffers.d_cellStarts, 
+                   parameters->deviceBuffers.d_cellEndings, 
+                   parameters->deviceBuffers.d_neighbours , 
+                   parameters->deviceBuffers.d_cellIds_out, 
+                   parameters->deviceBuffers.d_contactCounters, 
+                   parameters->deviceBuffers.d_neighbourCounters,
+                   parameters->deviceBuffers.d_densities);
+}
+
+
+__global__ void resetContactConstraintSuccess(const unsigned int maxContactConstraints,
+                                              int* contactConstraintSucces) {
+  GET_INDEX
+
+  if( index < maxContactConstraints ) {
+    contactConstraintSucces[index] = -1;
+  } 
+}
+
+void cudaCallResetContactConstraintSuccess(Parameters* parameters) {
+  resetContactConstraintSuccess<<<CONTACT_BASED>>>
+                                 (parameters->deviceParameters.maxContactConstraints,
+                                  parameters->deviceBuffers.d_contactConstraintSucces);
+}
+
+__global__ void resetContactConstraintParticleUsed(const unsigned int numberOfParticles,
+                                                   int* contactConstraintParticleUsed) {
+  GET_INDEX
+
+  if( index < numberOfParticles  ) {
+    contactConstraintParticleUsed[index] = -1;
+  }
+}
+
+void cudaCallResetContactConstraintParticleUsed(Parameters* parameters) {
+  resetContactConstraintParticleUsed<<<PARTICLE_BASED>>>
+                                      (parameters->deviceParameters.numberOfParticles,
+                                       parameters->deviceBuffers.d_contactConstraintParticleUsed);
+}
+
+
+__global__ void setupCollisionConstraintBatches(const unsigned int maxContactConstraints,
+                                                const unsigned int maxContactsPerParticle,
+                                                unsigned int* contacts,
+                                                int* particleUsed,
+                                                int* constraintSucces) {
+  GET_INDEX
+    
+  if( index < maxContactConstraints ) {
+    const int success = constraintSucces[index];
+    if( success < 0 ) { // If not success
+      const unsigned int particle1 = index / maxContactsPerParticle;
+      const unsigned int particle2 = contacts[index];
+      if( particle2 != UINT_MAX ) {
+        const unsigned int localId = threadIdx.x;
+        const unsigned int localWorkSize = blockDim.x;
+        for(unsigned int i=0; i<localWorkSize; i++) {
+          if( (i == localId) && (particleUsed[particle1] < 0) && (particleUsed[particle2] < 0) ) {
+            if( particleUsed[particle1] == -1 ) {
+              particleUsed[particle1] = index;
+            }
+            if( particleUsed[particle2] == -1 ) {
+              particleUsed[particle2] = index;
+            }
+          }
+          __syncthreads();
+        }
+      }
+
+    }
+  }
+  
+}
+
+
+void cudaCallSetupCollisionConstraintBatches(Parameters* parameters) {
+  setupCollisionConstraintBatches<<<CONTACT_BASED>>>
+                                   (parameters->deviceParameters.maxContactConstraints,
+                                    parameters->deviceParameters.maxNeighboursPerParticle,
+                                    parameters->deviceBuffers.d_neighbours, 
+                                    parameters->deviceBuffers.d_contactConstraintParticleUsed, 
+                                    parameters->deviceBuffers.d_contactConstraintSucces);
+
+}
+
+
+__global__ void setupCollisionConstraintBatchesCheck(const unsigned int maxContactConstraints,
+                                                     const unsigned int maxContactsPerParticle,
+                                                     const float particleDiameter,
+                                                     unsigned int* contacts,
+                                                     int* particleUsed,
+                                                     int* constraintSucces,
+                                                     float4* positions,
+                                                     float4* predictedPositions) {
+  GET_INDEX
+
+  if( index < maxContactConstraints ) {
+    const unsigned int particle1 = index / maxContactsPerParticle;
+    const unsigned int particle2 = contacts[index];
+    if( particle2 != UINT_MAX ) {
+       if( (particleUsed[particle1] == index) && (particleUsed[particle2] == index) ) {
+        constraintSucces[index] = 1;
+
+        float4 predictedPosition1 = predictedPositions[particle1]; 
+        float4 predictedPosition2 = predictedPositions[particle2]; 
+
+        const float distance = length(predictedPosition2 - predictedPosition1);
+        const float  overlap = particleDiameter - distance;
+
+        if( overlap > 0 ) {
+          const float4 pos1ToPos2 = normalize(predictedPosition2 - predictedPosition1); 
+          const float halfOverlap = overlap / 2.0f;
+
+          const float4 addTo1 = -1.0 * pos1ToPos2 * halfOverlap;
+          const float4 addTo2 = pos1ToPos2 * halfOverlap;
+
+          predictedPositions[particle1] = predictedPosition1 + addTo1;
+          predictedPositions[particle2] = predictedPosition2 + addTo2;
+
+          positions[particle1] = positions[particle1] + addTo1;
+          positions[particle2] = positions[particle2] + addTo2;
+        }
+        
+      } 
+    }
+  }
+}
+
+
+void cudaCallSetupCollisionConstraintBatchesCheck(Parameters* parameters) {
+  setupCollisionConstraintBatchesCheck<<<CONTACT_BASED>>>
+                                        (parameters->deviceParameters.maxContactConstraints,
+                                         parameters->deviceParameters.maxNeighboursPerParticle,
+                                         parameters->deviceParameters.particleDiameter,
+                                         parameters->deviceBuffers.d_neighbours, 
+                                         parameters->deviceBuffers.d_contactConstraintParticleUsed, 
+                                         parameters->deviceBuffers.d_contactConstraintSucces,
+                                         parameters->deviceBuffers.d_positions,
+                                         parameters->deviceBuffers.d_predictedPositions);
+}
+
+
+void findNeighboursAndSolveCollisions(Parameters* parameters) {
+  //cudaCallResetContacts(parameters);
+
   cudaCallResetCellInfo(parameters);
   cudaCallComputeCellInfo(parameters);
   cudaCallFindNeighbours(parameters);
+  cudaCallSolveCollisions(parameters);
+
+  /*
+  cudaCallResetContactConstraintSuccess(parameters);
+  const unsigned int maxBatches = parameters->deviceParameters.maxNeighboursPerParticle;
+  for(unsigned int b=0; b<maxBatches; b++) {
+    cudaCallResetContactConstraintParticleUsed(parameters);
+    cudaCallSetupCollisionConstraintBatches(parameters);
+    cudaCallSetupCollisionConstraintBatchesCheck(parameters);
+  }
+  */
+
 }
 

@@ -24,7 +24,7 @@ out vec3 L;
 
 void main()
 {
-	/*
+
   const int widthi = 256; 
   // const int heighti = 512;
 
@@ -38,11 +38,11 @@ void main()
 
   colorVert = texture2D(colors4, uv).xyz;
   gl_Position = vec4(pos, 1.0);
-  */
+	/*
   //colorVert = vec3(density, density, density);
   colorVert = color.rgb;
   gl_Position = vec4(position.xyz, 1.0);
-
+    */
 
 
 

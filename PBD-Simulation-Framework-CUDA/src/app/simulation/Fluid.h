@@ -19,6 +19,7 @@
 #include "kernel/update/UpdatePositions.h"
 #include "kernel/collision/Collision.h"
 #include "kernel/density/density.h"
+#include "kernel/kernels.h"
 
 class Fluid : public Cuda_Computable {
 

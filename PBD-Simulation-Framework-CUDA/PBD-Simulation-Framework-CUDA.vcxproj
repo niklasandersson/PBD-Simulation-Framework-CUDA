@@ -165,6 +165,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="src\app\simulation\kernel\density\Density.cu" />
     <CudaCompile Include="src\app\simulation\kernel\density\DensityKernels.cu" />
     <CudaCompile Include="src\app\simulation\kernel\Forces\ApplyForces.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\Kernels.cu" />
     <CudaCompile Include="src\app\simulation\kernel\update\UpdatePositions.cu" />
     <CudaCompile Include="src\app\simulation\Parameters.cu" />
   </ItemGroup>
@@ -213,11 +214,19 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\app\rendering\Particles.h" />
     <ClInclude Include="src\app\Simulation.h" />
     <ClInclude Include="src\app\simulation\Fluid.h" />
+    <ClInclude Include="src\app\simulation\kernel\Collision.h" />
     <ClInclude Include="src\app\simulation\kernel\collision\Collision.h" />
     <ClInclude Include="src\app\simulation\kernel\collision\Hash.h" />
     <ClInclude Include="src\app\simulation\kernel\density\Density.h" />
     <ClInclude Include="src\app\simulation\kernel\density\DensityKernels.h" />
+    <ClInclude Include="src\app\simulation\kernel\Forces.h" />
     <ClInclude Include="src\app\simulation\kernel\Forces\ApplyForces.h" />
+    <ClInclude Include="src\app\simulation\kernel\Globals.h" />
+    <ClInclude Include="src\app\simulation\kernel\Hash.h" />
+    <ClInclude Include="src\app\simulation\kernel\Initialize.h" />
+    <ClInclude Include="src\app\simulation\kernel\SortReorder.h" />
+    <ClInclude Include="src\app\simulation\kernel\Kernels.h" />
+    <ClInclude Include="src\app\simulation\kernel\Update.h" />
     <ClInclude Include="src\app\simulation\kernel\update\UpdatePositions.h" />
     <ClInclude Include="src\app\simulation\Parameters.h" />
     <ClInclude Include="src\app\simulation\Util.h" />

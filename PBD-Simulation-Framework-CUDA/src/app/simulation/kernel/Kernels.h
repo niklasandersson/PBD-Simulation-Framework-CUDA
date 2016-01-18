@@ -9,11 +9,9 @@
 #include "cuda/Cuda_Helper_Math.h"
 
 #include "opengl/GL_Shared.h"
-
 #include "../Util.h"
 
 void initializeFrame();
-
 void cudaInitializeKernels();
 
 void cudaCallApplyForces();
@@ -22,7 +20,7 @@ void sortIds();
 void reorderStorage();
 void cudaCallResetCellInfo();
 void cudaCallComputeCellInfo();
-void solveCollisions();
+void collisionHandling();
 void cudaCallUpdatePositions();
 
 #endif // KERNELS_H 

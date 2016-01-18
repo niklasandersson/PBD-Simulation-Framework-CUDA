@@ -3,19 +3,19 @@
 
 Fluid::Fluid(Parameters* parameters) : parameters_(parameters){
 
-  //cudaInitializeKernels();
-  initializeCollision(parameters_);
-	initilizeDensity(parameters_);
+  cudaInitializeKernels();
+  //initializeCollision(parameters_);
+	//initilizeDensity(parameters_);
 }
 
 
 void Fluid::compute() {
-
+  /*
   cudaCallApplyForces(parameters_);
 
   hashSortReorder(parameters_);
 
-  solveCollisions(parameters_);
+  findNeighboursAndSolveCollisions(parameters_);
 
   cudaCallUpdatePositions(parameters_);
 
@@ -23,7 +23,7 @@ void Fluid::compute() {
 	
 	cudaCallComputeDeltaPositions(parameters_);
 
-/*
+    */
   initializeFrame();
 
   cudaCallApplyForces();
@@ -38,9 +38,9 @@ void Fluid::compute() {
 
   cudaCallComputeCellInfo();
 
-  solveCollisions();
+  collisionHandling();
 
   cudaCallUpdatePositions();
-  */
+
 
 }

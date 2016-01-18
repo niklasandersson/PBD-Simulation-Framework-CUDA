@@ -19,8 +19,8 @@
 #define GRID_BASED parameters->cudaCallParameters.blocksGridBased,parameters->cudaCallParameters.threadsGridBased
 
 #define M_PI 3.14159265359
-#define MAX_NEIGHBOURS_PER_PARTICLE 32
-#define KERNEL_WIDTH 3
+#define MAX_NEIGHBOURS_PER_PARTICLE 20
+#define KERNEL_WIDTH 2
 
 struct DeviceParameters{
   unsigned int numberOfParticles;

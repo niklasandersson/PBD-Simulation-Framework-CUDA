@@ -104,6 +104,14 @@
     <ClInclude Include="src\app\simulation\kernel\density\DensityKernels.h" />
     <ClInclude Include="src\app\simulation\kernel\density\Density.h" />
     <ClInclude Include="src\app\simulation\kernel\collision\Hash.h" />
+    <ClInclude Include="src\app\simulation\kernel\Kernels.h" />
+    <ClInclude Include="src\app\simulation\kernel\Forces.h" />
+    <ClInclude Include="src\app\simulation\kernel\Update.h" />
+    <ClInclude Include="src\app\simulation\kernel\Collision.h" />
+    <ClInclude Include="src\app\simulation\kernel\Hash.h" />
+    <ClInclude Include="src\app\simulation\kernel\SortReorder.h" />
+    <ClInclude Include="src\app\simulation\kernel\Initialize.h" />
+    <ClInclude Include="src\app\simulation\kernel\Globals.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
@@ -114,5 +122,6 @@
     <CudaCompile Include="src\app\simulation\kernel\collision\Collision.cu" />
     <CudaCompile Include="src\app\simulation\kernel\density\Density.cu" />
     <CudaCompile Include="src\app\simulation\kernel\density\DensityKernels.cu" />
+    <CudaCompile Include="src\app\simulation\kernel\Kernels.cu" />
   </ItemGroup>
 </Project>

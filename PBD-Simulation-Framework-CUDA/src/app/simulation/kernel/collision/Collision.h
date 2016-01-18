@@ -9,6 +9,6 @@
 
 void initializeCollision(Parameters* parameters);
 void hashSortReorder(Parameters* parameters);
-void solveCollisions(Parameters* parameters);
+void findNeighboursAndSolveCollisions(Parameters* parameters);
 
 #endif // SORT_H
