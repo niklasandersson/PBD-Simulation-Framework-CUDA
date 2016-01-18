@@ -32,6 +32,12 @@ void Simulation::step() {
 
   fluid_->compute();
 
-  CUDA(cudaDeviceSynchronize());
+  cudaError_t error = cudaDeviceSynchronize();
+  
+	if(error != cudaSuccess)
+  {
+    printf("CUDA error: %s\n", cudaGetErrorString(error));
+    exit(-1);
+  }
 
 }
