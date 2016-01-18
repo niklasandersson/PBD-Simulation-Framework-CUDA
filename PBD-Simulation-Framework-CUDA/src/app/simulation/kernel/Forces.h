@@ -4,6 +4,54 @@
 #include "Kernels.h"
 #include "Globals.h"
 
+// --------------------------------------------------------------------------
+
+__device__ __forceinline__ void applyMassScaling(float4& predictedPosition) {
+  predictedPosition.w = (M_E, -5 * predictedPosition.y);
+}
+
+// --------------------------------------------------------------------------
+
+__device__ __forceinline__ void confineToBox(float4& position, 
+                                             float4& predictedPosition, 
+                                             float4& velocity,
+                                             bool& update) {
+	if( predictedPosition.x < params.bounds.x.min ) {
+		velocity.x = 0.0f;
+		predictedPosition.x = params.bounds.x.min + 0.001f;
+    position = predictedPosition;
+    update = true;
+	} else if( predictedPosition.x > params.bounds.x.max ) {
+		velocity.x = 0.0f;
+		predictedPosition.x = params.bounds.x.max - 0.001f;
+    position = predictedPosition;
+    update = true;
+	}
+
+	if( predictedPosition.y < params.bounds.y.min ) {
+		velocity.y = 0.0f;
+    predictedPosition.y = params.bounds.y.min + 0.001f;
+    position = predictedPosition;
+    update = true;
+	} else if( predictedPosition.y > params.bounds.y.max ) {
+		velocity.y = 0.0f;
+		predictedPosition.y = params.bounds.y.max - 0.001f;
+    position = predictedPosition;
+    update = true;
+	}
+
+	if( predictedPosition.z < params.bounds.z.min ) {
+		velocity.z = 0.0f;
+		predictedPosition.z = params.bounds.z.min + 0.001f;
+    position = predictedPosition;
+    update = true;
+	} else if( predictedPosition.z > params.bounds.z.max ) {
+		velocity.z = 0.0f;
+		predictedPosition.z = params.bounds.z.max - 0.001f;
+    position = predictedPosition;
+    update = true;
+	}
+}
 
 // --------------------------------------------------------------------------
 
@@ -29,14 +77,18 @@ __global__ void applyForces() {
 
     float4 predictedPosition = position + velocity * deltaT;
 
-    const float floorDiff = predictedPosition.y - 1.5;
-    if( floorDiff < 0 ) {
-      predictedPosition.y = predictedPosition.y + (-1.0f * floorDiff);
-      position.y = position.y + (-1.0f * floorDiff);
+    bool update = false;
+    confineToBox(position, predictedPosition, velocity, update);
+
+    surf2Dwrite(velocity, velocities4, x, y);
+
+    //applyMassScaling(predictedPosition);
+    surf2Dwrite(predictedPosition, predictedPositions4, x, y);
+
+    if( update ) {
       surf2Dwrite(position, positions4, x, y);
     }
-
-    surf2Dwrite(predictedPosition, predictedPositions4, x, y);
+    
   }
 }
 

@@ -214,7 +214,7 @@ void Particles::generateParticles() {
 
 
   const float offset = 30;
-  const float scale = 0.9f; // 1.5f
+  const float scale = 0.99f; // 1.5f
   const unsigned int width = 16; // 32
   for (unsigned int i = 0; i<width; i++) {
     for (unsigned int j = 0; j<width; j++) {

@@ -122,13 +122,16 @@ __global__ void resetCellInfo(unsigned int* cellStarts,
                               unsigned int* cellEndings) {
   const unsigned int numberOfParticles = params.numberOfParticles;
   const unsigned int textureWidth = params.textureWidth;
+  const unsigned int maxGrid = params.maxGrid;
 
   const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
   const unsigned int x = (idx % textureWidth) * sizeof(float4);
   const unsigned int y = idx / textureWidth;
   
-  cellStarts[idx] = UINT_MAX;
-  cellEndings[idx] = numberOfParticles;
+  if( idx < maxGrid ) {
+    cellStarts[idx] = UINT_MAX;
+    cellEndings[idx] = numberOfParticles;
+  }
 }
 
 void cudaCallResetCellInfo() {
@@ -148,10 +151,10 @@ __global__ void computeCellInfo(unsigned int* cellStarts,
   const unsigned int x = (idx % textureWidth) * sizeof(float4);
   const unsigned int y = idx / textureWidth;
 
-  const unsigned int cellId = cellIdsOut[idx];
-  const unsigned int particleId = particleIdsOut[idx];
-
   if( idx < numberOfParticles ) {
+    const unsigned int cellId = cellIdsOut[idx];
+    const unsigned int particleId = particleIdsOut[idx];
+
     if( idx == 0 ) {
       cellStarts[cellId] = 0; 
     } else {
@@ -168,7 +171,7 @@ __global__ void computeCellInfo(unsigned int* cellStarts,
 }
 
 void cudaCallComputeCellInfo() {
-  computeCellInfo<<<FOR_EACH_CELL>>>(d_cellStarts, d_cellEndings, d_cellIds_out, d_particleIds_out);
+  computeCellInfo<<<FOR_EACH_PARTICLE>>>(d_cellStarts, d_cellEndings, d_cellIds_out, d_particleIds_out);
 }
 
 // --------------------------------------------------------------------------
