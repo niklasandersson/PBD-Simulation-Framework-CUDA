@@ -31,6 +31,8 @@ int* d_contactConstraintSucces;
 int* d_contactConstraintParticleUsed;
 
 float* d_densities;
+float* d_lambdas;
+float4* d_deltaPositions;
 
 struct SimulationParameters{
   unsigned int numberOfParticles;
@@ -43,6 +45,7 @@ struct SimulationParameters{
   float particleDiameter;
   float deltaT;
   unsigned int kernelWidth;
+	float restDensity;
 };
 
 __constant__ SimulationParameters params;

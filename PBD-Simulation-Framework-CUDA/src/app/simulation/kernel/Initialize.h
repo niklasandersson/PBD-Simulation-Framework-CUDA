@@ -5,7 +5,7 @@
 #include "Globals.h"
 #include "SortReorder.h"
 #include "Collision.h"
-
+#include "Density.h"
 // --------------------------------------------------------------------------
 
 void initializeFrame() {
@@ -62,6 +62,7 @@ void cudaInitializeKernels() {
   initializeShared();
   initializeSortReorder();
   initializeCollision();
+	initializeDensity();
 }
 
 // --------------------------------------------------------------------------

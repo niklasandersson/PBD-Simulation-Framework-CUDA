@@ -42,5 +42,7 @@ void Fluid::compute() {
 
   cudaCallUpdatePositions();
 
+	cudaCallComputeLambda();
 
+	cudaCallComputeDeltaPositions();
 }
