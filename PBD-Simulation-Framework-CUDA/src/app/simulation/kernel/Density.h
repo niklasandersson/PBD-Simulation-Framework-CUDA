@@ -17,6 +17,19 @@ void initializeDensity() {
 	simulationParameters.restDensity = 1000.0f;
 }
 
+__global__ void clearAllTheCrap() {
+  GET_INDEX_X_Y
+
+    float4 result = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  surf2Dwrite(result, velocities4, x, y);
+  surf2Dwrite(result, predictedPositions4, x, y);
+  surf2Dwrite(result, positions4, x, y);
+}
+
+void callClearAllTheCrap() {
+  clearAllTheCrap << <FOR_EACH_PARTICLE >> >();
+}
+
 
 __device__ float poly6(float4 pi, float4 pj)
 {
