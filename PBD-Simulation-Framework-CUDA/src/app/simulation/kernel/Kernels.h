@@ -28,5 +28,6 @@ void cudaCallApplyDeltaPositions();
 void cudaCallComputeOmegas();
 void cudaCallComputeVorticity();
 void cudaComputeViscosity();
+void callClearAllTheCrap();
 
 #endif // KERNELS_H 
