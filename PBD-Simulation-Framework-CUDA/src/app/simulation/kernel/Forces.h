@@ -16,37 +16,38 @@ __device__ __forceinline__ void confineToBox(float4& position,
                                              float4& predictedPosition, 
                                              float4& velocity,
                                              bool& update) {
+  float velocityDamping = 0.0f;
 	if( predictedPosition.x < params.bounds.x.min ) {
-		velocity.x = 0.0f;
+		velocity.x = velocityDamping * velocity.x;
 		predictedPosition.x = params.bounds.x.min + 0.001f;
     position = predictedPosition;
     update = true;
 	} else if( predictedPosition.x > params.bounds.x.max ) {
-		velocity.x = 0.0f;
+		velocity.x = velocityDamping * velocity.x;
 		predictedPosition.x = params.bounds.x.max - 0.001f;
     position = predictedPosition;
     update = true;
 	}
 
 	if( predictedPosition.y < params.bounds.y.min ) {
-		velocity.y = 0.0f;
+		velocity.y = velocityDamping * velocity.y;
     predictedPosition.y = params.bounds.y.min + 0.001f;
     position = predictedPosition;
     update = true;
 	} else if( predictedPosition.y > params.bounds.y.max ) {
-		velocity.y = 0.0f;
+		velocity.y = velocityDamping * velocity.y;
 		predictedPosition.y = params.bounds.y.max - 0.001f;
     position = predictedPosition;
     update = true;
 	}
 
 	if( predictedPosition.z < params.bounds.z.min ) {
-		velocity.z = 0.0f;
+		velocity.z = velocityDamping * velocity.z;
 		predictedPosition.z = params.bounds.z.min + 0.001f;
     position = predictedPosition;
     update = true;
 	} else if( predictedPosition.z > params.bounds.z.max ) {
-		velocity.z = 0.0f;
+		velocity.z = velocityDamping * velocity.z;
 		predictedPosition.z = params.bounds.z.max - 0.001f;
     position = predictedPosition;
     update = true;

@@ -47,6 +47,8 @@ Particles::Particles()
   add_shared_buffer("d_velocitiesCopy");
   add_shared_buffer("d_colorsCopy");
 
+  add_shared_buffer("d_collisionDeltas");
+
   generateResources();
 
   add_uniform("view_matrix");
@@ -131,6 +133,13 @@ Particles::Particles()
   vertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
   vertexAttribDivisor(9, 1);
 
+  
+  collisionDeltas4_.resize(*maxParticles_);
+  bindBuffer("d_collisionDeltas");
+  bufferData(GL_ARRAY_BUFFER, collisionDeltas4_.size() * 4 * sizeof(float), &collisionDeltas4_[0][0], GL_DYNAMIC_DRAW);
+  enableVertexAttribArray(10);
+  vertexAttribPointer(10, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+  vertexAttribDivisor(10, 1);
 
   // bindBuffer("particle_vertices");
   // bufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(float), &vertices_[0], GL_STATIC_DRAW);
@@ -221,6 +230,7 @@ void Particles::generateParticles() {
       for (unsigned int k = 0; k<width; k++) {
         positons4_.push_back(glm::vec4{ offset + i*scale, 10 + offset + j*scale, offset + k*scale, 0 });
         velocities4_.push_back(glm::vec4{ 0, 0, 0, 0 });
+        collisionDeltas4_.push_back(glm::vec4{ 0, 0, 0, 0 });
       }
     }
   }

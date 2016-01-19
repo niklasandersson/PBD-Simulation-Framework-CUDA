@@ -67,6 +67,25 @@ __constant__ SimulationParameters params;
 
 SimulationParameters simulationParameters;
 
+struct DeviceBuffers {
+  // Shared buffers
+  float* d_densities;
+  float4* d_positions;
+  float4* d_predictedPositions;
+  float4* d_velocities;
+  float4* d_colors;
+
+  float* d_densitiesCopy;
+  float4* d_positionsCopy;
+  float4* d_predictedPositionsCopy;
+  float4* d_velocitiesCopy;
+  float4* d_colorsCopy;
+
+  float4* d_collisionDeltas;
+};
+
+DeviceBuffers deviceBuffers;
+
 struct CudaCallParameters {
   dim3 blocksForParticleBased;
   dim3 threadsForParticleBased;
