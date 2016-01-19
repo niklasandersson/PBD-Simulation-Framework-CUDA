@@ -20,7 +20,7 @@ void initializeFrame() {
 
   simulationParameters.numberOfParticles = numberOfParticles;
   simulationParameters.textureWidth = textureWidth;
-  simulationParameters.maxNeighboursPerParticle = 20;
+  simulationParameters.maxNeighboursPerParticle = 64;
   simulationParameters.maxContactConstraints = simulationParameters.maxNeighboursPerParticle * simulationParameters.numberOfParticles;
   simulationParameters.maxGrid = maxGrid;
   simulationParameters.maxParticles = maxParticles;
@@ -54,6 +54,19 @@ void initializeFrame() {
 // --------------------------------------------------------------------------
 
 void initializeShared() {
+  initializeSharedBuffer(deviceBuffers.d_densities, "d_densities");
+  initializeSharedBuffer(deviceBuffers.d_positions, "d_positions");
+  initializeSharedBuffer(deviceBuffers.d_predictedPositions, "d_predictedPositions");
+  initializeSharedBuffer(deviceBuffers.d_velocities, "d_velocities");
+  initializeSharedBuffer(deviceBuffers.d_colors, "d_colors");
+
+  initializeSharedBuffer(deviceBuffers.d_densitiesCopy, "d_densitiesCopy");
+  initializeSharedBuffer(deviceBuffers.d_positionsCopy, "d_positionsCopy");
+  initializeSharedBuffer(deviceBuffers.d_predictedPositionsCopy, "d_predictedPositionsCopy");
+  initializeSharedBuffer(deviceBuffers.d_velocitiesCopy, "d_velocitiesCopy");
+  initializeSharedBuffer(deviceBuffers.d_colorsCopy, "d_colorsCopy");
+  initializeSharedBuffer(deviceBuffers.d_collisionDeltas, "d_collisionDeltas");
+  
   initializeSharedTexture(positions4, "positions4");
   initializeSharedTexture(predictedPositions4, "predictedPositions4");
   initializeSharedTexture(velocities4, "velocities4");
