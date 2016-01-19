@@ -106,11 +106,14 @@ CudaCallParameters cudaCallParameters;
 #define M_PI 3.14159265359
 #define M_E 2.71828182845
 
-#define GET_INDEX const unsigned int index = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+// #define GET_INDEX const unsigned int index = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
+#define GET_INDEX const unsigned int index =  threadIdx.x + blockIdx.x * blockDim.x;
+
 #define GET_TEXTUREWIDTH const unsigned int textureWidth = params.textureWidth;
+
 #define GET_INDEX_X_Y GET_INDEX \
                       GET_TEXTUREWIDTH \
                       const unsigned int x = (index % textureWidth) * sizeof(float4); \
-                      const unsigned int y = index / textureWidth;                 
+                      const unsigned int y = index / textureWidth;        
 
 #endif // GLOBALS_H

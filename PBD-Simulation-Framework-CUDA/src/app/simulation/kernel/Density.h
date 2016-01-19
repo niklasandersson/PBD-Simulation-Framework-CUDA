@@ -20,16 +20,16 @@ void initializeDensity() {
 
 __device__ float poly6(float4 pi, float4 pj)
 {
-	unsigned int kernelWidth = params.kernelWidth;
+	float kernelWidth = (float) params.kernelWidth;
 	pi.w = 0.0f;
 	pj.w = 0.0f;
 
-	float distance = length(pi - pj);
+	float distance = length(make_float3(pi - pj));
 	
-	if (distance < 0 || distance > kernelWidth)
+	if (distance > 0.001f && distance < (kernelWidth - 0.001f) )
 	{
 		float numeratorTerm = powf(kernelWidth * kernelWidth - distance * distance, 3);
-		return (315.0f * numeratorTerm * numeratorTerm) / (64.0f * M_PI * powf(kernelWidth, 9));
+		return (315.0f * numeratorTerm * numeratorTerm) / (0.001f + 64.0f * M_PI * powf(kernelWidth, 9));
 	}
 	else
 		return 0.0f;
@@ -395,7 +395,7 @@ __global__ void computeViscosity(unsigned int* neighbors,
 			float4 vj;
 			surf2Dread(&vj, velocities4, neighborX, neighborY);
 			float4 vij = vj - vi;
-			vSum += vij*poly6(pi, pj);
+			vSum += vij* poly6(pi, pj);
 		}
 
 		float4 vNew = vi + c*vSum;

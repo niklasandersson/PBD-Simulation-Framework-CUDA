@@ -42,16 +42,15 @@ void Fluid::compute() {
 
   cudaCallUpdatePositions();
 
-	//cudaCallComputeLambda();
+	cudaCallComputeLambda();
 
-	//cudaCallComputeDeltaPositions();
+	cudaCallComputeDeltaPositions();
 	
-	//cudaCallApplyDeltaPositions();
+	cudaCallApplyDeltaPositions();
 
-	//cudaCallComputeOmegas();
+	cudaCallComputeOmegas();
 
-	//cudaCallComputeVorticity();
-	//std::cout << "hej " << std::endl;
-	
-	//cudaComputeViscosity();
+	cudaCallComputeVorticity();
+
+	cudaComputeViscosity();
 }

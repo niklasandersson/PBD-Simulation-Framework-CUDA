@@ -291,7 +291,8 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
                                 unsigned int* neighbourCounters,
                                 float4* positions,
                                 float4* predictedPositions,
-                                float4* collisionDeltas) {
+                                float4* collisionDeltas,
+                                float4* predictedPositionsCopy) {
   const unsigned int numberOfParticles = params.numberOfParticles;
   const unsigned int textureWidth = params.textureWidth;
 
@@ -322,9 +323,9 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
     float4 position2;
 
     float4 predictedPosition2;
-    float4 pos1ToPos2;
-    float4 addTo1;
-    float4 addTo2;
+    float3 pos1ToPos2;
+    float3 addTo1;
+    float3 addTo2;
     unsigned int index2;
     float halfOverlap;
     unsigned int x2;
@@ -342,15 +343,25 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
       float mass2 = predictedPosition2.w;
       predictedPosition2.w = 0.0f;
 
-      halfOverlap = (particleDiameter - length(predictedPosition2 - predictedPosition1)) / 2.0f;
+      float3 dir = make_float3(predictedPosition2 - predictedPosition1);
+      float len = length(dir);
+
+      halfOverlap = (particleDiameter - len) / 2.0f;
 
       if( halfOverlap > 0 ) {
-        pos1ToPos2 = normalize(predictedPosition2 - predictedPosition1);
-        //float mass = ( 1.0f / (mass1 + mass2) );
+
+        if( len <= 0.00001f ) {
+          pos1ToPos2 = make_float3(0.0f, 0.0f, 0.0f);
+        } else {
+          pos1ToPos2 = dir / len;
+        }
+
+        float inverseMass = ( 1.0f / (mass1 + mass2) );
         halfOverlap += 0.001f;
         addTo1 =  -1.0 * pos1ToPos2 * halfOverlap;
         addTo2 =  1.0 * pos1ToPos2 * halfOverlap;
 
+        
         atomicAdd(&(predictedPositions[index].x), addTo1.x);
         atomicAdd(&(positions[index].x), addTo1.x);
 
@@ -359,6 +370,9 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
 
         atomicAdd(&(predictedPositions[index].z), addTo1.z);
         atomicAdd(&(positions[index].z), addTo1.z);
+
+
+
         /*
         atomicAdd(&(predictedPositions[index2].x), addTo2.x);
         atomicAdd(&(positions[index2].x), addTo2.x);
@@ -399,7 +413,8 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
 
 __global__ void copyToBuffers(float4* positions,
                               float4* predictedPositions,
-                              float4* collisionDeltas) {
+                              float4* collisionDeltas,
+                              float4* predictedPositionsCopy) {
   GET_INDEX_X_Y
   const unsigned int numberOfParticles = params.numberOfParticles;
 
@@ -410,13 +425,16 @@ __global__ void copyToBuffers(float4* positions,
 
     surf2Dread(&data, predictedPositions4, x, y);
     predictedPositions[index] = data;
+    predictedPositionsCopy[index] = data;
   }
 }
 
 __global__ void copyToSurfaces(float4* positions,
                                float4* predictedPositions,
-                               float4* collisionDeltas) {
+                               float4* collisionDeltas,
+                               float4* predictedPositionsCopy) {
   GET_INDEX_X_Y
+
   const unsigned int numberOfParticles = params.numberOfParticles;
 
   if( index < numberOfParticles ) {
@@ -431,9 +449,9 @@ __global__ void copyToSurfaces(float4* positions,
 
 void cudaCallSolveCollisions() {
   //solveCollisions<<<FOR_EACH_PARTICLE>>>(d_cellStarts, d_cellEndings, d_neighbours, d_contactCounters, d_neighbourCounters);
-  copyToBuffers<<<FOR_EACH_PARTICLE>>>(deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_collisionDeltas);
-  solveCollisions2<<<FOR_EACH_CONTACT>>>(d_cellStarts, d_cellEndings, d_neighbours, d_contactCounters, d_neighbourCounters, deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_collisionDeltas);
-  copyToSurfaces<<<FOR_EACH_PARTICLE>>>(deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_collisionDeltas);
+  copyToBuffers<<<FOR_EACH_PARTICLE>>>(deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_collisionDeltas, deviceBuffers.d_predictedPositionsCopy);
+  solveCollisions2<<<FOR_EACH_CONTACT>>>(d_cellStarts, d_cellEndings, d_neighbours, d_contactCounters, d_neighbourCounters, deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_collisionDeltas, deviceBuffers.d_predictedPositionsCopy);
+  copyToSurfaces<<<FOR_EACH_PARTICLE>>>(deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_collisionDeltas, deviceBuffers.d_predictedPositionsCopy);
 }
 
 // --------------------------------------------------------------------------
@@ -591,10 +609,10 @@ void cudaCallSetupCollisionConstraintBatchesCheck() {
 // --------------------------------------------------------------------------
 
 void collisionHandling() {
-  unsigned int stabilizationIterations = 2;
+  unsigned int stabilizationIterations = 1;
   cudaCallFindContacts();
   for(unsigned int i=0; i<stabilizationIterations; i++) {
-    // cudaCallResetContacts();
+     //cudaCallResetContacts();
     
     cudaCallSolveCollisions();
     //cudaCallFindContacts();

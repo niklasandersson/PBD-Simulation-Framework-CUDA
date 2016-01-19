@@ -16,7 +16,7 @@ __device__ __forceinline__ void confineToBox(float4& position,
                                              float4& predictedPosition, 
                                              float4& velocity,
                                              bool& update) {
-  float velocityDamping = 0.0f;
+  float velocityDamping = 1.0f;
 	if( predictedPosition.x < params.bounds.x.min ) {
 		velocity.x = velocityDamping * velocity.x;
 		predictedPosition.x = params.bounds.x.min + 0.001f;
@@ -71,10 +71,17 @@ __global__ void applyForces() {
 
     float4 velocity;
     surf2Dread(&velocity, velocities4, x, y);
+    if( isnan(velocity.x) || isnan(velocity.y) || isnan(velocity.z) ) {
+        printf("velocity: %f, %f, %f\n", velocity.x, velocity.y, velocity.z);
+      }
     velocity.y += inverseMass * gravity * deltaT; 
 
     float4 position;
     surf2Dread(&position, positions4, x, y);
+    if( isnan(position.x) || isnan(position.y) || isnan(position.z) ) {
+      printf("position: %f, %f, %f\n", position.x, position.y, position.z);
+    }
+
 
     float4 predictedPosition = position + velocity * deltaT;
 
@@ -90,6 +97,15 @@ __global__ void applyForces() {
       surf2Dwrite(position, positions4, x, y);
     }
     
+
+      
+      if( isnan(predictedPosition.x) || isnan(predictedPosition.y) || isnan(predictedPosition.z) ) {
+        printf("predictedPosition: %f, %f, %f\n", predictedPosition.x, predictedPosition.y, predictedPosition.z);
+      }
+
+      
+    
+
   }
 }
 

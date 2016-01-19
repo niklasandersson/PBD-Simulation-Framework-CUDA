@@ -228,7 +228,7 @@ void Particles::generateParticles() {
   for (unsigned int i = 0; i<width; i++) {
     for (unsigned int j = 0; j<width; j++) {
       for (unsigned int k = 0; k<width; k++) {
-        positons4_.push_back(glm::vec4{ offset + i*scale, 10 + offset + j*scale, offset + k*scale, 0 });
+        positons4_.push_back(glm::vec4{ offset + i*scale, 2 + offset + j*scale, offset + k*scale, 0 });
         velocities4_.push_back(glm::vec4{ 0, 0, 0, 0 });
         collisionDeltas4_.push_back(glm::vec4{ 0, 0, 0, 0 });
       }

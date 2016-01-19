@@ -30,11 +30,11 @@ void initializeFrame() {
   simulationParameters.kernelWidth = 3;
 
   simulationParameters.bounds.x.min = 25.0f;
-  simulationParameters.bounds.x.max = 40.0f - 1.5f;
+  simulationParameters.bounds.x.max = 45.0f - 1.5f;
   simulationParameters.bounds.y.min = 1.5f;
   simulationParameters.bounds.y.max = 64.0f - 1.5f;
   simulationParameters.bounds.z.min = 25.0f;
-  simulationParameters.bounds.z.max = 40.0f - 1.5f;
+  simulationParameters.bounds.z.max = 45.0f - 1.5f;
 
   simulationParameters.randomStart = rand() % simulationParameters.maxNeighboursPerParticle;
 
