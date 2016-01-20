@@ -52,7 +52,7 @@ __device__ __forceinline__ float4 spiky(float4 pi, float4 pj) {
 	float numeratorTerm = kernelWidth - distance;
   float denominatorTerm = M_PI * powf(kernelWidth, 6) * (distance + 0.00001f);
 
-  return 45.0f * numeratorTerm * numeratorTerm / denominatorTerm;
+  return 45.0f * numeratorTerm * numeratorTerm * r/ denominatorTerm;
 }
 // ---------------------------------------------------------------------------------------
 
