@@ -14,7 +14,7 @@ void initializeDensity() {
 	CUDA(cudaMalloc((void**)&d_externalForces, simulationParameters.maxParticles * sizeof(float4)));
 	CUDA(cudaMalloc((void**)&d_omegas, simulationParameters.maxParticles * sizeof(float3)));
 	cudaMemset(d_externalForces, 0.0f, simulationParameters.maxParticles* sizeof(float4));
-	simulationParameters.restDensity = 1000.0f;
+	simulationParameters.restDensity = 10.0f;
 }
 
 __global__ void clearAllTheCrap() {
@@ -185,19 +185,15 @@ __global__ void computeDeltaPositions(unsigned int* neighbors,
 			float neighborY = (neighborIndex / textureWidth);
 
 			surf2Dread(&pj, predictedPositions4, neighborX, neighborY);
-			if (isnan(pj.x) || isnan(pj.y) || isnan(pj.z))
-				printf("IN computeDeltaPositions: pj = %f , %f , %f ...... computeDeltaPositions()  \n", pj.x, pj.y, pj.z);
 			float lambdaj = lambdas[neighborIndex];
 			float absQ = 0.1f*kernelWidth;
 			float4 deltaQ = make_float4(1.0f, 1.0f, 1.0f, 0.0f) * absQ + pi;
-			//sCorr = -k * pow(poly6(pi, pj, kernelWidth), n) / poly6(deltaQ, make_float4(0.0f, 0.0f, 0.0f, 0.0f), kernelWidth);
+			sCorr = -k * pow(poly6(pi, pj), n) / poly6(deltaQ, make_float4(0.0f, 0.0f, 0.0f, 0.0f));
 
 			deltaPosition += (lambdai + lambdaj) * spiky(pi, pj);
 		}
 
 		deltaPositions[index] = deltaPosition / restDensity;
-		//if (isnan(deltaPositions[index].x) || isnan(deltaPositions[index].y) || isnan(deltaPositions[index].z))
-			//printf("IN computeDeltaPositions: deltaPositions[index] = %f , %f , %f ...... at = computeDeltaPositions()  \n", deltaPositions[index].x, deltaPositions[index].y, deltaPositions[index].z);
 	}
 }
 
@@ -221,8 +217,6 @@ __global__ void applyDeltaPositions(float4* d_deltaPositions)
 			printf("IN APPLYDELTAPOS: predictedPositions.x = %f, predictedPositions.y = %f, predictedPositions.z = %f \n", predictedPositions.x, predictedPositions.y, predictedPositions.z);
 
 		float4 result = predictedPositions + d_deltaPositions[index];
-		//printf("result.x = %f, result.y = %f, result.z = %f \n", result.x, result.y, result.z);
-
 		surf2Dwrite(result, predictedPositions4, x, y);
 	}
 }
