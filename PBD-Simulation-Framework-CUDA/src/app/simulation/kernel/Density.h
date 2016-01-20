@@ -20,7 +20,7 @@ void initializeDensity() {
 __global__ void clearAllTheCrap() {
   GET_INDEX_X_Y
 
-    float4 result = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  float4 result = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   surf2Dwrite(result, velocities4, x, y);
   surf2Dwrite(result, predictedPositions4, x, y);
   surf2Dwrite(result, positions4, x, y);
@@ -42,7 +42,9 @@ __device__ float poly6(float4 pi, float4 pj)
 	if (distance > 0.001f && distance < (kernelWidth - 0.001f) )
 	{
 		float numeratorTerm = powf(kernelWidth * kernelWidth - distance * distance, 3);
-		return (315.0f * numeratorTerm * numeratorTerm) / (0.001f + 64.0f * M_PI * powf(kernelWidth, 9));
+		float denominatorTerm = (0.0000001f + 64.0f * M_PI * powf(kernelWidth, 9));
+		if (isnan(0.0000001f + 64.0f * M_PI * powf(kernelWidth, 9)))
+		return (315.0f * numeratorTerm) / denominatorTerm;
 	}
 	else
 		return 0.0f;
@@ -55,12 +57,16 @@ __device__ float4 spiky(float4 pi, float4 pj) {
 	pi.w = 0.0f;
 	pj.w = 0.0f;
 	float4 r = pi - pj;
+	r.w = 0.0f;
 	float distance = length(make_float3(r.x, r.y, r.z));
-
-	float numeratorTerm = powf(kernelWidth - distance, 3);
-	float denominatorTerm = M_PI * powf(kernelWidth, 6) * (distance + 0.0000001f);
-
-	return 45.0f * numeratorTerm / (denominatorTerm * r + make_float4(0.000001f, 0.000001f, 0.000001f, 0.0f));
+	if (distance > 0.001f && distance < (kernelWidth - 0.001f))
+	{
+		float numeratorTerm = powf(kernelWidth - distance, 3);
+		float denominatorTerm = M_PI * powf(kernelWidth,6) * (distance + 0.0000001f);
+		return (r * 15.0f * numeratorTerm) / (denominatorTerm);
+	}
+	else
+		return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 }
 // ---------------------------------------------------------------------------------------
 
