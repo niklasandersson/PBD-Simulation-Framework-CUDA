@@ -48,9 +48,9 @@ void Fluid::compute() {
 	
 	cudaCallApplyDeltaPositions();
 
-	cudaCallComputeOmegas();
+	//cudaCallComputeOmegas();
 
-	cudaCallComputeVorticity();
+	//cudaCallComputeVorticity();
 
-	cudaComputeViscosity();
+	//cudaComputeViscosity();
 }
