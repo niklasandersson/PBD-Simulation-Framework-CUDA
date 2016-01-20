@@ -14,7 +14,7 @@ void initializeDensity() {
 	CUDA(cudaMalloc((void**)&d_externalForces, simulationParameters.maxParticles * sizeof(float4)));
 	CUDA(cudaMalloc((void**)&d_omegas, simulationParameters.maxParticles * sizeof(float3)));
 	cudaMemset(d_externalForces, 0.0f, simulationParameters.maxParticles* sizeof(float4));
-	simulationParameters.restDensity = 1000.0f;
+	simulationParameters.restDensity = 1250.0f;
 }
 
 __global__ void clearAllTheCrap() {
@@ -52,7 +52,7 @@ __device__ __forceinline__ float4 spiky(float4 pi, float4 pj) {
 	float numeratorTerm = kernelWidth - distance;
   float denominatorTerm = M_PI * powf(kernelWidth, 6) * (distance + 0.00001f);
 
-  return 45.0f * numeratorTerm * numeratorTerm * r/ denominatorTerm;
+  return 45.0f * numeratorTerm * numeratorTerm * r / denominatorTerm;
 }
 // ---------------------------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ __global__ void computeLambda(unsigned int* neighbors,
     float density = 0.0f;
 
 		float gradientValue = 0.0f;
-		const float EPSILON = 0.00000001f;
+		const float EPSILON = 0.001f;
     float4 gradientAtSelf = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 		unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
@@ -253,7 +253,7 @@ __global__ void computeVorticity(unsigned int* neighbors,
 		unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
 
 		float3 gradient = make_float3(0.0f, 0.0f, 0.0f);
-		const float EPSILON = 0.00000001f;
+		const float EPSILON = 0.001;
 		for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
 			unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
 			//printf("IN COMPUTEVORTICITY: neighborIndex = %i \n", neighborIndex);
@@ -408,7 +408,7 @@ __global__ void computeViscosity(unsigned int* neighbors,
 	}
 }
 
-void cudaComputeViscosity() {
+	void cudaComputeViscosity() {
 	computeViscosity << <FOR_EACH_PARTICLE >> >(d_neighbours, d_neighbourCounters);
 }
 #endif
