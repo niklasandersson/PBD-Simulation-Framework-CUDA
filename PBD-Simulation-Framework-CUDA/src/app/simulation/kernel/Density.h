@@ -30,17 +30,15 @@ void callClearAllTheCrap() {
   clearAllTheCrap << <FOR_EACH_PARTICLE >> >();
 }
 
-
 __device__ __forceinline__ float poly6(float4 pi, float4 pj)
 {
 	float kernelWidth = (float) params.kernelWidth;
-	pi.w = 0.0f;
-	pj.w = 0.0f;
+  float4 r = pi - pj;
+  float distance = length(make_float3(r.x, r.y, r.z));
 
-	float distance = length(make_float3(pi - pj));
 	float numeratorTerm = kernelWidth * kernelWidth - distance * distance;
 	
-  return (315.0f * numeratorTerm * numeratorTerm * numeratorTerm) / (64.0f * M_PI * 19683);
+  return (315.0f * numeratorTerm * numeratorTerm * numeratorTerm) / (64.0f * M_PI * powf(kernelWidth, 6));
 }
 
 __device__ __forceinline__ float4 spiky(float4 pi, float4 pj) {
