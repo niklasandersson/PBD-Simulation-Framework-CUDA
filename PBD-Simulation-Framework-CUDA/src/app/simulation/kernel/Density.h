@@ -46,16 +46,13 @@ __device__ __forceinline__ float poly6(float4 pi, float4 pj)
 __device__ __forceinline__ float4 spiky(float4 pi, float4 pj) {
 
 	unsigned int kernelWidth = params.kernelWidth;
-
-	pi.w = 0.0f;
-	pj.w = 0.0f;
 	float4 r = pi - pj;
 	float distance = length(make_float3(r.x, r.y, r.z));
 
 	float numeratorTerm = kernelWidth - distance;
-	float denominatorTerm = M_PI * 729 * (distance + 0.0000001f);
+  float denominatorTerm = M_PI * powf(kernelWidth, 6) * (distance + 0.00001f);
 
-	return 45.0f * numeratorTerm / (denominatorTerm * r + make_float4(0.000001f, 0.000001f, 0.000001f, 0.0f));
+  return 45.0f * numeratorTerm * numeratorTerm / denominatorTerm;
 }
 // ---------------------------------------------------------------------------------------
 
@@ -142,15 +139,14 @@ __global__ void computeLambda(unsigned int* neighbors,
       float4 gradient = spiky(pi, pj) / restDensity;
 			float gradientLength = length(make_float3(gradient.x, gradient.y, gradient.z));
 			gradientValue += gradientLength * gradientLength;
-
-     // gradientAtSelf += spiky(pi, pj) / restDensity;
+      gradientAtSelf += gradient;
 
       density += poly6(pi, pj);
 		}
 
-		//float gradientAtSelfLength = length(make_float3(gradientAtSelf.x, gradientAtSelf.y, gradientAtSelf.z));
-		//gradientValue += gradientAtSelfLength * gradientAtSelfLength;
-    gradientValue += gradientValue;
+		float gradientAtSelfLength = length(make_float3(gradientAtSelf.x, gradientAtSelf.y, gradientAtSelf.z));
+		gradientValue += gradientAtSelfLength * gradientAtSelfLength;
+    //gradientValue += gradientValue;
 
     float ci = (density / restDensity) - 1.0f;
 
