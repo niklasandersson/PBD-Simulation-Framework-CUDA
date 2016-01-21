@@ -23,9 +23,12 @@ __global__ void updatePositions() {
     float4 predictedPosition;
     surf2Dread(&predictedPosition, predictedPositions4, x, y);
 
-    float4 velocity = (predictedPosition - position) / deltaT;
+    float4 dir = predictedPosition - position;
+    float4 velocity = dir / deltaT;
 
-    surf2Dwrite(predictedPosition, positions4, x, y);
+    //if( length(make_float3(dir)) > 0.05 ) {
+      surf2Dwrite(predictedPosition, positions4, x, y);
+    //}
     surf2Dwrite(velocity, velocities4, x, y);
   }
 }

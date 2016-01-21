@@ -4,11 +4,15 @@
 #include <stdlib.h> 
 #include <time.h> 
 
+#include "event/Events.h"
+
 #include "Kernels.h"
 #include "Globals.h"
 #include "SortReorder.h"
 #include "Collision.h"
 #include "Density.h"
+#include "Communication.h"
+
 // --------------------------------------------------------------------------
 
 void initializeFrame() {
@@ -41,14 +45,16 @@ void initializeFrame() {
   CUDA(cudaMemcpyToSymbol(params, &simulationParameters, sizeof(SimulationParameters)));
 
   unsigned int threadsPerBlock = 128;
-  cudaCallParameters.blocksForParticleBased = dim3((simulationParameters.numberOfParticles)/threadsPerBlock, 1, 1);
+  cudaCallParameters.blocksForParticleBased = dim3(std::ceil((float)simulationParameters.numberOfParticles/(float)threadsPerBlock), 1, 1);
   cudaCallParameters.threadsForParticleBased = dim3(threadsPerBlock, 1, 1);
 
-  cudaCallParameters.blocksForContactBased = dim3((simulationParameters.maxContactConstraints)/threadsPerBlock, 1, 1);
+  cudaCallParameters.blocksForContactBased = dim3(std::ceil((float)simulationParameters.maxContactConstraints/(float)threadsPerBlock), 1, 1);
   cudaCallParameters.threadsForContactBased = dim3(threadsPerBlock, 1, 1);
 
-  cudaCallParameters.blocksForGridBased = dim3((simulationParameters.maxGrid)/threadsPerBlock, 1, 1);
+  cudaCallParameters.blocksForGridBased = dim3(std::ceil((float)simulationParameters.maxGrid/(float)threadsPerBlock), 1, 1);
   cudaCallParameters.threadsForGridBased = dim3(threadsPerBlock, 1, 1);
+
+  Events::addParticle.execute_calls();
 }
 
 // --------------------------------------------------------------------------
@@ -83,7 +89,8 @@ void initializeShared() {
 // --------------------------------------------------------------------------
 
 void cudaInitializeKernels() {
-   srand(time(NULL));
+  srand(time(NULL));
+  communication.initialize();
 
   initializeFrame();
   initializeShared();

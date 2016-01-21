@@ -7,10 +7,9 @@
 // --------------------------------------------------------------------------
 
 __global__ void findContacts(unsigned int* neighbours,
-                               unsigned int* contactCounters,
-                               unsigned int* neighbourCounters,
-                               unsigned int* cellStarts,
-                               unsigned int* cellEndings) {
+                             unsigned int* contactCounters,
+                             unsigned int* cellStarts,
+                             unsigned int* cellEndings) {
   GET_INDEX_X_Y
 
   const unsigned int maxNeighboursPerParticle = params.maxNeighboursPerParticle;
@@ -20,27 +19,18 @@ __global__ void findContacts(unsigned int* neighbours,
   const float particleDiameter = params.particleDiameter;
 
   neighbours += maxNeighboursPerParticle * index;
-  unsigned int counter = 0;
 
   if( index < numberOfParticles ) {
+    unsigned int counter = 0;
+
     float4 predictedPosition1;
     surf2Dread(&predictedPosition1, predictedPositions4, x, y);
-    predictedPosition1.w = 0.0f;
-    
-    const float4 predictedPosition1Org = predictedPosition1;
 
     float4 tempPos;
     unsigned int hash;
     unsigned int start;
     unsigned int end;
     unsigned int index2;
-    float distance;
-    float overlap;
-    float halfOverlap;
-    float4 addTo1;
-    float4 addTo2;
-    float4 pos1ToPos2;
-    float4 predictedPosition2; 
     
     if( counter == maxNeighboursPerParticle ) {
       done: 
@@ -48,15 +38,18 @@ __global__ void findContacts(unsigned int* neighbours,
       return;
     }
    
+    #pragma unroll
     for(int i=-1; i<=1; i++) {
+      #pragma unroll
       for(int j=-1; j<=1; j++) {
+        #pragma unroll
         for(int k=-1; k<=1; k++) {
 
     //for(int j=-1; j<=1; j++) {
     //  for(int k=-1; k<=1; k++) {
     //    for(int i=-1; i<=1; i++) {
 
-          tempPos = predictedPosition1Org;
+          tempPos = predictedPosition1;
           tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
           hash = mortonCode(tempPos);
       
@@ -86,10 +79,42 @@ __global__ void findContacts(unsigned int* neighbours,
 
 
 void cudaCallFindContacts() {
-  findContacts<<<FOR_EACH_PARTICLE>>>(d_neighbours, d_contactCounters, d_neighbourCounters, d_cellStarts, d_cellEndings);
+  findContacts<<<FOR_EACH_PARTICLE>>>(d_neighbours, d_contactCounters, d_cellStarts, d_cellEndings);
 }
 
 // --------------------------------------------------------------------------
+
+
+__device__ __forceinline__ void addNeighbours(float4& tempPos,
+                                              float4& predictedPosition1,
+                                              int& i, int& j, int& k,
+                                              const float& particleDiameter,
+                                              unsigned int& hash,
+                                              unsigned int& start,
+                                              unsigned int& c,
+                                              unsigned int* cellStarts,
+                                              unsigned int& counter,
+                                              unsigned int* contactCounters,
+                                              unsigned int* neighbours,
+                                              unsigned int* originalNeighbours,
+                                              const unsigned int& maxNeighboursPerParticle,
+                                              const unsigned int& maxGrid) {
+  tempPos = predictedPosition1;
+  tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+  hash = getHash(tempPos);
+  if( hash < maxGrid ) {
+    start = cellStarts[hash]; 
+    if( start != UINT_MAX ) {
+      c = contactCounters[start];
+      for(int i=0; i<c && counter<maxNeighboursPerParticle; i++) {
+        neighbours[counter++] = originalNeighbours[start * maxNeighboursPerParticle + i];
+      }
+    }
+  }
+}
+
+#define DONE_CHECK if( counter == maxNeighboursPerParticle ) goto done;
+
 
 __global__ void findNeighbours(unsigned int* neighbours,
                                unsigned int* contactCounters,
@@ -104,28 +129,19 @@ __global__ void findNeighbours(unsigned int* neighbours,
   const unsigned int kernelWidth = params.kernelWidth;
   const float particleDiameter = params.particleDiameter;
 
+  unsigned int* originalNeighbours = neighbours;
   neighbours += maxNeighboursPerParticle * index;
   unsigned int counter = 0;
 
   if( index < numberOfParticles ) {
     float4 predictedPosition1;
     surf2Dread(&predictedPosition1, predictedPositions4, x, y);
-    predictedPosition1.w = 0.0f;
-    
-    const float4 predictedPosition1Org = predictedPosition1;
 
     float4 tempPos;
     unsigned int hash;
     unsigned int start;
     unsigned int end;
     unsigned int index2;
-    float distance;
-    float overlap;
-    float halfOverlap;
-    float4 addTo1;
-    float4 addTo2;
-    float4 pos1ToPos2;
-    float4 predictedPosition2; 
     
     counter = contactCounters[index];
 
@@ -135,23 +151,315 @@ __global__ void findNeighbours(unsigned int* neighbours,
       return;
     }
 
-    int abi = 0;
-    int abj = 0;
+
+    int i;
+    int j;
+    int k;
+    unsigned int c;
+
+    /*
+    i=-3; j=3; k=3;
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=0; j=3; k=3;
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=3; j=3; k=3;
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=-3; j=0; k=3;
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=-3; j=-3; k=3;
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=0; j=-3; k=3;
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=3; j=-3; k=3;
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=3; j=0; k=3;
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=0; j=0; k=3;
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+
+    i=-3; j=3; k=-3;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=0; j=3; k=-3;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=3; j=3; k=-3;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=-3; j=0; k=-3;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=-3; j=-3; k=-3;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=0; j=-3; k=-3;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=3; j=-3; k=-3;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=3; j=0; k=-3;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=0; j=0; k=-3;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+  
+    i=-3; j=3; k=0;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=0; j=3; k=0;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=3; j=3; k=0;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=-3; j=0; k=0;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=-3; j=-3; k=0;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=0; j=-3; k=0;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=3; j=-3; k=0;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+    i=3; j=0; k=0;    
+    addNeighbours(tempPos, predictedPosition1, i, j, k, particleDiameter, hash, start, c, cellStarts, counter, contactCounters, neighbours, originalNeighbours, maxNeighboursPerParticle, maxGrid);
+    DONE_CHECK
+      */
+
+
+
+
+
+
+
+
+
+      /*
+
+
+    #pragma unroll
+    for(int i=0; i<=3; i++) {
+      #pragma unroll
+      for(int j=0; j<=3; j++) {
+        #pragma unroll
+        for(int k=0; k<=3; k++) {
+          if( !((i == 0) || (j == 0) || (k == 0)) ) continue;
+         
+          tempPos = predictedPosition1;
+          tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+          hash = getHash(tempPos);
+          if( hash < maxGrid ) {
+            start = cellStarts[hash]; 
+            if( start != UINT_MAX ) {
+              end = cellEndings[hash];
+              for(index2=start; index2<end; index2++) {
+                if( index != index2 && index2 < numberOfParticles ) {
+                  neighbours[counter++] = index2;
+                  if( counter == maxNeighboursPerParticle ) {
+                    goto done;
+                  }
+                }
+              }
+            }
+          }
+
+        }
+      }
+    }
+
+
+
+    i=-2; j=2; k=2;
+    tempPos = predictedPosition1;
+    tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+    hash = getHash(tempPos);
+    if( hash < maxGrid ) {
+      start = cellStarts[hash]; 
+      if( start != UINT_MAX ) {
+        c = contactCounters[start];
+        for(int i=0; i<c; i++) {
+          neighbours[counter++] = originalNeighbours[start * maxNeighboursPerParticle + i];
+          if( counter == maxNeighboursPerParticle ) {
+            goto done;
+          }
+        }
+      }
+    }
+
+
+    i=2; j=2; k=2;
+    tempPos = predictedPosition1;
+    tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+    hash = getHash(tempPos);
+    if( hash < maxGrid ) {
+      start = cellStarts[hash]; 
+      if( start != UINT_MAX ) {
+        c = contactCounters[start];
+        for(int i=0; i<c; i++) {
+          neighbours[counter++] = originalNeighbours[start * maxNeighboursPerParticle + i];
+          if( counter == maxNeighboursPerParticle ) {
+            goto done;
+          }
+        }
+      }
+    }
+
+
+    i=-2; j=-2; k=2;
+    tempPos = predictedPosition1;
+    tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+    hash = getHash(tempPos);
+    if( hash < maxGrid ) {
+      start = cellStarts[hash]; 
+      if( start != UINT_MAX ) {
+        c = contactCounters[start];
+        for(int i=0; i<c; i++) {
+          neighbours[counter++] = originalNeighbours[start * maxNeighboursPerParticle + i];
+          if( counter == maxNeighboursPerParticle ) {
+            goto done;
+          }
+        }
+      }
+    }
+
+
+    i=2; j=-2; k=2;
+    tempPos = predictedPosition1;
+    tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+    hash = getHash(tempPos);
+    if( hash < maxGrid ) {
+      start = cellStarts[hash]; 
+      if( start != UINT_MAX ) {
+        c = contactCounters[start];
+        for(int i=0; i<c; i++) {
+          neighbours[counter++] = originalNeighbours[start * maxNeighboursPerParticle + i];
+          if( counter == maxNeighboursPerParticle ) {
+            goto done;
+          }
+        }
+      }
+    }
+
+
+    i=-2; j=2; k=-2;
+    tempPos = predictedPosition1;
+    tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+    hash = getHash(tempPos);
+    if( hash < maxGrid ) {
+      start = cellStarts[hash]; 
+      if( start != UINT_MAX ) {
+        c = contactCounters[start];
+        for(int i=0; i<c; i++) {
+          neighbours[counter++] = originalNeighbours[start * maxNeighboursPerParticle + i];
+          if( counter == maxNeighboursPerParticle ) {
+            goto done;
+          }
+        }
+      }
+    }
+
+
+    i=2; j=2; k=-2;
+    tempPos = predictedPosition1;
+    tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+    hash = getHash(tempPos);
+    if( hash < maxGrid ) {
+      start = cellStarts[hash]; 
+      if( start != UINT_MAX ) {
+        c = contactCounters[start];
+        for(int i=0; i<c; i++) {
+          neighbours[counter++] = originalNeighbours[start * maxNeighboursPerParticle + i];
+          if( counter == maxNeighboursPerParticle ) {
+            goto done;
+          }
+        }
+      }
+    }
+
+
+    i=-2; j=-2; k=-2;
+    tempPos = predictedPosition1;
+    tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+    hash = getHash(tempPos);
+    if( hash < maxGrid ) {
+      start = cellStarts[hash]; 
+      if( start != UINT_MAX ) {
+        c = contactCounters[start];
+        for(int i=0; i<c; i++) {
+          neighbours[counter++] = originalNeighbours[start * maxNeighboursPerParticle + i];
+          if( counter == maxNeighboursPerParticle ) {
+            goto done;
+          }
+        }
+      }
+    }
+
+
+    i=2; j=-2; k=-2;
+    tempPos = predictedPosition1;
+    tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
+    hash = getHash(tempPos);
+    if( hash < maxGrid ) {
+      start = cellStarts[hash]; 
+      if( start != UINT_MAX ) {
+        c = contactCounters[start];
+        for(int i=0; i<c; i++) {
+          neighbours[counter++] = originalNeighbours[start * maxNeighboursPerParticle + i];
+          if( counter == maxNeighboursPerParticle ) {
+            goto done;
+          }
+        }
+      }
+    }
+
+
+    */
+
+    /*
+   -2, 2, 2
+   2, 2, 2
+   -2, -2, 2
+   2, -2, 2
+
+   -2, 2, -2
+   2, 2, -2
+   -2, -2, -2
+   2, -2, -2
+   */
+    
+
+
+    int abi;
+    int abj;
     for(int shell=2; shell<=kernelWidth; shell++) {
       for(int i=-shell; i<=shell; i++) {
         abi = abs(i);
         for(int j=-shell; j<=shell; j++) {
-          abj = abs(j);
+          abj= abs(j);
           for(int k=-shell; k<=shell; k++) {
-            if( (abi!=shell) && (abj!=shell) && (abs(k)!=shell) ) continue;
+            if( (abs(i)!=shell) && (abs(j)!=shell) && (abs(k)!=shell) ) continue;
 
-            tempPos = predictedPosition1Org;
+            tempPos = predictedPosition1;
             tempPos.x += i*particleDiameter; tempPos.y += j*particleDiameter; tempPos.z += k*particleDiameter;
             hash = getHash(tempPos);
             if( hash < maxGrid ) {
               start = cellStarts[hash]; 
-              end = cellEndings[hash];
               if( start != UINT_MAX ) {
+                end = cellEndings[hash];
                 for(index2=start; index2<end; index2++) {
                   if( index != index2 && index2 < numberOfParticles ) {
                     neighbours[counter++] = index2;
@@ -167,6 +475,8 @@ __global__ void findNeighbours(unsigned int* neighbours,
         }
       }
     }
+    
+
     neighbourCounters[index] = counter;
   }
   
@@ -205,8 +515,8 @@ __global__ void solveCollisions(unsigned int* cellStarts,
     surf2Dread(&position1, positions4, x, y);
 
     float4 predictedPosition2;
-    float4 pos1ToPos2;
-    float4 addTo1;
+    float3 pos1ToPos2;
+    float3 addTo1;
     unsigned int index2;
     float halfOverlap;
     unsigned int x2;
@@ -233,18 +543,32 @@ __global__ void solveCollisions(unsigned int* cellStarts,
       float mass2 = predictedPosition2.w;
       predictedPosition2.w = 0.0f;
 
-      halfOverlap = (particleDiameter - length(predictedPosition2 - predictedPosition1)) / 2.0f;
+      float3 dir = make_float3(predictedPosition2 - predictedPosition1);
+      float len = length(dir);
+
+      halfOverlap = (particleDiameter - len) / 2.0f;
 
       if( halfOverlap > 0 ) {
-        pos1ToPos2 = normalize(predictedPosition2 - predictedPosition1);
-        //float mass = ( 1.0f / (mass1 + mass2) );
+
+        if( len <= 0.00001f ) {
+          pos1ToPos2 = make_float3(0.0f, 0.0f, 0.0f);
+        } else {
+          pos1ToPos2 = dir / len;
+        }
+
+        //float inverseMass = ( 1.0f / (mass1 + mass2) );
         halfOverlap += 0.001f;
         addTo1 =  -1.0 * pos1ToPos2 * halfOverlap;
+        //addTo2 =  1.0 * pos1ToPos2 * halfOverlap;
 
-        predictedPosition1 += addTo1;
+        predictedPosition1.x += addTo1.x;
+        predictedPosition1.y += addTo1.y;
+        predictedPosition1.z += addTo1.z;
         predictedPosition1.w = mass1;
 
-        position1 += addTo1;
+        position1.x += addTo1.x;
+        position1.y += addTo1.y;
+        position1.z += addTo1.z;
         
         surf2Dwrite(predictedPosition1, predictedPositions4, x, y);
 
@@ -325,7 +649,7 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
     float4 predictedPosition2;
     float3 pos1ToPos2;
     float3 addTo1;
-    float3 addTo2;
+    //float3 addTo2;
     unsigned int index2;
     float halfOverlap;
     unsigned int x2;
@@ -356,10 +680,10 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
           pos1ToPos2 = dir / len;
         }
 
-        float inverseMass = ( 1.0f / (mass1 + mass2) );
+        //float inverseMass = ( 1.0f / (mass1 + mass2) );
         halfOverlap += 0.001f;
         addTo1 =  -1.0 * pos1ToPos2 * halfOverlap;
-        addTo2 =  1.0 * pos1ToPos2 * halfOverlap;
+        //addTo2 =  1.0 * pos1ToPos2 * halfOverlap;
 
         
         atomicAdd(&(predictedPositions[index].x), addTo1.x);
@@ -608,9 +932,17 @@ void cudaCallSetupCollisionConstraintBatchesCheck() {
 
 // --------------------------------------------------------------------------
 
+
 void collisionHandling() {
   unsigned int stabilizationIterations = 1;
+
   cudaCallFindContacts();
+  static int counter = 0;
+  if( counter == 0 ) {
+    cudaCallFindNeighbours();
+    counter = 10;
+  }
+
   for(unsigned int i=0; i<stabilizationIterations; i++) {
      //cudaCallResetContacts();
     
@@ -625,7 +957,9 @@ void collisionHandling() {
       cudaCallSetupCollisionConstraintBatchesCheck();
     }*/
   }
-  cudaCallFindNeighbours();
+
+  counter--;
+  
 }
 
 // --------------------------------------------------------------------------

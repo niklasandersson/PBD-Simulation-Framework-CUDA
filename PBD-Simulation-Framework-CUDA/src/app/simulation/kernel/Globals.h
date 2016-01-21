@@ -1,7 +1,6 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-
 surface<void, cudaSurfaceType2D> positions4;
 surface<void, cudaSurfaceType2D> predictedPositions4;
 surface<void, cudaSurfaceType2D> velocities4;
@@ -98,6 +97,9 @@ struct CudaCallParameters {
 };
 
 CudaCallParameters cudaCallParameters;
+
+#include "Communication.h"
+Communication communication;
 
 #define FOR_EACH_PARTICLE cudaCallParameters.blocksForParticleBased,cudaCallParameters.threadsForParticleBased
 #define FOR_EACH_CONTACT cudaCallParameters.blocksForContactBased,cudaCallParameters.threadsForContactBased

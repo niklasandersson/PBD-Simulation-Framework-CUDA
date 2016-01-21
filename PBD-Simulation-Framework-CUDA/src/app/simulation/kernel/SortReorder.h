@@ -20,7 +20,7 @@ __global__ void initializeCellIds(unsigned int* cellIdsIn) {
   if( idx < numberOfParticles ) {
     float4 predictedPosition;
     surf2Dread(&predictedPosition, predictedPositions4, x, y);
-    cellIdsIn[idx] = mortonCode(predictedPosition);
+    cellIdsIn[idx] = getHash(predictedPosition);
   } else {
     cellIdsIn[idx] = UINT_MAX;
   }
@@ -142,8 +142,7 @@ void cudaCallResetCellInfo() {
 
 __global__ void computeCellInfo(unsigned int* cellStarts,
                                 unsigned int* cellEndings,
-                                unsigned int* cellIdsOut,
-                                unsigned int* particleIdsOut)  {
+                                unsigned int* cellIdsOut)  {
   const unsigned int numberOfParticles = params.numberOfParticles;
   const unsigned int textureWidth = params.textureWidth;
 
@@ -153,7 +152,6 @@ __global__ void computeCellInfo(unsigned int* cellStarts,
 
   if( idx < numberOfParticles ) {
     const unsigned int cellId = cellIdsOut[idx];
-    const unsigned int particleId = particleIdsOut[idx];
 
     if( idx == 0 ) {
       cellStarts[cellId] = 0; 
@@ -163,26 +161,26 @@ __global__ void computeCellInfo(unsigned int* cellStarts,
         cellStarts[cellId] = idx;
         cellEndings[previousCellId] = idx;
       }
-      if( idx == numberOfParticles-1 ) {
+      /*if( idx == numberOfParticles-1 ) {
         cellEndings[idx] = numberOfParticles;
-      }
+      }*/
     }
   }
 }
 
 void cudaCallComputeCellInfo() {
-  computeCellInfo<<<FOR_EACH_PARTICLE>>>(d_cellStarts, d_cellEndings, d_cellIds_out, d_particleIds_out);
+  computeCellInfo<<<FOR_EACH_PARTICLE>>>(d_cellStarts, d_cellEndings, d_cellIds_out);
 }
 
 // --------------------------------------------------------------------------
 
 __global__ void initializeParticleIds(unsigned int* particleIdsIn) {
   const unsigned int numberOfParticles = params.numberOfParticles;
-  const unsigned int textureWidth = params.textureWidth;
+  //const unsigned int textureWidth = params.textureWidth;
 
   const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
-  const unsigned int x = (idx % textureWidth) * sizeof(float4);
-  const unsigned int y = idx / textureWidth;
+  //const unsigned int x = (idx % textureWidth) * sizeof(float4);
+  //const unsigned int y = idx / textureWidth;
   
   if( idx < numberOfParticles ) {
     particleIdsIn[idx] = idx;
