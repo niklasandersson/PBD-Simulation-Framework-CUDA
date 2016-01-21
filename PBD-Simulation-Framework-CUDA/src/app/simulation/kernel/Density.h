@@ -13,7 +13,10 @@ void initializeDensity() {
 	CUDA(cudaMalloc((void**)&d_deltaPositions, simulationParameters.maxParticles * sizeof(float4)));
 	CUDA(cudaMalloc((void**)&d_externalForces, simulationParameters.maxParticles * sizeof(float4)));
 	CUDA(cudaMalloc((void**)&d_omegas, simulationParameters.maxParticles * sizeof(float3)));
-	cudaMemset(d_externalForces, 0.0f, simulationParameters.maxParticles* sizeof(float4));
+	CUDA(cudaMemset(d_deltaPositions, 0.0f, simulationParameters.maxParticles * sizeof(float4)));
+	CUDA(cudaMemset(d_omegas, 0.0f, simulationParameters.maxParticles* sizeof(float3)));
+	CUDA(cudaMemset(d_externalForces, 0.0f, simulationParameters.maxParticles* sizeof(float4)));
+	CUDA(cudaMemset(d_lambdas, 0.0f, simulationParameters.maxParticles* sizeof(float)));
 	simulationParameters.restDensity = 1000.0f;
 }
 
@@ -113,44 +116,49 @@ __device__ float4 computeGradientAtSelf(float4 pi,
 
 
 __global__ void computeLambda(unsigned int* neighbors,
-	unsigned int* numberOfNeighbors,
-	float* lambdas
-	) {
+	                            unsigned int* numberOfNeighbors,
+                            	float* lambdas) {
 	GET_INDEX_X_Y
-		unsigned int numberOfParticles = params.numberOfParticles;
-	if (index < numberOfParticles)
-	{
+	const unsigned int numberOfParticles = params.numberOfParticles;
+	if( index < numberOfParticles ) {
 		float4 pi;
 		surf2Dread(&pi, predictedPositions4, x, y);
-		unsigned int maxNumberOfNeighbors = params.maxNeighboursPerParticle;
-		float restDensity = params.restDensity;
-		float ci = computeConstraintValue(pi, neighbors, numberOfNeighbors);
+		const unsigned int maxNumberOfNeighbors = params.maxNeighboursPerParticle;
+		const float restDensity = params.restDensity;
+		float ci = 0.0f;
+    float density = 0.0f;
 
 		float gradientValue = 0.0f;
-		const float EPSILON = 0.00000001f;
+		const float EPSILON = 0.0001f;
 
-		unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
+		const unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
+    unsigned int neighborIndex;
+    float4 pj;
+    unsigned int neighborX;
+    unsigned int neighborY;
+		float4 gradient;
+    float gradientLength;
+    float4 gradientAtSelf;
 
-		for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
-			unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
-			float4 pj;
-			float neighborX = (neighborIndex % textureWidth) * sizeof(float4);
-			float neighborY = (neighborIndex / textureWidth);
-
+    for(unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
+			neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
+			neighborX = (neighborIndex % textureWidth) * sizeof(float4);
+			neighborY = (neighborIndex / textureWidth);
 			surf2Dread(&pj, predictedPositions4, neighborX, neighborY);
-			if (isnan(pj.x) || isnan(pj.y) || isnan(pj.z))
+			
+      if (isnan(pj.x) || isnan(pj.y) || isnan(pj.z))
 				printf("IN computeLambda: pj = %f , %f , %f ...... computeLambda()  \n", pj.x, pj.y, pj.z);
-			float4 gradient = -1.0f * spiky(pi, pj) / restDensity;
-			//printf("gradient.x = %f , gradient.y = %f , gradient.z = %f  \n", gradient.x, gradient.y, gradient.z);
-			float gradientLength = length(make_float3(gradient.x, gradient.y, gradient.z));
-			//printf("gradLength = %f \n", gradientLength);
-			//printf("gradient.x = %f , gradient.y = %f , gradient.z = %f, gradLength = %f \n", gradient.x, gradient.y, gradient.z, gradientLength);
+			
+      gradient = -1.0f * spiky(pi, pj) / restDensity;
+			gradientLength = length(make_float3(gradient));
 			gradientValue += gradientLength * gradientLength;
-		}
+		  density += poly6(pi, pj);
+      gradientAtSelf += spiky(pi, pj);
+    }
+    gradientAtSelf /= restDensity;
+    ci = (density / restDensity) - 1.0f;
 
-		float4 gradientAtSelf = computeGradientAtSelf(pi, neighbors, numberOfNeighbors);
-
-		float gradientAtSelfLength = length(make_float3(gradientAtSelf.x, gradientAtSelf.y, gradientAtSelf.z));
+		const float gradientAtSelfLength = length(make_float3(gradientAtSelf));
 		gradientValue += gradientAtSelfLength * gradientAtSelfLength;
 
 		if( gradientValue == 0.0f ) {
@@ -167,47 +175,48 @@ void cudaCallComputeLambda() {
 }
 
 __global__ void computeDeltaPositions(unsigned int* neighbors,
-	unsigned int* numberOfNeighbors,
-	float* lambdas,
-	float4* deltaPositions
-	) {
-	GET_INDEX_X_Y
-		unsigned int numberOfParticles = params.numberOfParticles;
-	if (index < numberOfParticles)
-	{
-		float restDensity = params.restDensity;
-		unsigned int maxNumberOfNeighbors = params.maxNeighboursPerParticle;
-		unsigned int kernelWidth = params.kernelWidth;
+	                                    unsigned int* numberOfNeighbors,
+	                                    float* lambdas,
+	                                    float4* deltaPositions) {
+  GET_INDEX_X_Y
+	const unsigned int numberOfParticles = params.numberOfParticles;
+	
+  if( index < numberOfParticles ) {
+		const float restDensity = params.restDensity;
+		const unsigned int maxNumberOfNeighbors = params.maxNeighboursPerParticle;
+		const unsigned int kernelWidth = params.kernelWidth;
 
 		float4 pi;
 		surf2Dread(&pi, predictedPositions4, x, y);
-		unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
-		float lambdai = lambdas[index];
+		const unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
+		const float lambdai = lambdas[index];
 		float4 deltaPosition = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-		float sCorr = 0.0f;
-		float k = 1.0f;
-		float n = 1.0f;
+    const float absQ = 0.1f * kernelWidth;
+		const float sCorr = 0.0f;
+		const float k = 1.0f;
+    const float n = 1.0f;
+    const float4 deltaQ = make_float4(1.0f, 1.0f, 1.0f, 0.0f) * absQ + pi;
 
-		for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
-			unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
-			float4 pj;
-			float neighborX = (neighborIndex % textureWidth) * sizeof(float4);
-			float neighborY = (neighborIndex / textureWidth);
-
+    unsigned int neighborIndex;
+    float4 pj;
+    unsigned int neighborX;
+    unsigned int neighborY;
+    float lambdaj;
+		
+    for(unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
+			neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
+			neighborX = (neighborIndex % textureWidth) * sizeof(float4);
+			neighborY = (neighborIndex / textureWidth);
 			surf2Dread(&pj, predictedPositions4, neighborX, neighborY);
-			if (isnan(pj.x) || isnan(pj.y) || isnan(pj.z))
+		  lambdaj = lambdas[neighborIndex];
+      if (isnan(pj.x) || isnan(pj.y) || isnan(pj.z))
 				printf("IN computeDeltaPositions: pj = %f , %f , %f ...... computeDeltaPositions()  \n", pj.x, pj.y, pj.z);
-			float lambdaj = lambdas[neighborIndex];
-			float absQ = 0.1f*kernelWidth;
-			float4 deltaQ = make_float4(1.0f, 1.0f, 1.0f, 0.0f) * absQ + pi;
-			//sCorr = -k * pow(poly6(pi, pj, kernelWidth), n) / poly6(deltaQ, make_float4(0.0f, 0.0f, 0.0f, 0.0f), kernelWidth);
-
+			
+      //sCorr = -k * pow(poly6(pi, pj, kernelWidth), n) / poly6(deltaQ, make_float4(0.0f, 0.0f, 0.0f, 0.0f), kernelWidth);
 			deltaPosition += (lambdai + lambdaj) * spiky(pi, pj);
 		}
 
 		deltaPositions[index] = deltaPosition / restDensity;
-		//if (isnan(deltaPositions[index].x) || isnan(deltaPositions[index].y) || isnan(deltaPositions[index].z))
-			//printf("IN computeDeltaPositions: deltaPositions[index] = %f , %f , %f ...... at = computeDeltaPositions()  \n", deltaPositions[index].x, deltaPositions[index].y, deltaPositions[index].z);
 	}
 }
 
