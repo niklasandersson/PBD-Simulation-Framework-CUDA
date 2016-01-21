@@ -153,10 +153,10 @@ __global__ void computeLambda(unsigned int* neighbors,
 		float gradientAtSelfLength = length(make_float3(gradientAtSelf.x, gradientAtSelf.y, gradientAtSelf.z));
 		gradientValue += gradientAtSelfLength * gradientAtSelfLength;
 
-		if (gradientValue == 0.0f)
-		//printf("gradientValue = %f \n", gradientValue);
-		//printf("ci = %f \n", ci);
-		lambdas[index] = -1.0f * ci / (gradientValue + EPSILON);
+		if( gradientValue == 0.0f ) {
+		  lambdas[index] = -1.0f * ci / (gradientValue + EPSILON);
+    }
+
 		if (isnan(lambdas[index]))
 			printf("lambdas[index] = %f , at = computeLambda()  \n", lambdas[index]);
 	}
