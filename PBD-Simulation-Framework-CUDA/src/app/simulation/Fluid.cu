@@ -27,25 +27,26 @@ void Fluid::compute() {
   initializeFrame();
 
   cudaCallApplyForces();
- 
+
   cudaCallInitializeCellIds();
 
   sortIds();
 
   reorderStorage();
-
+   
   cudaCallResetCellInfo();
 
   cudaCallComputeCellInfo();
 
   collisionHandling();
-
+  
   cudaCallUpdatePositions();
 
+   /*
 	cudaCallComputeLambda();
 
-	cudaCallComputeDeltaPositions();
-	
+	cudaCallComputeDeltaPositions();	
+ 
 	cudaCallApplyDeltaPositions();
 
 	cudaCallComputeOmegas();
@@ -53,4 +54,5 @@ void Fluid::compute() {
 	cudaCallComputeVorticity();
 
 	cudaComputeViscosity();
+  */
 }

@@ -9,9 +9,13 @@
 #include "SortReorder.h"
 #include "Collision.h"
 #include "Density.h"
+#include "Communication.h"
+
 // --------------------------------------------------------------------------
 
 void initializeFrame() {
+  Events::addParticle.execute_calls();
+
   auto glShared = GL_Shared::getInstance();
   const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
@@ -24,6 +28,7 @@ void initializeFrame() {
   simulationParameters.maxContactConstraints = simulationParameters.maxNeighboursPerParticle * simulationParameters.numberOfParticles;
   simulationParameters.maxGrid = maxGrid;
   simulationParameters.maxParticles = maxParticles;
+  simulationParameters.maxPossibleContactConstraints = simulationParameters.maxNeighboursPerParticle * simulationParameters.maxParticles;
   simulationParameters.deltaT = 0.01f;
   simulationParameters.particleRadius = 0.5f;
   simulationParameters.particleDiameter = 2.0f * simulationParameters.particleRadius;
@@ -41,14 +46,18 @@ void initializeFrame() {
   CUDA(cudaMemcpyToSymbol(params, &simulationParameters, sizeof(SimulationParameters)));
 
   unsigned int threadsPerBlock = 128;
-  cudaCallParameters.blocksForParticleBased = dim3((simulationParameters.numberOfParticles)/threadsPerBlock, 1, 1);
+  
+  cudaCallParameters.blocksForParticleBased = dim3(std::ceil(simulationParameters.numberOfParticles/(float)threadsPerBlock), 1, 1);
   cudaCallParameters.threadsForParticleBased = dim3(threadsPerBlock, 1, 1);
 
-  cudaCallParameters.blocksForContactBased = dim3((simulationParameters.maxContactConstraints)/threadsPerBlock, 1, 1);
+  cudaCallParameters.blocksForContactBased = dim3(std::ceil(simulationParameters.maxContactConstraints/(float)threadsPerBlock), 1, 1);
   cudaCallParameters.threadsForContactBased = dim3(threadsPerBlock, 1, 1);
 
-  cudaCallParameters.blocksForGridBased = dim3((simulationParameters.maxGrid)/threadsPerBlock, 1, 1);
+  cudaCallParameters.blocksForGridBased = dim3(std::ceil(simulationParameters.maxGrid/(float)threadsPerBlock), 1, 1);
   cudaCallParameters.threadsForGridBased = dim3(threadsPerBlock, 1, 1);
+
+  cudaCallFullRangeParameters.blocksForAllParticlesPossibleBased = dim3(std::ceil(simulationParameters.maxParticles/(float)threadsPerBlock), 1, 1);
+  cudaCallFullRangeParameters.threadsForAllParticlesPossibleBased = dim3(threadsPerBlock, 1, 1);  
 }
 
 // --------------------------------------------------------------------------
@@ -83,7 +92,8 @@ void initializeShared() {
 // --------------------------------------------------------------------------
 
 void cudaInitializeKernels() {
-   srand(time(NULL));
+  srand(time(NULL));
+  communication.initialize();
 
   initializeFrame();
   initializeShared();

@@ -66,7 +66,8 @@ __global__ void findContacts(unsigned int* neighbours,
               end = cellEndings[hash];
               for(index2=start; index2<end; index2++) {
                 if( index != index2 && index2 < numberOfParticles ) {
-                  neighbours[counter++] = index2;
+                  neighbours[counter++] = index2; 
+                  counter++;
                   if( counter == maxNeighboursPerParticle ) {
                     goto done;
                   }
@@ -631,10 +632,10 @@ void collisionHandling() {
 // --------------------------------------------------------------------------
 
 void initializeCollision() {
-  CUDA(cudaMalloc((void**)&d_neighbours, simulationParameters.maxContactConstraints * sizeof(unsigned int)));
+  CUDA(cudaMalloc((void**)&d_neighbours, simulationParameters.maxPossibleContactConstraints * sizeof(unsigned int)));
   CUDA(cudaMalloc((void**)&d_contactCounters, simulationParameters.maxParticles * sizeof(unsigned int)));
   CUDA(cudaMalloc((void**)&d_neighbourCounters, simulationParameters.maxParticles * sizeof(unsigned int)));
-  CUDA(cudaMalloc((void**)&d_contactConstraintSucces, simulationParameters.maxContactConstraints * sizeof(int)));
+  CUDA(cudaMalloc((void**)&d_contactConstraintSucces, simulationParameters.maxPossibleContactConstraints * sizeof(int)));
   CUDA(cudaMalloc((void**)&d_contactConstraintParticleUsed, simulationParameters.maxParticles * sizeof(int)));
 }
 

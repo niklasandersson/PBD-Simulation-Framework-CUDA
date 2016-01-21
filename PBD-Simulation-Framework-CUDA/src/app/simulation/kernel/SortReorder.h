@@ -177,20 +177,20 @@ void cudaCallComputeCellInfo() {
 // --------------------------------------------------------------------------
 
 __global__ void initializeParticleIds(unsigned int* particleIdsIn) {
-  const unsigned int numberOfParticles = params.numberOfParticles;
+  const unsigned int maxParticles = params.maxParticles;
   const unsigned int textureWidth = params.textureWidth;
 
   const unsigned int idx = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
   const unsigned int x = (idx % textureWidth) * sizeof(float4);
   const unsigned int y = idx / textureWidth;
   
-  if( idx < numberOfParticles ) {
+  if( idx < maxParticles ) {
     particleIdsIn[idx] = idx;
   }
 }
 
 void cudaCallInitializeParticleIds() {
-  initializeParticleIds<<<FOR_EACH_PARTICLE>>>(d_particleIds_in);
+  initializeParticleIds<<<FOR_ALL_POSSIBLE_PARTICLES>>>(d_particleIds_in);
 }
 
 // --------------------------------------------------------------------------
@@ -209,7 +209,7 @@ void initializeSort() {
                                   d_cellIds_out, 
                                   d_particleIds_in, 
                                   d_particleIds_out,
-                                  simulationParameters.numberOfParticles);
+                                  simulationParameters.maxParticles);
 
   CUDA(cudaMalloc(&d_sortTempStorage, sortTempStorageBytes));
 }

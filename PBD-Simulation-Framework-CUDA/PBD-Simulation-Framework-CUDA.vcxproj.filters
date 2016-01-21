@@ -111,6 +111,7 @@
     <ClInclude Include="src\app\simulation\kernel\Initialize.h" />
     <ClInclude Include="src\app\simulation\kernel\Globals.h" />
     <ClInclude Include="src\app\simulation\kernel\Density.h" />
+    <ClInclude Include="src\app\simulation\kernel\Communication.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
