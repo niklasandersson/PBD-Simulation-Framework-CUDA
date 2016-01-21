@@ -14,7 +14,7 @@ void initializeDensity() {
 	CUDA(cudaMalloc((void**)&d_externalForces, simulationParameters.maxParticles * sizeof(float4)));
 	CUDA(cudaMalloc((void**)&d_omegas, simulationParameters.maxParticles * sizeof(float3)));
 	cudaMemset(d_externalForces, 0.0f, simulationParameters.maxParticles* sizeof(float4));
-	simulationParameters.restDensity = 1250.0f;
+	simulationParameters.restDensity = 1000.0f;
 }
 
 __global__ void clearAllTheCrap() {
@@ -30,27 +30,37 @@ void callClearAllTheCrap() {
   clearAllTheCrap << <FOR_EACH_PARTICLE >> >();
 }
 
-__device__ __forceinline__ float poly6(float4 pi, float4 pj)
+
+__device__ float poly6(float4 pi, float4 pj)
 {
 	float kernelWidth = (float) params.kernelWidth;
-  float4 r = pi - pj;
-  float distance = length(make_float3(r.x, r.y, r.z));
+	pi.w = 0.0f;
+	pj.w = 0.0f;
 
-	float numeratorTerm = kernelWidth * kernelWidth - distance * distance;
+	float distance = length(make_float3(pi - pj));
 	
-  return (315.0f * numeratorTerm * numeratorTerm * numeratorTerm) / (64.0f * M_PI * powf(kernelWidth, 6));
+	if (distance > 0.001f && distance < (kernelWidth - 0.001f) )
+	{
+		float numeratorTerm = powf(kernelWidth * kernelWidth - distance * distance, 3);
+		return (315.0f * numeratorTerm * numeratorTerm) / (0.001f + 64.0f * M_PI * powf(kernelWidth, 9));
+	}
+	else
+		return 0.0f;
 }
 
-__device__ __forceinline__ float4 spiky(float4 pi, float4 pj) {
+__device__ float4 spiky(float4 pi, float4 pj) {
 
 	unsigned int kernelWidth = params.kernelWidth;
+
+	pi.w = 0.0f;
+	pj.w = 0.0f;
 	float4 r = pi - pj;
 	float distance = length(make_float3(r.x, r.y, r.z));
 
-	float numeratorTerm = kernelWidth - distance;
-  float denominatorTerm = M_PI * powf(kernelWidth, 6) * (distance + 0.00001f);
+	float numeratorTerm = powf(kernelWidth - distance, 3);
+	float denominatorTerm = M_PI * powf(kernelWidth, 6) * (distance + 0.0000001f);
 
-  return 45.0f * numeratorTerm * numeratorTerm * r / denominatorTerm;
+	return 45.0f * numeratorTerm / (denominatorTerm * r + make_float4(0.000001f, 0.000001f, 0.000001f, 0.0f));
 }
 // ---------------------------------------------------------------------------------------
 
@@ -101,10 +111,6 @@ __device__ float4 computeGradientAtSelf(float4 pi,
 	return gradient / restDensity;
 }
 
-__device__ float4 part_computeGradientAtSelf(float4 pi, float4 pj) {
-
-}
-
 
 __global__ void computeLambda(unsigned int* neighbors,
 	unsigned int* numberOfNeighbors,
@@ -118,11 +124,10 @@ __global__ void computeLambda(unsigned int* neighbors,
 		surf2Dread(&pi, predictedPositions4, x, y);
 		unsigned int maxNumberOfNeighbors = params.maxNeighboursPerParticle;
 		float restDensity = params.restDensity;
-    float density = 0.0f;
+		float ci = computeConstraintValue(pi, neighbors, numberOfNeighbors);
 
 		float gradientValue = 0.0f;
-		const float EPSILON = 0.001f;
-    float4 gradientAtSelf = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		const float EPSILON = 0.00000001f;
 
 		unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
 
@@ -133,22 +138,27 @@ __global__ void computeLambda(unsigned int* neighbors,
 			float neighborY = (neighborIndex / textureWidth);
 
 			surf2Dread(&pj, predictedPositions4, neighborX, neighborY);
-			//float4 gradient = -1.0f * spiky(pi, pj) / restDensity;
-      float4 gradient = spiky(pi, pj) / restDensity;
+			if (isnan(pj.x) || isnan(pj.y) || isnan(pj.z))
+				printf("IN computeLambda: pj = %f , %f , %f ...... computeLambda()  \n", pj.x, pj.y, pj.z);
+			float4 gradient = -1.0f * spiky(pi, pj) / restDensity;
+			//printf("gradient.x = %f , gradient.y = %f , gradient.z = %f  \n", gradient.x, gradient.y, gradient.z);
 			float gradientLength = length(make_float3(gradient.x, gradient.y, gradient.z));
+			//printf("gradLength = %f \n", gradientLength);
+			//printf("gradient.x = %f , gradient.y = %f , gradient.z = %f, gradLength = %f \n", gradient.x, gradient.y, gradient.z, gradientLength);
 			gradientValue += gradientLength * gradientLength;
-      gradientAtSelf += gradient;
-
-      density += poly6(pi, pj);
 		}
+
+		float4 gradientAtSelf = computeGradientAtSelf(pi, neighbors, numberOfNeighbors);
 
 		float gradientAtSelfLength = length(make_float3(gradientAtSelf.x, gradientAtSelf.y, gradientAtSelf.z));
 		gradientValue += gradientAtSelfLength * gradientAtSelfLength;
-    //gradientValue += gradientValue;
 
-    float ci = (density / restDensity) - 1.0f;
-
+		if (gradientValue == 0.0f)
+		//printf("gradientValue = %f \n", gradientValue);
+		//printf("ci = %f \n", ci);
 		lambdas[index] = -1.0f * ci / (gradientValue + EPSILON);
+		if (isnan(lambdas[index]))
+			printf("lambdas[index] = %f , at = computeLambda()  \n", lambdas[index]);
 	}
 }
 
@@ -251,7 +261,7 @@ __global__ void computeVorticity(unsigned int* neighbors,
 		unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
 
 		float3 gradient = make_float3(0.0f, 0.0f, 0.0f);
-		const float EPSILON = 0.001;
+		const float EPSILON = 0.00000001f;
 		for (unsigned int i = 0; i < currentNumberOfNeighbors; i++) {
 			unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];
 			//printf("IN COMPUTEVORTICITY: neighborIndex = %i \n", neighborIndex);
@@ -406,7 +416,7 @@ __global__ void computeViscosity(unsigned int* neighbors,
 	}
 }
 
-	void cudaComputeViscosity() {
+void cudaComputeViscosity() {
 	computeViscosity << <FOR_EACH_PARTICLE >> >(d_neighbours, d_neighbourCounters);
 }
 #endif

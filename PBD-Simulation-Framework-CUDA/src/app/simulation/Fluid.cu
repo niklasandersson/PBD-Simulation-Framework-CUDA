@@ -42,7 +42,6 @@ void Fluid::compute() {
   
   cudaCallUpdatePositions();
 
-   /*
 	cudaCallComputeLambda();
 
 	cudaCallComputeDeltaPositions();	
@@ -54,5 +53,5 @@ void Fluid::compute() {
 	cudaCallComputeVorticity();
 
 	cudaComputeViscosity();
-  */
+  
 }

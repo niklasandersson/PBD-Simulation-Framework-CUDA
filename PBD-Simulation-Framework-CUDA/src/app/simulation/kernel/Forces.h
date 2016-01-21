@@ -74,7 +74,7 @@ __global__ void applyForces() {
     if( isnan(velocity.x) || isnan(velocity.y) || isnan(velocity.z) ) {
         printf("velocity: %f, %f, %f\n", velocity.x, velocity.y, velocity.z);
       }
-   // velocity.y += inverseMass * gravity * deltaT; 
+    velocity.y += inverseMass * gravity * deltaT; 
 
     float4 position;
     surf2Dread(&position, positions4, x, y);
