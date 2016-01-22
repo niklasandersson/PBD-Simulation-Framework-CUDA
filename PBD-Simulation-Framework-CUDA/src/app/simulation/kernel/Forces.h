@@ -91,10 +91,11 @@ __global__ void applyForces() {
     surf2Dwrite(velocity, velocities4, x, y);
 
     //applyMassScaling(predictedPosition);
+    predictedPosition.w = 1.0f;
     surf2Dwrite(predictedPosition, predictedPositions4, x, y);
 
     if( update ) {
-      surf2Dwrite(position, positions4, x, y);
+      //surf2Dwrite(position, positions4, x, y);
     }
     
 

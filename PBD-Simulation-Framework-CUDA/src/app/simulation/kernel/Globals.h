@@ -62,6 +62,7 @@ struct SimulationParameters{
 	float restDensity;
   Bounds bounds;
   unsigned int randomStart;
+  float kernelWidthDensity;
 };
 
 __constant__ SimulationParameters params;

@@ -33,24 +33,24 @@ void callClearAllTheCrap() {
 
 
 __device__ float poly6(float4 pi, float4 pj) {
-	const float kernelWidth = (float) params.kernelWidth;
+	const float kernelWidth = (float) params.kernelWidthDensity;
 	const float distance = length(make_float3(pi - pj));
 	
 	if( distance > 0.001f && distance < (kernelWidth - 0.001f) ) {
-		float numeratorTerm = powf(kernelWidth * kernelWidth - distance * distance, 3);
-		return (315.0f * numeratorTerm * numeratorTerm) / (0.001f + 64.0f * M_PI * powf(kernelWidth, 9));
+		float numeratorTerm = pow(kernelWidth * kernelWidth - distance * distance, 3);
+		return (315.0f * numeratorTerm * numeratorTerm) / (0.001f + 64.0f * M_PI * pow(kernelWidth, 9));
 	}
 
   return 0.0f;
 }
 
 __device__ float4 spiky(float4 pi, float4 pj) {
-	const unsigned int kernelWidth = params.kernelWidth;
+	const float kernelWidth = params.kernelWidthDensity;
 	const float4 r = pi - pj;
   const float distance = length(make_float3(r));
 
-	float numeratorTerm = powf(kernelWidth - distance, 3);
-	float denominatorTerm = M_PI * powf(kernelWidth, 6) * (distance + 0.0000001f);
+	float numeratorTerm = pow(kernelWidth - distance, 2);
+	float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0000001f);
 
 	return 45.0f * numeratorTerm / (denominatorTerm * r + make_float4(0.000001f, 0.000001f, 0.000001f, 0.0f));
 }
@@ -182,7 +182,7 @@ __global__ void computeDeltaPositions(unsigned int* neighbors,
   if( index < numberOfParticles ) {
 		const float restDensity = params.restDensity;
 		const unsigned int maxNumberOfNeighbors = params.maxNeighboursPerParticle;
-		const unsigned int kernelWidth = params.kernelWidth;
+		const float kernelWidth = params.kernelWidthDensity;
 
 		float4 pi;
 		surf2Dread(&pi, predictedPositions4, x, y);
@@ -394,7 +394,7 @@ __global__ void computeViscosity(unsigned int* neighbors,
 		surf2Dread(&vi, velocities4, x, y);
 		const unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
 		float4 vSum = make_float4(0.0, 0.0, 0.0, 0.0);
-		float c = 0.001;
+		const float c = 0.0005f; // 0.0005f
 
 		for(unsigned int i=0; i<currentNumberOfNeighbors; i++) {
 			unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];

@@ -53,7 +53,7 @@ __global__ void findContacts(unsigned int* neighbours,
     for(int i=-1; i<=1; i++) {
       #pragma unroll
       for(int j=-1; j<=1; j++) {
-        
+        #pragma unroll
         for(int k=-1; k<=1; k++) {
 
     //for(int j=-1; j<=1; j++) {
@@ -322,8 +322,7 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
     //neighbours += maxNeighboursPerParticle * index;
 
     float4 predictedPosition1 = predictedPositions[index];
-    float mass1 = predictedPosition1.w;
-    predictedPosition1.w = 0.0f;
+    float inverseMass1 = predictedPosition1.w;
 
     float4 position1 = positions[index];
     float4 position2;
@@ -334,6 +333,7 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
     float3 addTo2;
     unsigned int index2;
     float halfOverlap;
+    float overlap;
     unsigned int x2;
     unsigned int y2;
 
@@ -346,15 +346,15 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
       x2 = (index2 % textureWidth) * sizeof(float4);
       y2 = index2 / textureWidth;     
       predictedPosition2 = predictedPositions[index2];
-      float mass2 = predictedPosition2.w;
-      predictedPosition2.w = 0.0f;
+      float inverseMass2 = predictedPosition2.w;
 
       float3 dir = make_float3(predictedPosition2 - predictedPosition1);
       float len = length(dir);
 
-      halfOverlap = (particleDiameter - len) / 2.0f;
+      //halfOverlap = (particleDiameter - len) / 2.0f;
+      overlap = particleDiameter - len;
 
-      if( halfOverlap > 0 ) {
+      if( overlap > 0 ) {
 
         if( len <= 0.00001f ) {
           return;
@@ -363,10 +363,13 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
           pos1ToPos2 = dir / len;
         }
 
-        float inverseMass = ( 1.0f / (mass1 + mass2) );
+        inverseMass1 = 1.0f;
+        inverseMass2 = 1.0f;
+        const float inverseMass = inverseMass1 / (inverseMass1 + inverseMass2);
         halfOverlap += 0.001f;
-        addTo1 =  -1.0 * pos1ToPos2 * halfOverlap;
-        addTo2 =  1.0 * pos1ToPos2 * halfOverlap;
+        const float stiffness = 0.3f;
+        addTo1 =  -1.0 * inverseMass * overlap * pos1ToPos2 * (1.0f - stiffness);
+        //addTo2 =  1.0 * pos1ToPos2 * halfOverlap;
 
         atomicAdd(&(predictedPositions[index].x), addTo1.x);
         atomicAdd(&(positions[index].x), addTo1.x);
