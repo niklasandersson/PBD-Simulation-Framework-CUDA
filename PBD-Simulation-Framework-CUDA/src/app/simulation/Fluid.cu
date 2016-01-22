@@ -38,20 +38,28 @@ void Fluid::compute() {
 
   cudaCallComputeCellInfo();
 
-  collisionHandling();
-  
-  cudaCallUpdatePositions();
+  cudaCallFindContacts();
 
-	cudaCallComputeLambda();
+  cudaCallFindNeighbours();
 
-	cudaCallComputeDeltaPositions();	
- 
-	cudaCallApplyDeltaPositions();
+  const unsigned int solverIterations = 1;
+  for(unsigned int i=0; i<solverIterations; i++) {
+	  cudaCallComputeLambda();
 
+    const unsigned int stabilizationIterations = 1;
+    for(unsigned int j=0; j<stabilizationIterations; j++) {
+      cudaCallSolveCollisions();
+    }
+
+	  cudaCallComputeDeltaPositions();	
+	  
+    cudaCallApplyDeltaPositions();
+  }
 	cudaCallComputeOmegas();
 
 	cudaCallComputeVorticity();
 
 	cudaComputeViscosity();
-  
+
+  cudaCallUpdatePositions(); 
 }

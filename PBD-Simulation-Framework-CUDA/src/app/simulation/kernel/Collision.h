@@ -43,7 +43,8 @@ __global__ void findContacts(unsigned int* neighbours,
     float4 predictedPosition2; 
     
     if( counter == maxNeighboursPerParticle ) {
-      done: 
+    done:
+      neighbourCounters[index] = counter;
       contactCounters[index] = counter;
       return;
     }
@@ -83,6 +84,7 @@ __global__ void findContacts(unsigned int* neighbours,
       }
     }
 
+    neighbourCounters[index] = counter;
     contactCounters[index] = counter;
   }
   

@@ -24,7 +24,7 @@ void initializeFrame() {
 
   simulationParameters.numberOfParticles = numberOfParticles;
   simulationParameters.textureWidth = textureWidth;
-  simulationParameters.maxNeighboursPerParticle = 64;
+  simulationParameters.maxNeighboursPerParticle = MAX_NEIGHBOURS;
   simulationParameters.maxContactConstraints = simulationParameters.maxNeighboursPerParticle * simulationParameters.numberOfParticles;
   simulationParameters.maxGrid = maxGrid;
   simulationParameters.maxParticles = maxParticles;
@@ -32,7 +32,8 @@ void initializeFrame() {
   simulationParameters.deltaT = 0.01f;
   simulationParameters.particleRadius = 0.5f;
   simulationParameters.particleDiameter = 2.0f * simulationParameters.particleRadius;
-  simulationParameters.kernelWidth = 3;
+  simulationParameters.kernelWidth = KERNEL_WIDTH;
+	simulationParameters.restDensity = 1000.0f;
 
   simulationParameters.bounds.x.min = 25.0f;
   simulationParameters.bounds.x.max = 45.0f - 1.5f;

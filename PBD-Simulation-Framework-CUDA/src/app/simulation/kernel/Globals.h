@@ -110,6 +110,9 @@ CudaCallFullRangeParameters cudaCallFullRangeParameters;
 #include "Communication.h"
 Communication communication;
 
+#define MAX_NEIGHBOURS 64
+#define KERNEL_WIDTH 3
+
 #define FOR_EACH_PARTICLE cudaCallParameters.blocksForParticleBased,cudaCallParameters.threadsForParticleBased
 #define FOR_EACH_CONTACT cudaCallParameters.blocksForContactBased,cudaCallParameters.threadsForContactBased
 #define FOR_EACH_CELL cudaCallParameters.blocksForGridBased,cudaCallParameters.threadsForGridBased
