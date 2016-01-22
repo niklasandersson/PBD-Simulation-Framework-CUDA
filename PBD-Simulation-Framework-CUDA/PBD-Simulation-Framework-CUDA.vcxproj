@@ -220,6 +220,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="src\app\simulation\kernel\Collision.h" />
     <ClInclude Include="src\app\simulation\kernel\collision\Collision.h" />
     <ClInclude Include="src\app\simulation\kernel\collision\Hash.h" />
+    <ClInclude Include="src\app\simulation\kernel\Communication.h" />
     <ClInclude Include="src\app\simulation\kernel\Density.h" />
     <ClInclude Include="src\app\simulation\kernel\Forces.h" />
     <ClInclude Include="src\app\simulation\kernel\Forces\ApplyForces.h" />

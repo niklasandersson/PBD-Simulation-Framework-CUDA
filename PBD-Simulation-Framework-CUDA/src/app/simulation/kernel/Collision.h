@@ -43,13 +43,17 @@ __global__ void findContacts(unsigned int* neighbours,
     float4 predictedPosition2; 
     
     if( counter == maxNeighboursPerParticle ) {
-      done: 
+    done:
+      neighbourCounters[index] = counter;
       contactCounters[index] = counter;
       return;
     }
-   
+    
+    #pragma unroll
     for(int i=-1; i<=1; i++) {
+      #pragma unroll
       for(int j=-1; j<=1; j++) {
+        
         for(int k=-1; k<=1; k++) {
 
     //for(int j=-1; j<=1; j++) {
@@ -66,7 +70,8 @@ __global__ void findContacts(unsigned int* neighbours,
               end = cellEndings[hash];
               for(index2=start; index2<end; index2++) {
                 if( index != index2 && index2 < numberOfParticles ) {
-                  neighbours[counter++] = index2;
+                  neighbours[counter++] = index2; 
+                  counter++;
                   if( counter == maxNeighboursPerParticle ) {
                     goto done;
                   }
@@ -79,6 +84,7 @@ __global__ void findContacts(unsigned int* neighbours,
       }
     }
 
+    neighbourCounters[index] = counter;
     contactCounters[index] = counter;
   }
   
@@ -351,6 +357,7 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
       if( halfOverlap > 0 ) {
 
         if( len <= 0.00001f ) {
+          return;
           pos1ToPos2 = make_float3(0.0f, 0.0f, 0.0f);
         } else {
           pos1ToPos2 = dir / len;
@@ -361,7 +368,6 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
         addTo1 =  -1.0 * pos1ToPos2 * halfOverlap;
         addTo2 =  1.0 * pos1ToPos2 * halfOverlap;
 
-        
         atomicAdd(&(predictedPositions[index].x), addTo1.x);
         atomicAdd(&(positions[index].x), addTo1.x);
 
@@ -370,8 +376,6 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
 
         atomicAdd(&(predictedPositions[index].z), addTo1.z);
         atomicAdd(&(positions[index].z), addTo1.z);
-
-
 
         /*
         atomicAdd(&(predictedPositions[index2].x), addTo2.x);
@@ -562,21 +566,33 @@ __global__ void setupCollisionConstraintBatchesCheck(unsigned int* contacts,
 
         float4 predictedPosition1;
         surf2Dread(&predictedPosition1, predictedPositions4, x1, y1);
+        float mass1 = predictedPosition1.w;
         predictedPosition1.w = 0.0f;  
 
         float4 predictedPosition2;
         surf2Dread(&predictedPosition2, predictedPositions4, x2, y2);
+        float mass2 = predictedPosition2.w;
         predictedPosition2.w = 0.0f;
+        
+        float4 dir = (predictedPosition2 - predictedPosition1);
+        float len = length(make_float3(dir));
 
-        const float distance = length(predictedPosition2 - predictedPosition1);
-        const float overlap = particleDiameter - distance;
+        float halfOverlap = (particleDiameter - len) / 2.0f;
 
-        if( overlap > 0 ) {
-          const float4 pos1ToPos2 = normalize(predictedPosition2 - predictedPosition1); 
-          const float halfOverlap = overlap / 2.0f;
+        if( halfOverlap > 0 ) {
 
-          const float4 addTo1 = -1.0 * pos1ToPos2 * halfOverlap;
-          const float4 addTo2 = pos1ToPos2 * halfOverlap;
+          float4 pos1ToPos2;
+
+          if( len <= 0.00001f ) {
+            return;
+          } else {
+            pos1ToPos2 = dir / len;
+          }
+
+          //float inverseMass = ( 1.0f / (mass1 + mass2) );
+          //halfOverlap += 0.001f;
+          float4 addTo1 =  -1.0 * pos1ToPos2 * halfOverlap;
+          float4 addTo2 =  1.0 * pos1ToPos2 * halfOverlap;
 
           predictedPosition1 += addTo1;
           predictedPosition2 += addTo2;
@@ -610,13 +626,14 @@ void cudaCallSetupCollisionConstraintBatchesCheck() {
 
 void collisionHandling() {
   unsigned int stabilizationIterations = 1;
+  //cudaCallResetContacts();
   cudaCallFindContacts();
   for(unsigned int i=0; i<stabilizationIterations; i++) {
-     //cudaCallResetContacts();
+     
     
     cudaCallSolveCollisions();
     //cudaCallFindContacts();
-    /*
+   /* 
     cudaCallResetContactConstraintSuccess();
     const unsigned int maxBatches = simulationParameters.maxNeighboursPerParticle;
     for(unsigned int b=0; b<maxBatches; b++) {
@@ -631,10 +648,10 @@ void collisionHandling() {
 // --------------------------------------------------------------------------
 
 void initializeCollision() {
-  CUDA(cudaMalloc((void**)&d_neighbours, simulationParameters.maxContactConstraints * sizeof(unsigned int)));
+  CUDA(cudaMalloc((void**)&d_neighbours, simulationParameters.maxPossibleContactConstraints * sizeof(unsigned int)));
   CUDA(cudaMalloc((void**)&d_contactCounters, simulationParameters.maxParticles * sizeof(unsigned int)));
   CUDA(cudaMalloc((void**)&d_neighbourCounters, simulationParameters.maxParticles * sizeof(unsigned int)));
-  CUDA(cudaMalloc((void**)&d_contactConstraintSucces, simulationParameters.maxContactConstraints * sizeof(int)));
+  CUDA(cudaMalloc((void**)&d_contactConstraintSucces, simulationParameters.maxPossibleContactConstraints * sizeof(int)));
   CUDA(cudaMalloc((void**)&d_contactConstraintParticleUsed, simulationParameters.maxParticles * sizeof(int)));
 }
 

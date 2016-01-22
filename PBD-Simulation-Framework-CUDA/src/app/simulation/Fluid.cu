@@ -27,30 +27,39 @@ void Fluid::compute() {
   initializeFrame();
 
   cudaCallApplyForces();
- 
+
   cudaCallInitializeCellIds();
 
   sortIds();
 
   reorderStorage();
-
+   
   cudaCallResetCellInfo();
 
   cudaCallComputeCellInfo();
 
-  collisionHandling();
+  cudaCallFindContacts();
 
-  cudaCallUpdatePositions();
+  cudaCallFindNeighbours();
 
-	cudaCallComputeLambda();
+  const unsigned int solverIterations = 1;
+  for(unsigned int i=0; i<solverIterations; i++) {
+	  cudaCallComputeLambda();
 
-	cudaCallComputeDeltaPositions();
-	
-	cudaCallApplyDeltaPositions();
+    const unsigned int stabilizationIterations = 1;
+    for(unsigned int j=0; j<stabilizationIterations; j++) {
+      cudaCallSolveCollisions();
+    }
 
+	  cudaCallComputeDeltaPositions();	
+	  
+    cudaCallApplyDeltaPositions();
+  }
 	cudaCallComputeOmegas();
 
 	cudaCallComputeVorticity();
 
 	cudaComputeViscosity();
+
+  cudaCallUpdatePositions(); 
 }
