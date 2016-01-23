@@ -41,12 +41,13 @@ void Fluid::compute() {
   cudaCallFindContacts();
 
   cudaCallFindNeighbours();
-
+	
   const unsigned int solverIterations = 1;
   for(unsigned int i=0; i<solverIterations; i++) {
 
 	  cudaCallComputeLambda();
-
+		char a;
+		//std::cin >> a;
 	  cudaCallComputeDeltaPositions();	
     
     const unsigned int stabilizationIterations = 1;

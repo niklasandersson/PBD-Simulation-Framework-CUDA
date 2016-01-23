@@ -35,6 +35,11 @@ void callClearAllTheCrap() {
 __device__ float poly6(float4 pi, float4 pj) {
 	const float kernelWidth = (float) params.kernelWidthDensity;
 	const float distance = length(make_float3(pi - pj));
+
+	if (distance > kernelWidth - 0.00001f) {
+		return 0.0f;
+	}
+
 	float numeratorTerm = pow(kernelWidth * kernelWidth - distance * distance, 3);
 	return (315.0f * numeratorTerm) / (64.0f * M_PI * pow(kernelWidth, 9));
 }
@@ -51,9 +56,17 @@ __device__ float4 spiky(float4 pi, float4 pj) {
 	const float4 r = pi - pj;
   const float distance = length(make_float3(r));
 
+	if (distance > kernelWidth - 0.00001f) {
+		return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+
 	float numeratorTerm = pow(kernelWidth - distance, 2);
 	float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0001f);
-
+	if (distance < 0.1f)
+	{
+		//printf("distance = %f \n", distance);
+		//printf("kernel^6 = %f \n", pow(kernelWidth, 6));
+	}
 	return 45.0f * (numeratorTerm / denominatorTerm) * r;
 }
 
@@ -132,6 +145,8 @@ __global__ void computeLambda(unsigned int* neighbours,
     float accumulateB = 0.0f;
     float4 accumulateC = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
+		const float EPSILON = 0.0001f;
+
     for(unsigned int i=0; i<numberOfNeighbours; i++) {
       const unsigned int index2 = neighbours[i];
       const unsigned int x2 = (index2 % textureWidth) * sizeof(float4); 
@@ -139,23 +154,53 @@ __global__ void computeLambda(unsigned int* neighbours,
 
       float4 pj;
       surf2Dread(&pj, predictedPositions4, x2, y2);
-  
+
       accumulateA += poly6(pi, pj);
       
       float4 spik = spiky(pi, pj);
+			if ((abs(pi.x - pj.x) < EPSILON) && (abs(pi.y - pj.y) < EPSILON) && (abs(pi.z - pj.z) < EPSILON))
+			{
+				//printf("at neighbor %i at thread %i \n", i, index);
+				//printf("spik = %f, %f, %f, %f \n", spik.x, spik.y, spik.z, spik.w);
+				//printf("pi - pj = %f, %f, %f \n", pi.x - pj.x, pi.y - pj.y, pi.z - pj.z);
+				//printf("+=poly6 = %f \n", accumulateA);
+			}
+
+				/*if (index == 0 && (abs(pi.x - pj.x) < EPSILON) && (abs(pi.y - pj.y) < EPSILON) && (abs(pi.z - pj.z) < EPSILON))
+				{
+					//printf("pj = %f, %f, %f, %f \n ", pj.x, pj.y, pj.z);
+					//printf("pi = %f, %f, %f, %f \n ", pi.x, pi.y, pi.z);
+					//printf("numberOfNeighbours = %i ", numberOfNeighbours);
+
+					printf("at neighbor %i at thread %i \n", index * maxNeighboursPerParticle + i, index);
+					//printf("accumulateA = %f \n", accumulateA);
+					printf("pi - pj = %f, %f, %f \n", pi.x - pj.x, pi.y - pj.y, pi.z - pj.z);
+				}*/
+			
 
       accumulateB += dot(spik, spik);
       
       accumulateC += spik;
     }
-    
+		//printf("accA = %f ", accumulateA);
     const float A = (accumulateA / restDensity) - 1.0f;
     
     const float B = accumulateB / restDensity;
 
     const float C = dot(accumulateC, accumulateC) / restDensity;
-
-    lambdas[index] = -A / (B + C + 0.0001f);
+		if (B > 0.1f || C > 0.1f)
+		{
+			//printf("A = %f, B = %f, C = %f \n", A, B, C);
+		}
+    
+		if (index != 0) {
+			lambdas[index] = -A / (B + C + 0.0001f);
+			//printf("lambda[index] = %f \n", lambdas[index]);
+		}
+		else {
+			lambdas[index] = 0.0f;
+		}
+		
   }
   
 }
@@ -244,8 +289,17 @@ __global__ void computeDeltaPositions(unsigned int* neighbours,
       
       accumulateDelta += (li + lj) * spiky(pi, pj);
     }
-    
-    deltas[index] = accumulateDelta / restDensity;
+		
+		//printf("accumDelta[0] = %f, %f, %f, %f \n", accumulateDelta.x, accumulateDelta.y, accumulateDelta.z, accumulateDelta.w);
+		//printf("deltas[0] = %f \n", accumulateDelta.x / restDensity);
+		
+
+		if (index != 0) {
+			deltas[index] = accumulateDelta / restDensity;
+		}
+		else {
+			deltas[index] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+		}
   }
 }
   
