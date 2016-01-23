@@ -95,7 +95,7 @@ __global__ void applyForces() {
     surf2Dwrite(predictedPosition, predictedPositions4, x, y);
 
     if( update ) {
-      //surf2Dwrite(position, positions4, x, y);
+      surf2Dwrite(position, positions4, x, y);
     }
     
 
