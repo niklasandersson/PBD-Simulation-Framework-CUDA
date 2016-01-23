@@ -33,15 +33,22 @@ void initializeFrame() {
   simulationParameters.particleRadius = 0.5f;
   simulationParameters.particleDiameter = 2.0f * simulationParameters.particleRadius;
   simulationParameters.kernelWidth = KERNEL_WIDTH;
-  simulationParameters.kernelWidthDensity = simulationParameters.particleDiameter * 4.0f;
-	simulationParameters.restDensity = 1000.0f;
+  simulationParameters.kernelWidthDensity = simulationParameters.particleDiameter * 200.0f;
+	simulationParameters.restDensity = 100.0f;
 
+  simulationParameters.bounds.x.min = 1.5f;
+  simulationParameters.bounds.x.max = 64.0f - 1.5f;
+  simulationParameters.bounds.y.min = 1.5f;
+  simulationParameters.bounds.y.max = 64.0f - 1.5f;
+  simulationParameters.bounds.z.min = 1.5f;
+  simulationParameters.bounds.z.max = 64.0f - 1.5f;
+  /*
   simulationParameters.bounds.x.min = 25.0f;
   simulationParameters.bounds.x.max = 45.0f - 1.5f;
   simulationParameters.bounds.y.min = 1.5f;
   simulationParameters.bounds.y.max = 64.0f - 1.5f;
   simulationParameters.bounds.z.min = 25.0f;
-  simulationParameters.bounds.z.max = 45.0f - 1.5f;
+  simulationParameters.bounds.z.max = 45.0f - 1.5f;*/
 
   simulationParameters.randomStart = rand() % simulationParameters.maxNeighboursPerParticle;
 
