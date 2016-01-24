@@ -36,8 +36,8 @@ __device__ float poly6(float4 pi, float4 pj) {
 	const float kernelWidth = (float) params.kernelWidthDensity;
 	const float distance = length(make_float3(pi - pj));
   //if( distance > 0.0001f && ((kernelWidth - distance) > 0.0001f) ) {
-	  float numeratorTerm = pow(kernelWidth * kernelWidth - distance * distance, 3);
-	  return (315.0f * numeratorTerm) / (64.0f * M_PI * pow(kernelWidth, 9));
+	float numeratorTerm = pow(kernelWidth * kernelWidth - distance * distance, 3);
+	return (315.0f * numeratorTerm) / (64.0f * M_PI * pow(kernelWidth, 9));
   //} else {
    // return 0.0f;
   //}
@@ -55,9 +55,9 @@ __device__ float4 spiky(float4 pi, float4 pj) {
 	const float4 r = pi - pj;
   const float distance = length(make_float3(r));
   //if( distance > 0.0001f && ((kernelWidth - distance) > 0.0001f)) {
-    float numeratorTerm = pow(kernelWidth - distance, 2);
-	  float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0001f);
-	  return 45.0f * (numeratorTerm / denominatorTerm) * r;
+	float numeratorTerm = pow(kernelWidth - distance, 2);
+	float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0001f);
+	return 45.0f * (numeratorTerm / denominatorTerm) * r;
   /*} else {
     return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   }*/

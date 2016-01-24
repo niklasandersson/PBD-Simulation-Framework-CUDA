@@ -73,7 +73,7 @@ __global__ void applyForces() {
     surf2Dread(&velocity, velocities4, x, y);
     if( isnan(velocity.x) || isnan(velocity.y) || isnan(velocity.z) ) {
         printf("velocity: %f, %f, %f\n", velocity.x, velocity.y, velocity.z);
-      }
+    }
     velocity.y += inverseMass * gravity * deltaT; 
 
     float4 position;
@@ -81,7 +81,6 @@ __global__ void applyForces() {
     if( isnan(position.x) || isnan(position.y) || isnan(position.z) ) {
       printf("position: %f, %f, %f\n", position.x, position.y, position.z);
     }
-
 
     float4 predictedPosition = position + velocity * deltaT;
 
@@ -97,16 +96,10 @@ __global__ void applyForces() {
     if( update ) {
       surf2Dwrite(position, positions4, x, y);
     }
-    
-
       
-      if( isnan(predictedPosition.x) || isnan(predictedPosition.y) || isnan(predictedPosition.z) ) {
+		if( isnan(predictedPosition.x) || isnan(predictedPosition.y) || isnan(predictedPosition.z) ) {
         printf("predictedPosition: %f, %f, %f\n", predictedPosition.x, predictedPosition.y, predictedPosition.z);
-      }
-
-      
-    
-
+    }
   }
 }
 
