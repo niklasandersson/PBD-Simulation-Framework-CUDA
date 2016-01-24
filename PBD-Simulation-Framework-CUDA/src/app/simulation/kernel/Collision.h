@@ -71,7 +71,6 @@ __global__ void findContacts(unsigned int* neighbours,
               for(index2=start; index2<end; index2++) {
                 if( index != index2 && index2 < numberOfParticles ) {
                   neighbours[counter++] = index2; 
-                  counter++;
                   if( counter == maxNeighboursPerParticle ) {
                     goto done;
                   }

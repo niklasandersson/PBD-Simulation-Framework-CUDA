@@ -16,42 +16,42 @@ __device__ __forceinline__ void confineToBox(float4& position,
                                              float4& predictedPosition, 
                                              float4& velocity,
                                              bool& update) {
-  float velocityDamping = 1.0f;
+  const float velocityDamping = 0.0f;
+  const float positionDamping = 0.65f;
+
 	if( predictedPosition.x < params.bounds.x.min ) {
 		velocity.x = velocityDamping * velocity.x;
 		predictedPosition.x = params.bounds.x.min + 0.001f;
-    position = predictedPosition;
     update = true;
 	} else if( predictedPosition.x > params.bounds.x.max ) {
 		velocity.x = velocityDamping * velocity.x;
 		predictedPosition.x = params.bounds.x.max - 0.001f;
-    position = predictedPosition;
     update = true;
 	}
 
 	if( predictedPosition.y < params.bounds.y.min ) {
 		velocity.y = velocityDamping * velocity.y;
     predictedPosition.y = params.bounds.y.min + 0.001f;
-    position = predictedPosition;
     update = true;
 	} else if( predictedPosition.y > params.bounds.y.max ) {
 		velocity.y = velocityDamping * velocity.y;
 		predictedPosition.y = params.bounds.y.max - 0.001f;
-    position = predictedPosition;
     update = true;
 	}
 
 	if( predictedPosition.z < params.bounds.z.min ) {
 		velocity.z = velocityDamping * velocity.z;
 		predictedPosition.z = params.bounds.z.min + 0.001f;
-    position = predictedPosition;
     update = true;
 	} else if( predictedPosition.z > params.bounds.z.max ) {
 		velocity.z = velocityDamping * velocity.z;
 		predictedPosition.z = params.bounds.z.max - 0.001f;
-    position = predictedPosition;
     update = true;
 	}
+
+  if( update ) {
+    position += positionDamping * (predictedPosition - position);
+  }
 }
 
 // --------------------------------------------------------------------------

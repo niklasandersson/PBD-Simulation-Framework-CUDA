@@ -59,11 +59,12 @@ void Fluid::compute() {
   }
   cudaCallUpdatePositions(); 
 
-  /*
+
 	cudaCallComputeOmegas();
 
 	cudaCallComputeVorticity();
 
 	cudaComputeViscosity();
-  */
+    
+  
 }
