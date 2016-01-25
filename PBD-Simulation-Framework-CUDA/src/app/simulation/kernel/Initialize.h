@@ -11,10 +11,16 @@
 #include "Density.h"
 #include "Communication.h"
 
+#include "parser/Config.h"
+
 // --------------------------------------------------------------------------
 
 void initializeFrame() {
   Events::addParticle.execute_calls();
+  Events::addParticles.execute_calls();
+  Events::clearParticles.execute_calls();
+
+  Config& config = Config::getInstance();
 
   auto glShared = GL_Shared::getInstance();
   const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
@@ -24,18 +30,30 @@ void initializeFrame() {
 
   simulationParameters.numberOfParticles = numberOfParticles;
   simulationParameters.textureWidth = textureWidth;
-  simulationParameters.maxNeighboursPerParticle = MAX_NEIGHBOURS;
+  simulationParameters.maxNeighboursPerParticle = config.getValue<unsigned int>("Application.Sim.maxNeighboursPerParticle");
   simulationParameters.maxContactConstraints = simulationParameters.maxNeighboursPerParticle * simulationParameters.numberOfParticles;
   simulationParameters.maxGrid = maxGrid;
   simulationParameters.maxParticles = maxParticles;
   simulationParameters.maxPossibleContactConstraints = simulationParameters.maxNeighboursPerParticle * simulationParameters.maxParticles;
-  simulationParameters.deltaT = 0.01f;
-  simulationParameters.particleRadius = 0.5f;
+  simulationParameters.deltaT = config.getValue<float>("Application.Sim.deltaT");
+  simulationParameters.particleRadius = config.getValue<float>("Application.Sim.particleRadius");
   simulationParameters.particleDiameter = 2.0f * simulationParameters.particleRadius;
-  simulationParameters.kernelWidth = KERNEL_WIDTH;
-  simulationParameters.kernelWidthDensity = simulationParameters.particleDiameter * 100.0f;
-	simulationParameters.restDensity = 1000.0f;
+  simulationParameters.kernelWidth = config.getValue<unsigned int>("Application.Sim.kernelWidth");
+  simulationParameters.kernelWidthDensity = simulationParameters.particleDiameter * config.getValue<float>("Application.Sim.kernelWidthDensityMultipel");
+	simulationParameters.restDensity = config.getValue<float>("Application.Sim.restDensity");
+	simulationParameters.kSCorr = config.getValue<float>("Application.Sim.kSCorr");
+	simulationParameters.nSCorr = config.getValue<int>("Application.Sim.nSCorr");
+	simulationParameters.qSCorr = simulationParameters.kernelWidthDensity * config.getValue<float>("Application.Sim.qSCorrMultipel");
+  simulationParameters.cViscosity = config.getValue<float>("Application.Sim.cViscosity");
+  simulationParameters.forcesVelocityDamping = config.getValue<float>("Application.Sim.forcesVelocityDamping");
+  simulationParameters.forcesPositionDamping = config.getValue<float>("Application.Sim.forcesPositionDamping");
 
+  simulationParameters.bounds.x.min = config.getValue<float>("Application.Sim.boundsXMin");
+  simulationParameters.bounds.x.max = config.getValue<float>("Application.Sim.boundsXMax");
+  simulationParameters.bounds.y.min = config.getValue<float>("Application.Sim.boundsYMin");
+  simulationParameters.bounds.y.max = config.getValue<float>("Application.Sim.boundsYMax");
+  simulationParameters.bounds.z.min = config.getValue<float>("Application.Sim.boundsZMin");
+  simulationParameters.bounds.z.max = config.getValue<float>("Application.Sim.boundsZMax");
   /*
   simulationParameters.bounds.x.min = 1.5f;
   simulationParameters.bounds.x.max = 64.0f - 1.5f;
@@ -44,13 +62,14 @@ void initializeFrame() {
   simulationParameters.bounds.z.min = 1.5f;
   simulationParameters.bounds.z.max = 64.0f - 1.5f;
   */
+/*  
   simulationParameters.bounds.x.min = 25.0f;
   simulationParameters.bounds.x.max = 45.0f - 1.5f;
   simulationParameters.bounds.y.min = 1.5f;
   simulationParameters.bounds.y.max = 64.0f - 1.5f;
   simulationParameters.bounds.z.min = 25.0f;
   simulationParameters.bounds.z.max = 45.0f - 1.5f;
-
+*/
   simulationParameters.randomStart = rand() % simulationParameters.maxNeighboursPerParticle;
 
   CUDA(cudaMemcpyToSymbol(params, &simulationParameters, sizeof(SimulationParameters)));

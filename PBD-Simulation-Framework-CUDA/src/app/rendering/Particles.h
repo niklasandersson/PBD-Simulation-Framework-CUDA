@@ -9,6 +9,7 @@
 
 #include "parser/Parser.h"
 #include "parser/OBJParser.h"
+#include "parser/Config.h"
 
 #include "event/Events.h"
 #include "event/Delegate.h"
@@ -36,6 +37,7 @@ private:
   std::shared_ptr<unsigned int> numberOfParticles_;
   std::shared_ptr<unsigned int> maxParticles_;
   std::shared_ptr<unsigned int> maxGrid_;
+  unsigned int initialNumberOfParticles_;
 
   glm::vec3 light_direction_{1.0f, -1.0f, 0.0f};
 

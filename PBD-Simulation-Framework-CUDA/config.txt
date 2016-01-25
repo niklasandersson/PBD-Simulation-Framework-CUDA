@@ -17,4 +17,49 @@ Application:
     height = 768;
   }
 
+  Sim: 
+  {
+    particlesWidth = 8;
+    particlesScale = 0.99;
+
+    applyForces = 1;
+    findContacts = 1;
+    findNeighbours = 1;
+    computeLambda = 1;
+    computeDeltaPositions = 1;
+    applyDeltaPositions = 1;
+    updatePositions = 1;
+    computeOmegas = 0;
+    computeVorticity = 0;
+    computeViscosity = 0;
+    break = 0;
+
+    forcesVelocityDamping = 0.0;
+    forcesPositionDamping = 0.65f;
+
+    collisionType = 0;
+    maxCollisionBatches = 16;
+
+    solverIterations = 1;
+    stabilizationIterations = 1;
+
+    maxNeighboursPerParticle = 512;
+    deltaT = 0.01;
+    particleRadius = 0.5;
+    kernelWidth = 1;
+    kernelWidthDensityMultipel = 100.0;
+    restDensity = 15000;
+    kSCorr = 0.1;
+    nSCorr = 4;
+    qSCorrMultipel = 0.2;
+    cViscosity = 0.00005;
+
+    boundsXMin = 25.0f;
+    boundsXMax = 45.0f - 1.5f;
+    boundsYMin = 1.5f;
+    boundsYMax = 64.0f - 1.5f;
+    boundsZMin = 25.0f;
+    boundsZMax = 45.0f - 1.5f;
+  }
+
 }

@@ -32,5 +32,10 @@ void callClearAllTheCrap();
 void cudaCallFindContacts();
 void cudaCallSolveCollisions();
 void cudaCallFindNeighbours();
+void cudaCallResetContacts();
+void cudaCallResetContactConstraintSuccess();
+void cudaCallResetContactConstraintParticleUsed();
+void cudaCallSetupCollisionConstraintBatches();
+void cudaCallSetupCollisionConstraintBatchesCheck();
 
 #endif // KERNELS_H 

@@ -160,6 +160,10 @@ Particles::Particles()
   bufferData(GL_ELEMENT_ARRAY_BUFFER, 1 * sizeof(unsigned short), nullptr, GL_STATIC_DRAW);
   unBindVertexArray();
 
+  Console::getInstance()->add("n", [&](const char* argv) {
+    std::cout << "NumberOfParticles: " << *numberOfParticles_ << std::endl;
+  });
+
 }
 
 
@@ -169,10 +173,15 @@ Particles::~Particles() {
 
 
 void Particles::clickCallback(const double position_x, const double position_y, const int button, const int action, const int mods) {
-  if (button == 0 && action == 1) {
+  if( button == 0 && action == 1 ) {
     //std::cout << "CLICK" << std::endl;
     Events::addParticle(camera_position_, view_direction_);
+  } else if( button == 1 && action == 1 ) {
+    Events::addParticles(initialNumberOfParticles_, positons4_, velocities4_, colors4_);
+  } else if( button == 2 && action == 1 ) {
+    Events::clearParticles();
   }
+
 }
 
 
@@ -196,10 +205,11 @@ void Particles::generateParticles() {
 
   // }
 
+  Config& config = Config::getInstance();
 
   const float offset = 30;
-  const float scale = 0.99f; // 1.5f
-  const unsigned int width = 16; // 32
+  const float scale = config.getValue<float>("Application.Sim.particlesScale"); // 0.99f
+  const unsigned int width = config.getValue<unsigned int>("Application.Sim.particlesWidth"); // 32
   for (unsigned int i = 0; i<width; i++) {
     for (unsigned int j = 0; j<width; j++) {
       for (unsigned int k = 0; k<width; k++) {
@@ -217,6 +227,7 @@ void Particles::generateParticles() {
   }
 
   *numberOfParticles_ = positons4_.size();
+  initialNumberOfParticles_ = positons4_.size();
 
   GL_Shared::getInstance().add_unsigned_int_value("numberOfParticles", numberOfParticles_);
   GL_Shared::getInstance().add_float_value("time", std::shared_ptr<float>{new float{ 0 }});

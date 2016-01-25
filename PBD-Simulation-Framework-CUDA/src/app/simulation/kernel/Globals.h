@@ -63,6 +63,12 @@ struct SimulationParameters{
   Bounds bounds;
   unsigned int randomStart;
   float kernelWidthDensity;
+  float kSCorr;
+  int nSCorr;
+  float qSCorr;
+  float cViscosity;
+  float forcesVelocityDamping;
+  float forcesPositionDamping;
 };
 
 __constant__ SimulationParameters params;
@@ -108,8 +114,6 @@ struct CudaCallFullRangeParameters {
 
 CudaCallFullRangeParameters cudaCallFullRangeParameters;
 
-#include "Communication.h"
-Communication communication;
 
 #define MAX_NEIGHBOURS 64
 #define KERNEL_WIDTH 3
@@ -131,5 +135,8 @@ Communication communication;
                       GET_TEXTUREWIDTH \
                       const unsigned int x = (index % textureWidth) * sizeof(float4); \
                       const unsigned int y = index / textureWidth;        
+
+#include "Communication.h"
+Communication communication;
 
 #endif // GLOBALS_H

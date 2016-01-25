@@ -161,6 +161,7 @@ __global__ void findNeighbours(unsigned int* neighbours,
                   if( index != index2 && index2 < numberOfParticles ) {
                     neighbours[counter++] = index2;
                     if( counter == maxNeighboursPerParticle ) {
+                      printf("Maxed counter\n");
                       goto done;
                     }
                   }

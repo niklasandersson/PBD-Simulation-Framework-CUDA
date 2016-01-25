@@ -2,6 +2,7 @@
 #define COMMUNICATION_H
 
 #include <iostream>
+#include <vector>
 
 #include "glm/glm.hpp"
 
@@ -12,7 +13,6 @@
 
 
 __global__ void addParticle(glm::vec3 pos, glm::vec3 dir) {
-   
   float4 position = make_float4(pos.x, pos.y, pos.z, 0.0f);
   float4 velocity = 50.0f * make_float4(dir.x, dir.y, dir.z, 0.0f);
   float4 color = make_float4(1.0f, 0.0f, 0.0f, 1.0f);
@@ -29,11 +29,35 @@ __global__ void addParticle(glm::vec3 pos, glm::vec3 dir) {
   surf2Dwrite(color, colors4, x, y);
 }
 
+__global__ void addParticles(const unsigned int numberOfParticlesToAdd,
+                             float4* positions,
+                             float4* velocities,
+                             float4* colors) {
+  GET_INDEX_X_Y
+
+  if( index < numberOfParticlesToAdd ) {
+    float4 position = positions[index];
+    float4 velocity = velocities[index];
+    float4 color = colors[index];
+    
+    const unsigned int numberOfParticles = params.numberOfParticles;
+    const unsigned int indexToUse = index + numberOfParticles; 
+    const unsigned int xToUse = (indexToUse % textureWidth) * sizeof(float4); 
+    const unsigned int yToUse = indexToUse / textureWidth;
+ 
+    surf2Dwrite(position, positions4, xToUse, yToUse);
+    surf2Dwrite(velocity, velocities4, xToUse, yToUse);
+    surf2Dwrite(color, colors4, xToUse, yToUse);
+  }
+}
+
 struct Communication {
 
   Communication() 
   : clicked_(Delegate<void(const double, const double, const int, const int, const int)>::from<Communication, &Communication::clickCallback>(this)),
-    addParticle_(Delegate<void(glm::vec3 pos, glm::vec3 dir)>::from<Communication, &Communication::addParticleCallback>(this)) 
+    addParticle_(Delegate<void(glm::vec3 pos, glm::vec3 dir)>::from<Communication, &Communication::addParticleCallback>(this)), 
+    addParticles_(Delegate<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)>::from<Communication, &Communication::addParticlesCallback>(this)),
+    clearParticles_(Delegate<void()>::from<Communication, &Communication::clearParticlesCallback>(this)) 
   {
     
   }
@@ -41,6 +65,8 @@ struct Communication {
   void initialize() {
     //Events::click.subscribe(clicked_);
     Events::addParticle.subscribe(addParticle_);
+    Events::addParticles.subscribe(addParticles_);
+    Events::clearParticles.subscribe(clearParticles_);
   }
 
   void clickCallback(const double position_x, const double position_y, const int button, const int action, const int mods) {
@@ -62,8 +88,33 @@ struct Communication {
     glShared.set_unsigned_int_value("numberOfParticles", *numberOfParticles + 1);
   }
 
+  void addParticlesCallback(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col) {
+    auto glShared = GL_Shared::getInstance();
+    auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+    
+    CUDA(cudaMemcpy(&deviceBuffers.d_positionsCopy[0], &pos[0][0], numberOfParticlesToAdd * sizeof(float4), cudaMemcpyHostToDevice));
+    CUDA(cudaMemcpy(&deviceBuffers.d_velocitiesCopy[0], &vel[0][0], numberOfParticlesToAdd * sizeof(float4), cudaMemcpyHostToDevice));
+    CUDA(cudaMemcpy(&deviceBuffers.d_colorsCopy[0], &col[0][0], numberOfParticlesToAdd * sizeof(float4), cudaMemcpyHostToDevice));
+
+    const unsigned int numberOfParticlesPerBlock = 128;
+    dim3 blocks(std::ceil(numberOfParticlesToAdd / (float)numberOfParticlesPerBlock), 1, 1);
+    dim3 threads(numberOfParticlesPerBlock, 1, 1);
+
+    addParticles<<<blocks, threads>>>(numberOfParticlesToAdd, deviceBuffers.d_positionsCopy, deviceBuffers.d_velocitiesCopy, deviceBuffers.d_colorsCopy);
+    
+    glShared.set_unsigned_int_value("numberOfParticles", *numberOfParticles + numberOfParticlesToAdd);
+  }
+  
+  void clearParticlesCallback() {
+    auto glShared = GL_Shared::getInstance();
+    glShared.set_unsigned_int_value("numberOfParticles", 0);
+  }
+
   Delegate<void(const double, const double, const int, const int, const int)> clicked_;
   Delegate<void(glm::vec3 pos, glm::vec3 dir)> addParticle_;
+  Delegate<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)> addParticles_;
+  Delegate<void()> clearParticles_;
+
 };
 
 #endif // COMMUNICATION_H

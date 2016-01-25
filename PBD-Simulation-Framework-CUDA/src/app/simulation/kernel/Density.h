@@ -35,12 +35,16 @@ void callClearAllTheCrap() {
 __device__ float poly6(float4 pi, float4 pj) {
 	const float kernelWidth = (float) params.kernelWidthDensity;
 	const float distance = length(make_float3(pi - pj));
-  //if( distance > 0.0001f && ((kernelWidth - distance) > 0.0001f) ) {
-	float numeratorTerm = pow(kernelWidth * kernelWidth - distance * distance, 3);
-	return (315.0f * numeratorTerm) / (64.0f * M_PI * pow(kernelWidth, 9));
-  //} else {
-   // return 0.0f;
-  //}
+  if( distance > 0.0001f && ((kernelWidth - distance) > 0.0001f) ) {
+	  const float numeratorTerm = pow(kernelWidth * kernelWidth - distance * distance, 3);
+    const float rtr = (315.0f * numeratorTerm) / (64.0f * M_PI * pow(kernelWidth, 9));
+    if( rtr <= 0 ) {
+      printf("Error poly6 <= 0: %f\n", rtr);
+    }
+	  return rtr;
+  } else {
+    return 0.0f;
+  }
 }
 
 __device__ float4 spiky(float4 pi, float4 pj) {
@@ -54,13 +58,13 @@ __device__ float4 spiky(float4 pi, float4 pj) {
   */
 	const float4 r = pi - pj;
   const float distance = length(make_float3(r));
-  //if( distance > 0.0001f && ((kernelWidth - distance) > 0.0001f)) {
-	float numeratorTerm = pow(kernelWidth - distance, 2);
-	float denominatorTerm = M_PI * pow(kernelWidth, 6) * (distance + 0.0001f);
-	return 45.0f * (numeratorTerm / denominatorTerm) * r;
-  /*} else {
+  if( distance > 0.0001f && ((kernelWidth - distance) > 0.0001f)) {
+	  float numeratorTerm = pow(kernelWidth - distance, 3);
+	  float denominatorTerm = M_PI * pow(kernelWidth, 6);
+	  return 15.0f * (numeratorTerm / denominatorTerm) * r;
+  } else {
     return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-  }*/
+  }
 }
 
 // ---------------------------------------------------------------------------------------
@@ -154,8 +158,8 @@ __global__ void computeLambda(unsigned int* neighbours,
       
       accumulateC += spik;
     }
-    
-    const float A = (accumulateA / restDensity) - 1.0f;
+
+    float A = (accumulateA / restDensity) - 1.0f;
     
     const float B = accumulateB / restDensity;
 
@@ -230,7 +234,11 @@ __global__ void computeDeltaPositions(unsigned int* neighbours,
     const unsigned int maxNeighboursPerParticle = params.maxNeighboursPerParticle;
     const float restDensity = params.restDensity;
     neighbours += index * maxNeighboursPerParticle; 
-    
+
+    const float kSCorr = params.kSCorr;
+    const int nSCorr = params.nSCorr;
+    const float qSCorr = params.qSCorr;
+
     float4 pi;
     surf2Dread(&pi, predictedPositions4, x, y);
     
@@ -248,7 +256,9 @@ __global__ void computeDeltaPositions(unsigned int* neighbours,
     
       const float lj = lambdas[index2];
       
-      accumulateDelta += (li + lj) * spiky(pi, pj);
+      const float sCorr = -kSCorr * pow(poly6(pi, pj) / poly6(make_float4(qSCorr, 0.0f, 0.0f, 0.0f), make_float4(0.0f, 0.0f, 0.0f, 0.0f)), nSCorr);
+      
+      accumulateDelta += (li + lj + sCorr) * spiky(pi, pj);
     }
     
     deltas[index] = accumulateDelta / restDensity;
@@ -491,7 +501,7 @@ __global__ void computeViscosity(unsigned int* neighbors,
 		surf2Dread(&vi, velocities4, x, y);
 		const unsigned int currentNumberOfNeighbors = numberOfNeighbors[index];
 		float4 vSum = make_float4(0.0, 0.0, 0.0, 0.0);
-		const float c = 0.0005f; // 0.0005f
+		const float c = params.cViscosity; // 0.0005f
 
 		for(unsigned int i=0; i<currentNumberOfNeighbors; i++) {
 			unsigned int neighborIndex = neighbors[i + index * maxNumberOfNeighbors];

@@ -2,32 +2,19 @@
 
 
 Fluid::Fluid(Parameters* parameters) : parameters_(parameters){
-
   cudaInitializeKernels();
-  //initializeCollision(parameters_);
-	//initilizeDensity(parameters_);
 }
 
-#include <iostream>
+
 void Fluid::compute() {
-  /*
-  cudaCallApplyForces(parameters_);
+  Config& config = Config::getInstance();
 
-  hashSortReorder(parameters_);
-
-  findNeighboursAndSolveCollisions(parameters_);
-
-  cudaCallUpdatePositions(parameters_);
-
-	cudaCallComputeLambda(parameters_);
-	
-	cudaCallComputeDeltaPositions(parameters_);
-
-    */
   initializeFrame();
 
-  cudaCallApplyForces();
-
+  if( config.getValue<bool>("Application.Sim.applyForces") ) {
+    cudaCallApplyForces();
+  }
+  
   cudaCallInitializeCellIds();
 
   sortIds();
@@ -38,34 +25,72 @@ void Fluid::compute() {
 
   cudaCallComputeCellInfo();
 
-  cudaCallFindContacts();
+  const int collisionType = config.getValue<int>("Application.Sim.collisionType"); 
 
-  cudaCallFindNeighbours();
-	
-  const unsigned int solverIterations = 1;
-  for(unsigned int i=0; i<solverIterations; i++) {
+  if( collisionType == 1 ) {
+    cudaCallResetContacts();
+  }
 
-	  cudaCallComputeLambda();
-		char a;
-		//std::cin >> a;
-	  cudaCallComputeDeltaPositions();	
-    
-    const unsigned int stabilizationIterations = 1;
-    for(unsigned int j=0; j<stabilizationIterations; j++) {
-      cudaCallSolveCollisions();
-    }
+  if( config.getValue<bool>("Application.Sim.findContacts") ) {
+    cudaCallFindContacts();
+  }
   
-    cudaCallApplyDeltaPositions();
+  if( config.getValue<bool>("Application.Sim.findNeighbours") ) {
+    cudaCallFindNeighbours();
+  }
+
+  const unsigned int solverIterations = config.getValue<unsigned int>("Application.Sim.solverIterations");
+  for(unsigned int i=0; i<solverIterations; i++) {
+     
+    if( config.getValue<bool>("Application.Sim.computeLambda") ) {
+	    cudaCallComputeLambda();
+    }
+
+    if( config.getValue<bool>("Application.Sim.computeDeltaPositions") ) {
+	    cudaCallComputeDeltaPositions();
+    } 
+
+    const unsigned int stabilizationIterations = config.getValue<unsigned int>("Application.Sim.stabilizationIterations");
+    for(unsigned int j=0; j<stabilizationIterations; j++) {
+
+      if( collisionType == 0 ) {
+        cudaCallSolveCollisions();
+      } else if( collisionType == 1 ) {
+        cudaCallResetContactConstraintSuccess();
+        const unsigned int maxBatches = config.getValue<unsigned int>("Application.Sim.maxCollisionBatches");
+        for(unsigned int b=0; b<maxBatches; b++) {
+          cudaCallResetContactConstraintParticleUsed();
+          cudaCallSetupCollisionConstraintBatches();
+          cudaCallSetupCollisionConstraintBatchesCheck();
+        }
+      }
+    }
+    
+    if( config.getValue<bool>("Application.Sim.applyDeltaPositions") ) {
+	    cudaCallApplyDeltaPositions();
+    }
 
   }
-  cudaCallUpdatePositions(); 
 
+  if( config.getValue<bool>("Application.Sim.updatePositions") ) {
+	  cudaCallUpdatePositions();
+  }
 
-	cudaCallComputeOmegas();
+  if( config.getValue<bool>("Application.Sim.computeOmegas") ) {
+	  cudaCallComputeOmegas();
+  } 
 
-	cudaCallComputeVorticity();
-
-	cudaComputeViscosity();
-    
+	if( config.getValue<bool>("Application.Sim.computeVorticity") ) {
+	  cudaCallComputeVorticity();
+  }
+	
+	if( config.getValue<bool>("Application.Sim.computeViscosity") ) {
+	  cudaComputeViscosity();
+  }
   
+  if( config.getValue<bool>("Application.Sim.break") ) {
+    std::cout << "Break, type character: ";
+    std::cin.get();
+  } 
+
 }
