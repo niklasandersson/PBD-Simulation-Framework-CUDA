@@ -31,12 +31,12 @@ Application:
     updatePositions = 1;
     computeOmegas = 0;
     computeVorticity = 0;
-    computeViscosity = 0;
+    computeViscosity = 1;
     break = 0;
 
     gravity = -29.82;
-    forcesVelocityDamping = 0.0;
-    forcesPositionDamping = 0.65f;
+    forcesVelocityDamping = 1.0;
+    forcesPositionDamping = 0.0f;
 
     collisionType = 0;
     stiffness = 0.3;
@@ -49,13 +49,13 @@ Application:
     deltaT = 0.01;
     particleRadius = 0.5;
     kernelWidth = 2;
-    kernelWidthViscosity = 4.1;
-    kernelWidthDensityMultipel = 4.1;
+    kernelWidthViscosity =  4.1;
+    kernelWidthDensityMultipel = 6.1;
     restDensity = 1200;
     kSCorr = 0.2;
     nSCorr = 4;
     qSCorrMultipel = 0.2;
-    cViscosity = 0.0005;
+    cViscosity = 0.0001;
 
     boundsXMin = 25.0;
     boundsXMax = 45.0;
