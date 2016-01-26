@@ -48,6 +48,7 @@ void initializeFrame() {
   simulationParameters.cViscosity = config.getValue<float>("Application.Sim.cViscosity");
   simulationParameters.forcesVelocityDamping = config.getValue<float>("Application.Sim.forcesVelocityDamping");
   simulationParameters.forcesPositionDamping = config.getValue<float>("Application.Sim.forcesPositionDamping");
+  simulationParameters.gravity = config.getValue<float>("Application.Sim.gravity");
 
   simulationParameters.bounds.x.min = config.getValue<float>("Application.Sim.boundsXMin");
   simulationParameters.bounds.x.max = config.getValue<float>("Application.Sim.boundsXMax");

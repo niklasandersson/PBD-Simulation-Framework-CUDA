@@ -67,7 +67,7 @@ __global__ void applyForces() {
 
   if( idx < numberOfParticles ) {
     const float inverseMass = 1.0f;
-    const float gravity = -9.82;
+    const float gravity = params.gravity;
 
     float4 velocity;
     surf2Dread(&velocity, velocities4, x, y);

@@ -70,6 +70,7 @@ struct SimulationParameters{
   float cViscosity;
   float forcesVelocityDamping;
   float forcesPositionDamping;
+  float gravity;
 };
 
 __constant__ SimulationParameters params;
