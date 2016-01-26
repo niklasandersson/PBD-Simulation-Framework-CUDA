@@ -28,6 +28,7 @@ struct Events {
   static Local_Defer_Call_Event<void(glm::vec3 pos, glm::vec3 dir)> addParticle;
   static Local_Defer_Call_Event<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)> addParticles;
   static Local_Defer_Call_Event<void()> clearParticles;
+  static Local_Defer_Call_Event<void()> reload;
 
   // Local_Defer_Call_Event<void(std::vector<glm::vec3> vertices, std::vector<unsigned short> indices, std::vector<glm::vec3> colors, std::vector<unsigned int> tilePath)> update;
 

@@ -9,6 +9,8 @@
 #include "event/Events.h"
 #include "event/Delegate.h"
 
+#include "parser/Config.h"
+
 #include "Globals.h"
 
 
@@ -57,7 +59,8 @@ struct Communication {
   : clicked_(Delegate<void(const double, const double, const int, const int, const int)>::from<Communication, &Communication::clickCallback>(this)),
     addParticle_(Delegate<void(glm::vec3 pos, glm::vec3 dir)>::from<Communication, &Communication::addParticleCallback>(this)), 
     addParticles_(Delegate<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)>::from<Communication, &Communication::addParticlesCallback>(this)),
-    clearParticles_(Delegate<void()>::from<Communication, &Communication::clearParticlesCallback>(this)) 
+    clearParticles_(Delegate<void()>::from<Communication, &Communication::clearParticlesCallback>(this)), 
+    reload_(Delegate<void()>::from<Communication, &Communication::reloadCallback>(this)) 
   {
     
   }
@@ -67,6 +70,7 @@ struct Communication {
     Events::addParticle.subscribe(addParticle_);
     Events::addParticles.subscribe(addParticles_);
     Events::clearParticles.subscribe(clearParticles_);
+    Events::reload.subscribe(reload_);
   }
 
   void clickCallback(const double position_x, const double position_y, const int button, const int action, const int mods) {
@@ -110,10 +114,15 @@ struct Communication {
     glShared.set_unsigned_int_value("numberOfParticles", 0);
   }
 
+  void reloadCallback() {
+     Config::getInstance().reload();
+  }
+
   Delegate<void(const double, const double, const int, const int, const int)> clicked_;
   Delegate<void(glm::vec3 pos, glm::vec3 dir)> addParticle_;
   Delegate<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)> addParticles_;
   Delegate<void()> clearParticles_;
+  Delegate<void()> reload_;
 
 };
 

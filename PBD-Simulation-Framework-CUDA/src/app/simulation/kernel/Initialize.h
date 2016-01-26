@@ -19,6 +19,7 @@ void initializeFrame() {
   Events::addParticle.execute_calls();
   Events::addParticles.execute_calls();
   Events::clearParticles.execute_calls();
+  Events::reload.execute_calls();
 
   Config& config = Config::getInstance();
 

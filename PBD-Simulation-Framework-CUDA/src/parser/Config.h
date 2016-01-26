@@ -28,33 +28,37 @@ public:
   template<typename T, typename S> 
   T getValue(S arg) {
     std::vector<std::string> path = split(arg);
-    return parser.getValueImpl<T>(path);
+    return parser_.getValueImpl<T>(path);
   }
 
   template<typename T, typename S1, typename... S2>
   T getValue(S1 arg, S2... args) {
-    return parser.getValue<T>(arg, args...);
+    return parser_.getValue<T>(arg, args...);
   }
 
   template<unsigned int nArgs, typename T, typename S>
   T* getArray(S arg) {
     std::vector<std::string> path = split(arg);
-    return parser.getArrayImpl<nArgs, T>(path);
+    return parser_.getArrayImpl<nArgs, T>(path);
   }
 
   template<unsigned int nArgs, typename T, typename S1, typename... S2>
   T* getArray(S1 arg, S2... args) {
-    return parser.getArray<nArgs, T>(arg, args...);
+    return parser_.getArray<nArgs, T>(arg, args...);
+  }
+
+  void reload() {
+    parser_.parseFile(pathAndName_);
   }
 
 protected:
 
 private:
   Config() {
-    std::string pathAndName = "config.txt";
-    parser.addDefine("true", "1");
-    parser.addDefine("false", "0");
-    parser.parseFile(pathAndName);
+    pathAndName_ = "config.txt";
+    parser_.addDefine("true", "1");
+    parser_.addDefine("false", "0");
+    parser_.parseFile(pathAndName_);
   }
 
   std::vector<std::string> split(const std::string& arg) {
@@ -67,7 +71,8 @@ private:
     return path;
   }
 
-  ConfigParser<IncludeParser<DefineParser<CommentParser<Parser> > > > parser;
+  std::string pathAndName_;
+  ConfigParser<IncludeParser<DefineParser<CommentParser<Parser> > > > parser_;
 
 };
 

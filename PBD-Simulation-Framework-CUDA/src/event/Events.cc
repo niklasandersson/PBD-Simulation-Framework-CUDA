@@ -12,6 +12,7 @@ Global_Defer_Call_Event<void(const double position_x, const double position_y, c
 Local_Defer_Call_Event<void(glm::vec3 pos, glm::vec3 dir)> Events::addParticle;
 Local_Defer_Call_Event<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)> Events::addParticles;
 Local_Defer_Call_Event<void()> Events::clearParticles;
+Local_Defer_Call_Event<void()> Events::reload;
 
 //Local_Defer_Call_Event<void(std::vector<glm::vec3> vertices, std::vector<unsigned short> indices, std::vector<glm::vec3> colors, std::vector<unsigned int> tilePath)> Events::update;
 

@@ -160,8 +160,21 @@ Particles::Particles()
   bufferData(GL_ELEMENT_ARRAY_BUFFER, 1 * sizeof(unsigned short), nullptr, GL_STATIC_DRAW);
   unBindVertexArray();
 
-  Console::getInstance()->add("n", [&](const char* argv) {
+  auto console = Console::getInstance();
+  console->add("n", [&](const char* argv) {
     std::cout << "NumberOfParticles: " << *numberOfParticles_ << std::endl;
+  });
+  
+  console->add("r", [&](const char* argv) {
+    Events::reload();
+  });
+
+  console->add("s", [&](const char* argv) {
+    Events::addParticles(initialNumberOfParticles_, positons4_, velocities4_, colors4_);
+  });
+
+  console->add("c", [&](const char* argv) {
+    Events::clearParticles();
   });
 
 }
