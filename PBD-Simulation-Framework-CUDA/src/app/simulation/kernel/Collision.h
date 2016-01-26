@@ -137,6 +137,9 @@ __global__ void findNeighbours(unsigned int* neighbours,
     if( counter == maxNeighboursPerParticle ) {
       done: 
       neighbourCounters[index] = counter;
+      float4 color = make_float4(1.0f, 1.0f, 1.0f, 1.0f) * ((float)counter / (float)maxNeighboursPerParticle);
+      color.w = 1.0f;
+      surf2Dwrite(color, colors4, x, y);
       return;
     }
 
@@ -174,6 +177,9 @@ __global__ void findNeighbours(unsigned int* neighbours,
       }
     }
     neighbourCounters[index] = counter;
+    float4 color = make_float4(1.0f, 1.0f, 1.0f, 1.0f) * ((float)counter / (float)maxNeighboursPerParticle);
+    color.w = 1.0f;
+    surf2Dwrite(color, colors4, x, y);
   }
   
 }

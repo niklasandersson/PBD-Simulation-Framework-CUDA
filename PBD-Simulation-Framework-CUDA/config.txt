@@ -31,7 +31,7 @@ Application:
     updatePositions = 1;
     computeOmegas = 0;
     computeVorticity = 0;
-    computeViscosity = 0;
+    computeViscosity = 1;
     break = 0;
 
     forcesVelocityDamping = 0.0;
@@ -46,13 +46,14 @@ Application:
     maxNeighboursPerParticle = 512;
     deltaT = 0.01;
     particleRadius = 0.5;
-    kernelWidth = 1;
-    kernelWidthDensityMultipel = 100.0;
-    restDensity = 15000;
-    kSCorr = 0.1;
+    kernelWidth = 3;
+    kernelWidthViscosity = 4;
+    kernelWidthDensityMultipel = 4.0;
+    restDensity = 4800;
+    kSCorr = 0.0;
     nSCorr = 4;
     qSCorrMultipel = 0.2;
-    cViscosity = 0.00005;
+    cViscosity = 0.0005;
 
     boundsXMin = 25.0f;
     boundsXMax = 45.0f - 1.5f;

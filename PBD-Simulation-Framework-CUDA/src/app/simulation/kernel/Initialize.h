@@ -40,6 +40,7 @@ void initializeFrame() {
   simulationParameters.particleDiameter = 2.0f * simulationParameters.particleRadius;
   simulationParameters.kernelWidth = config.getValue<unsigned int>("Application.Sim.kernelWidth");
   simulationParameters.kernelWidthDensity = simulationParameters.particleDiameter * config.getValue<float>("Application.Sim.kernelWidthDensityMultipel");
+  simulationParameters.kernelWidthViscosity = config.getValue<float>("Application.Sim.kernelWidthViscosity");
 	simulationParameters.restDensity = config.getValue<float>("Application.Sim.restDensity");
 	simulationParameters.kSCorr = config.getValue<float>("Application.Sim.kSCorr");
 	simulationParameters.nSCorr = config.getValue<int>("Application.Sim.nSCorr");

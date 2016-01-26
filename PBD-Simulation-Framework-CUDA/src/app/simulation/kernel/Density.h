@@ -32,7 +32,26 @@ void callClearAllTheCrap() {
 }
 
 
+__device__ float poly6Viscosity(float4 pi, float4 pj)
+{
+	float kernelWidth = params.kernelWidthViscosity;
+	pi.w = 0.0f;
+	pj.w = 0.0f;
+
+	float distance = length(make_float3(pi - pj));
+	
+	if (distance > 0.001f && distance < (kernelWidth - 0.001f) )
+	{
+		float numeratorTerm = powf(kernelWidth * kernelWidth - distance * distance, 3);
+		return (315.0f * numeratorTerm * numeratorTerm) / (0.001f + 64.0f * M_PI * powf(kernelWidth, 9));
+	}
+	else
+		return 0.0f;
+}
+
+
 __device__ float poly6(float4 pi, float4 pj) {
+  return poly6Viscosity(pi, pj);
 	const float kernelWidth = (float) params.kernelWidthDensity;
 	const float distance = length(make_float3(pi - pj));
   if( distance > 0.0001f && ((kernelWidth - distance) > 0.0001f) ) {
@@ -47,6 +66,7 @@ __device__ float poly6(float4 pi, float4 pj) {
   }
 }
 
+
 __device__ float4 spiky(float4 pi, float4 pj) {
 	const float kernelWidth = (float) params.kernelWidthDensity;
   /*float4 r = pi - pj;
@@ -56,12 +76,13 @@ __device__ float4 spiky(float4 pi, float4 pj) {
 	float div = rLength + 0.001f;
 	return gradient_magnitude * (1.0f / div) * r;
   */
-	const float4 r = pi - pj;
+	float4 r = pi - pj;
+  r.w = 0.0f;
   const float distance = length(make_float3(r));
   if( distance > 0.0001f && ((kernelWidth - distance) > 0.0001f)) {
-	  float numeratorTerm = pow(kernelWidth - distance, 3);
+	  float numeratorTerm = pow(kernelWidth - distance, 2); // 3
 	  float denominatorTerm = M_PI * pow(kernelWidth, 6);
-	  return 15.0f * (numeratorTerm / denominatorTerm) * r;
+	  return 15.0f * (numeratorTerm / denominatorTerm) * normalize(r); // should not be normalize here
   } else {
     return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
   }
@@ -489,6 +510,7 @@ void cudaCallComputeOmegas() {
 	computeOmega << <FOR_EACH_PARTICLE >> >(d_neighbours, d_neighbourCounters, d_omegas);
 }
 
+
 __global__ void computeViscosity(unsigned int* neighbors,
 	                               unsigned int* numberOfNeighbors) {
 	GET_INDEX_X_Y
@@ -513,7 +535,7 @@ __global__ void computeViscosity(unsigned int* neighbors,
 			float4 vj;
 			surf2Dread(&vj, velocities4, neighborX, neighborY);
 			float4 vij = vj - vi;
-			vSum += vij* poly6(pi, pj);
+			vSum += vij * poly6Viscosity(pi, pj);
 		}
 
 		float4 vNew = vi + c*vSum;
