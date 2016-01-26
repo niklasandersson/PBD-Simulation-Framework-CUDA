@@ -39,6 +39,7 @@ Application:
     forcesPositionDamping = 0.65f;
 
     collisionType = 0;
+    stiffness = 0.3;
     maxCollisionBatches = 16;
 
     solverIterations = 1;
@@ -48,20 +49,20 @@ Application:
     deltaT = 0.01;
     particleRadius = 0.5;
     kernelWidth = 2;
-    kernelWidthViscosity = 4;
-    kernelWidthDensityMultipel = 4.0;
+    kernelWidthViscosity = 4.1;
+    kernelWidthDensityMultipel = 4.1;
     restDensity = 1200;
     kSCorr = 0.2;
     nSCorr = 4;
     qSCorrMultipel = 0.2;
-    cViscosity = 0.0000005;
+    cViscosity = 0.0005;
 
-    boundsXMin = 25.0f;
-    boundsXMax = 45.0f - 1.5f;
-    boundsYMin = 1.5f;
-    boundsYMax = 64.0f - 1.5f;
-    boundsZMin = 25.0f;
-    boundsZMax = 45.0f - 1.5f;
+    boundsXMin = 25.0;
+    boundsXMax = 45.0;
+    boundsYMin = 1.5;
+    boundsYMax = 64.0;
+    boundsZMin = 25.0;
+    boundsZMax = 45.0;
   }
 
 }

@@ -49,13 +49,15 @@ void initializeFrame() {
   simulationParameters.forcesVelocityDamping = config.getValue<float>("Application.Sim.forcesVelocityDamping");
   simulationParameters.forcesPositionDamping = config.getValue<float>("Application.Sim.forcesPositionDamping");
   simulationParameters.gravity = config.getValue<float>("Application.Sim.gravity");
-
+  simulationParameters.stiffness = config.getValue<float>("Application.Sim.stiffness");
+  
   simulationParameters.bounds.x.min = config.getValue<float>("Application.Sim.boundsXMin");
   simulationParameters.bounds.x.max = config.getValue<float>("Application.Sim.boundsXMax");
   simulationParameters.bounds.y.min = config.getValue<float>("Application.Sim.boundsYMin");
   simulationParameters.bounds.y.max = config.getValue<float>("Application.Sim.boundsYMax");
   simulationParameters.bounds.z.min = config.getValue<float>("Application.Sim.boundsZMin");
   simulationParameters.bounds.z.max = config.getValue<float>("Application.Sim.boundsZMax");
+
   /*
   simulationParameters.bounds.x.min = 1.5f;
   simulationParameters.bounds.x.max = 64.0f - 1.5f;

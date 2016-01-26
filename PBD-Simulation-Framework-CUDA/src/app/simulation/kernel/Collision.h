@@ -373,7 +373,7 @@ __global__ void solveCollisions2(unsigned int* cellStarts,
         inverseMass2 = 1.0f;
         const float inverseMass = inverseMass1 / (inverseMass1 + inverseMass2);
         halfOverlap += 0.001f;
-        const float stiffness = 0.3f;
+        const float stiffness = params.stiffness;
         addTo1 =  -1.0 * inverseMass * overlap * pos1ToPos2 * (1.0f - stiffness);
         //addTo2 =  1.0 * pos1ToPos2 * halfOverlap;
 
@@ -600,8 +600,9 @@ __global__ void setupCollisionConstraintBatchesCheck(unsigned int* contacts,
 
           //float inverseMass = ( 1.0f / (mass1 + mass2) );
           //halfOverlap += 0.001f;
-          float4 addTo1 =  -1.0 * pos1ToPos2 * halfOverlap;
-          float4 addTo2 =  1.0 * pos1ToPos2 * halfOverlap;
+          const float stiffness = params.stiffness;
+          float4 addTo1 =  -1.0 * pos1ToPos2 * halfOverlap * (1.0f - stiffness);
+          float4 addTo2 =  1.0 * pos1ToPos2 * halfOverlap * (1.0f - stiffness);
 
           predictedPosition1 += addTo1;
           predictedPosition2 += addTo2;
