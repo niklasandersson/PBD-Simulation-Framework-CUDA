@@ -13,6 +13,8 @@
 #include <thrust/gather.h>
 #include <thrust/iterator/counting_iterator.h>
 
+#include "opengl/GL_Shared.h"
+
 #include "Parameters.h"
 
 #include "kernel/forces/ApplyForces.h"

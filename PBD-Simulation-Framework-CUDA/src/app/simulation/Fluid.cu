@@ -11,6 +11,8 @@ void Fluid::compute() {
 
   initializeFrame();
 
+  if( *GL_Shared::getInstance().get_unsigned_int_value("numberOfParticles") == 0 ) return;
+
   if( config.getValue<bool>("Application.Sim.applyForces") ) {
     cudaCallApplyForces();
   }

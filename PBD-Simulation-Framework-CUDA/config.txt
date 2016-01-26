@@ -13,8 +13,8 @@ Application:
     displayAvailableShaders = 0;
     displayAvailablePrograms = 0;
 
-    width = 1024;
-    height = 768;
+    width = 1920;
+    height = 1080;
   }
 
   Sim: 
@@ -29,8 +29,8 @@ Application:
     computeDeltaPositions = 1;
     applyDeltaPositions = 1;
     updatePositions = 1;
-    computeOmegas = 0;
-    computeVorticity = 0;
+    computeOmegas = 1;
+    computeVorticity = 1;
     computeViscosity = 1;
     break = 0;
 

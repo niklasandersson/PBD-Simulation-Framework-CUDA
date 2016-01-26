@@ -56,7 +56,7 @@ __device__ __forceinline__ void confineToBox(float4& position,
 
 // --------------------------------------------------------------------------
 
-__global__ void applyForces() {
+__global__ void applyForces(float4* externalForces) {
   const unsigned int numberOfParticles = params.numberOfParticles;
   const unsigned int textureWidth = params.textureWidth;
   const float deltaT = params.deltaT;
@@ -75,6 +75,9 @@ __global__ void applyForces() {
         printf("velocity: %f, %f, %f\n", velocity.x, velocity.y, velocity.z);
     }
     velocity.y += inverseMass * gravity * deltaT; 
+    velocity += externalForces[idx] * deltaT;
+
+    //printf("%f, %f, %f\n", externalForces[idx].x, externalForces[idx].y, externalForces[idx].z);
 
     float4 position;
     surf2Dread(&position, positions4, x, y);
@@ -104,7 +107,7 @@ __global__ void applyForces() {
 }
 
 void cudaCallApplyForces() {
-  applyForces<<<FOR_EACH_PARTICLE>>>();
+  applyForces<<<FOR_EACH_PARTICLE>>>(d_externalForces);
 }
 
 // --------------------------------------------------------------------------
