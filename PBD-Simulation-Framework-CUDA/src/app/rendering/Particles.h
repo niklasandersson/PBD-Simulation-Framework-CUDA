@@ -32,6 +32,8 @@ protected:
 
 private:
   void generateParticles();
+  void addConsoleCommands();
+  void registerSharedVariables();
 
   Delegate<void(const double, const double, const int, const int, const int)> clicked_;
   std::shared_ptr<unsigned int> numberOfParticles_;

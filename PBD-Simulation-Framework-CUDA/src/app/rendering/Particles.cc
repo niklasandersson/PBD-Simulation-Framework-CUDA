@@ -13,6 +13,8 @@ Particles::Particles()
 
   generateParticles();
 
+  registerSharedVariables();
+
   add_vao("particles_vao");
   add_buffer("element_buffer");
 
@@ -160,6 +162,11 @@ Particles::Particles()
   bufferData(GL_ELEMENT_ARRAY_BUFFER, 1 * sizeof(unsigned short), nullptr, GL_STATIC_DRAW);
   unBindVertexArray();
 
+  addConsoleCommands();
+}
+
+
+void Particles::addConsoleCommands() {
   auto console = Console::getInstance();
   console->add("n", [&](const char* argv) {
     std::cout << "NumberOfParticles: " << *numberOfParticles_ << std::endl;
@@ -176,7 +183,6 @@ Particles::Particles()
   console->add("c", [&](const char* argv) {
     Events::clearParticles();
   });
-
 }
 
 
@@ -187,37 +193,16 @@ Particles::~Particles() {
 
 void Particles::clickCallback(const double position_x, const double position_y, const int button, const int action, const int mods) {
   if( button == 0 && action == 1 ) {
-    //std::cout << "CLICK" << std::endl;
     Events::addParticle(camera_position_, view_direction_);
   } else if( button == 1 && action == 1 ) {
     Events::addParticles(initialNumberOfParticles_, positons4_, velocities4_, colors4_);
   } else if( button == 2 && action == 1 ) {
     Events::clearParticles();
   }
-
 }
 
 
 void Particles::generateParticles() {
-
-
-  
-
-  // for(unsigned int i=0; i<3; i++) {
-  //   // positons_.push_back(glm::vec3{-3, 2 + 3*i, 0});
-  //   // positons_.push_back(glm::vec3{0, 2 + 3*i, 0});
-  //   // positons_.push_back(glm::vec3{3, 2 + 3*i, 0});
-
-  //   // colors_.push_back(glm::vec3{distribution(generator), distribution(generator), distribution(generator)});
-  //   // colors_.push_back(glm::vec3{distribution(generator), distribution(generator), distribution(generator)});
-  //   // colors_.push_back(glm::vec3{distribution(generator), distribution(generator), distribution(generator)});
-
-  //   positons4_.push_back(glm::vec4{5 + -0.5, 2 + 3*i, 5, 0});
-  //   positons4_.push_back(glm::vec4{5 + 0, + 3*i, 5, 0});
-  //   positons4_.push_back(glm::vec4{5 + 0.5, 2 + 3*i, 5, 0});
-
-  // }
-
   Config& config = Config::getInstance();
 
   const float offset = 30;
@@ -239,23 +224,26 @@ void Particles::generateParticles() {
     colors4_.push_back(glm::vec4{ distribution(generator), distribution(generator), distribution(generator), 1 });
   }
 
-  *numberOfParticles_ = positons4_.size();
-  initialNumberOfParticles_ = positons4_.size();
-
-  GL_Shared::getInstance().add_unsigned_int_value("numberOfParticles", numberOfParticles_);
-  GL_Shared::getInstance().add_float_value("time", std::shared_ptr<float>{new float{ 0 }});
-
-  GL_Shared::getInstance().add_unsigned_int_value("maxParticles", maxParticles_);
-  GL_Shared::getInstance().add_unsigned_int_value("maxGrid", maxGrid_);
-
   for(unsigned int i=0; i<*maxParticles_; i++) {
     densities_.push_back(0.0f);
   }
+
+  *numberOfParticles_ = positons4_.size();
+  initialNumberOfParticles_ = positons4_.size();
+}
+
+
+void Particles::registerSharedVariables() {
+  GL_Shared& glShared = GL_Shared::getInstance();
+  glShared.add_unsigned_int_value("numberOfParticles", numberOfParticles_);
+  glShared.add_float_value("time", std::shared_ptr<float>{new float{0}});
+
+  glShared.add_unsigned_int_value("maxParticles", maxParticles_);
+  glShared.add_unsigned_int_value("maxGrid", maxGrid_);
 }
 
 
 void Particles::render() {
-
   glm::mat4 L = view_matrix_;
   L[3][0] = 0.0;
   L[3][1] = 0.0;
@@ -289,11 +277,9 @@ void Particles::render() {
   glUniformMatrix4fv(get_uniform("rotation_matrix"), 1, GL_FALSE, &rotation_matrix[0][0]);
   glUniformMatrix4fv(get_uniform("inverse_rotation_matrix"), 1, GL_FALSE, &inverse_rotation_matrix[0][0]);
 
-
   bindVertexArray("particles_vao");
   glDrawElementsInstanced(GL_POINTS, 1, GL_UNSIGNED_SHORT, nullptr, *numberOfParticles_);
   unBindVertexArray();
 
   Events::click.execute_calls();
-
 }
