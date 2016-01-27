@@ -3,7 +3,7 @@ Application:
   name = "PBD-Simulation-Framework CUDA";
   version = 0.1;
   authors = ["Joakim Deborg", "Niklas Andersson", "Gabriel Baravdish"];
-  license = "Do whatever you don't want to do, but praise us, the authors.";
+  license = "Do whatever you want to do, but praise us, the authors.";
 
   displayApplicationInfo = 0;
 
