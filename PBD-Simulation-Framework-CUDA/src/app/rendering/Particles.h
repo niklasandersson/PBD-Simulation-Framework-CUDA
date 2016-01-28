@@ -14,11 +14,12 @@
 #include "event/Events.h"
 #include "event/Delegate.h"
 
+
 class Particles : public GL_Renderable {
 
 public:
   Particles();
-  ~Particles();
+  ~Particles() = default;
 
   void render() override;
 
@@ -59,5 +60,6 @@ private:
   OBJParser<Parser> objParser_;
 
 };
+
 
 #endif // PARTICLES_H

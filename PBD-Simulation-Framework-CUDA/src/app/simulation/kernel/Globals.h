@@ -91,8 +91,6 @@ struct DeviceBuffers {
   float4* d_predictedPositionsCopy;
   float4* d_velocitiesCopy;
   float4* d_colorsCopy;
-
-  float4* d_collisionDeltas;
 };
 
 DeviceBuffers deviceBuffers;
@@ -117,10 +115,6 @@ struct CudaCallFullRangeParameters {
 
 CudaCallFullRangeParameters cudaCallFullRangeParameters;
 
-
-#define MAX_NEIGHBOURS 64
-#define KERNEL_WIDTH 3
-
 #define FOR_EACH_PARTICLE cudaCallParameters.blocksForParticleBased,cudaCallParameters.threadsForParticleBased
 #define FOR_EACH_CONTACT cudaCallParameters.blocksForContactBased,cudaCallParameters.threadsForContactBased
 #define FOR_EACH_CELL cudaCallParameters.blocksForGridBased,cudaCallParameters.threadsForGridBased
@@ -129,7 +123,6 @@ CudaCallFullRangeParameters cudaCallFullRangeParameters;
 #define M_PI 3.14159265359
 #define M_E 2.71828182845
 
-// #define GET_INDEX const unsigned int index = threadIdx.x + (((gridDim.x * blockIdx.y) + blockIdx.x) * blockDim.x);
 #define GET_INDEX const unsigned int index = threadIdx.x + blockIdx.x * blockDim.x;
 
 #define GET_TEXTUREWIDTH const unsigned int textureWidth = params.textureWidth;
@@ -141,5 +134,6 @@ CudaCallFullRangeParameters cudaCallFullRangeParameters;
 
 #include "Communication.h"
 Communication communication;
+
 
 #endif // GLOBALS_H

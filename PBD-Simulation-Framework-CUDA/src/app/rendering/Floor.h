@@ -12,7 +12,7 @@ class Floor : public GL_Renderable {
 
 public:
   Floor();
-  ~Floor();
+  ~Floor() = default;
 
   void render() override;
 
@@ -27,5 +27,6 @@ private:
   std::vector<unsigned short> indices_;
 
 };
+
 
 #endif // FLOOR_H

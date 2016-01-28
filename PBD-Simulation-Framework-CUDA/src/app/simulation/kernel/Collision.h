@@ -175,7 +175,6 @@ __global__ void solveCollisions(unsigned int* cellStarts,
                                 unsigned int* neighbourCounters,
                                 float4* positions,
                                 float4* predictedPositions,
-                                float4* collisionDeltas,
                                 float4* predictedPositionsCopy) {
   const unsigned int numberOfParticles = params.numberOfParticles;
   const unsigned int textureWidth = params.textureWidth;
@@ -247,7 +246,6 @@ __global__ void solveCollisions(unsigned int* cellStarts,
 
 __global__ void copyToBuffers(float4* positions,
                               float4* predictedPositions,
-                              float4* collisionDeltas,
                               float4* predictedPositionsCopy) {
   GET_INDEX_X_Y
   const unsigned int numberOfParticles = params.numberOfParticles;
@@ -266,7 +264,6 @@ __global__ void copyToBuffers(float4* positions,
 
 __global__ void copyToSurfaces(float4* positions,
                                float4* predictedPositions,
-                               float4* collisionDeltas,
                                float4* predictedPositionsCopy) {
   GET_INDEX_X_Y
 
@@ -284,9 +281,9 @@ __global__ void copyToSurfaces(float4* positions,
 
 
 void cudaCallSolveCollisions() {
-  copyToBuffers<<<FOR_EACH_PARTICLE>>>(deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_collisionDeltas, deviceBuffers.d_predictedPositionsCopy);
-  solveCollisions<<<FOR_EACH_CONTACT>>>(d_cellStarts, d_cellEndings, d_neighbours, d_contactCounters, d_neighbourCounters, deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_collisionDeltas, deviceBuffers.d_predictedPositionsCopy);
-  copyToSurfaces<<<FOR_EACH_PARTICLE>>>(deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_collisionDeltas, deviceBuffers.d_predictedPositionsCopy);
+  copyToBuffers<<<FOR_EACH_PARTICLE>>>(deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_predictedPositionsCopy);
+  solveCollisions<<<FOR_EACH_CONTACT>>>(d_cellStarts, d_cellEndings, d_neighbours, d_contactCounters, d_neighbourCounters, deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_predictedPositionsCopy);
+  copyToSurfaces<<<FOR_EACH_PARTICLE>>>(deviceBuffers.d_positions, deviceBuffers.d_predictedPositions, deviceBuffers.d_predictedPositionsCopy);
 }
 
 

@@ -1,11 +1,11 @@
 Application: 
 {
   name = "PBD-Simulation-Framework CUDA";
-  version = 0.1;
+  version = 1.0;
   authors = ["Joakim Deborg", "Niklas Andersson", "Gabriel Baravdish"];
   license = "Do whatever you want to do, but praise us, the authors.";
 
-  displayApplicationInfo = 0;
+  displayApplicationInfo = 1;
 
   OpenGL: 
   {

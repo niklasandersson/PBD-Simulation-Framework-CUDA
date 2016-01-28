@@ -1,7 +1,7 @@
 #include "Floor.h"
 
-Floor::Floor() : GL_Renderable("program_floor") {
-  
+
+Floor::Floor() : GL_Renderable("program_floor") { 
   generateFloor();
 
   add_vao("floor_vao");
@@ -32,11 +32,6 @@ Floor::Floor() : GL_Renderable("program_floor") {
 }
 
 
-Floor::~Floor() {
-
-}
-
-
 void Floor::generateFloor() {
   const float width = 64.0f;
 
@@ -60,7 +55,6 @@ void Floor::generateFloor() {
 
 
 void Floor::render() {
-
   glDisable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
 
@@ -81,5 +75,4 @@ void Floor::render() {
   glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_SHORT, nullptr);
 
   unBindVertexArray();
-
 }

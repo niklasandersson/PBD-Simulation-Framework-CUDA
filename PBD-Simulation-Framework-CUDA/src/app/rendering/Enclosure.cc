@@ -1,7 +1,7 @@
 #include "Enclosure.h"
 
+
 Enclosure::Enclosure() : GL_Renderable("program_enclosure") {
-  
   generateEnclosure();
 
   add_vao("enclosure_vao");
@@ -27,13 +27,7 @@ Enclosure::Enclosure() : GL_Renderable("program_enclosure") {
 }
 
 
-Enclosure::~Enclosure() {
-
-}
-
-
 void Enclosure::generateEnclosure() {
-
   const float width = 64.0f;
 
   vertices_.push_back({0.0f, 0.0f, 0.0f});
@@ -87,12 +81,10 @@ void Enclosure::generateEnclosure() {
   indices_.push_back((unsigned short)6);
   indices_.push_back((unsigned short)5);
   indices_.push_back((unsigned short)1);
-
 }
 
 
 void Enclosure::render() {
-
   glDisable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
   
@@ -108,5 +100,4 @@ void Enclosure::render() {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   unBindVertexArray();
-
 }

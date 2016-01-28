@@ -2,8 +2,6 @@
 
 Particles::Particles()
   : GL_Renderable("program_particles_sprite_geom")
-  // : GL_Renderable("program_particles_sprite")
-  // : GL_Renderable("program_particles")
   , clicked_(Delegate<void(const double, const double, const int, const int, const int)>::from<Particles, &Particles::clickCallback>(this))
   , numberOfParticles_(new unsigned int{0})
   , maxParticles_(new unsigned int{65536})
@@ -45,8 +43,6 @@ Particles::Particles()
   add_shared_buffer("d_predictedPositionsCopy");
   add_shared_buffer("d_velocitiesCopy");
   add_shared_buffer("d_colorsCopy");
-
-  add_shared_buffer("d_collisionDeltas");
 
   generateResources();
 
@@ -131,32 +127,6 @@ Particles::Particles()
   vertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
   vertexAttribDivisor(9, 1);
 
-  
-  collisionDeltas4_.resize(*maxParticles_);
-  bindBuffer("d_collisionDeltas");
-  bufferData(GL_ARRAY_BUFFER, collisionDeltas4_.size() * 4 * sizeof(float), &collisionDeltas4_[0][0], GL_DYNAMIC_DRAW);
-  enableVertexAttribArray(10);
-  vertexAttribPointer(10, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-  vertexAttribDivisor(10, 1);
-
-  // bindBuffer("particle_vertices");
-  // bufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(float), &vertices_[0], GL_STATIC_DRAW);
-  // enableVertexAttribArray(0);
-  // vertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-  // vertexAttribDivisor(0, 0);
-
-  // bindBuffer("particle_positions");
-  // bufferData(GL_ARRAY_BUFFER, positons_.size() * sizeof(glm::vec3), &positons_[0][0], GL_STATIC_DRAW);
-  // enableVertexAttribArray(1);
-  // vertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-  // vertexAttribDivisor(1, 1);
-
-  // bindBuffer("particle_colors");
-  // bufferData(GL_ARRAY_BUFFER, colors_.size() * sizeof(glm::vec3), &colors_[0][0], GL_STATIC_DRAW);
-  // enableVertexAttribArray(2);
-  // vertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-  // vertexAttribDivisor(2, 1);
-
   bindBuffer("element_buffer", GL_ELEMENT_ARRAY_BUFFER);
   bufferData(GL_ELEMENT_ARRAY_BUFFER, 1 * sizeof(unsigned short), nullptr, GL_STATIC_DRAW);
   unBindVertexArray();
@@ -179,11 +149,6 @@ void Particles::addConsoleCommands() {
   console->add("c", [&](const char* argv) {
     Events::clearParticles();
   });
-}
-
-
-Particles::~Particles() {
-
 }
 
 

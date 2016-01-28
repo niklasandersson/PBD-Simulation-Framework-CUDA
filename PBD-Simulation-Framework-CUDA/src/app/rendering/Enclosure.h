@@ -7,11 +7,12 @@
 
 #include "console/Console.h"
 
+
 class Enclosure : public GL_Renderable {
 
 public:
   Enclosure();
-  ~Enclosure();
+  ~Enclosure() = default;
 
   void render() override;
 
@@ -24,5 +25,6 @@ private:
   std::vector<unsigned short> indices_;
 
 };
+
 
 #endif // ENCLOSURE_H

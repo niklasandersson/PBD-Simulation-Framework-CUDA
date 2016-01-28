@@ -91,7 +91,6 @@ void initializeShared() {
   initializeSharedBuffer(deviceBuffers.d_predictedPositionsCopy, "d_predictedPositionsCopy");
   initializeSharedBuffer(deviceBuffers.d_velocitiesCopy, "d_velocitiesCopy");
   initializeSharedBuffer(deviceBuffers.d_colorsCopy, "d_colorsCopy");
-  initializeSharedBuffer(deviceBuffers.d_collisionDeltas, "d_collisionDeltas");
   
   initializeSharedTexture(positions4, "positions4");
   initializeSharedTexture(predictedPositions4, "predictedPositions4");
