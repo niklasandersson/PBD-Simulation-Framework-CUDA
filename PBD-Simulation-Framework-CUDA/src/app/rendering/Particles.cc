@@ -59,7 +59,6 @@ Particles::Particles()
   add_uniform("camera_position");
   add_uniform("view_direction");
 
-
   bindVertexArray("particles_vao");
 
   densities_.resize(*maxParticles_);
@@ -171,15 +170,12 @@ void Particles::addConsoleCommands() {
   console->add("n", [&](const char* argv) {
     std::cout << "NumberOfParticles: " << *numberOfParticles_ << std::endl;
   });
-  
   console->add("r", [&](const char* argv) {
     Events::reload();
   });
-
   console->add("s", [&](const char* argv) {
     Events::addParticles(initialNumberOfParticles_, positons4_, velocities4_, colors4_);
   });
-
   console->add("c", [&](const char* argv) {
     Events::clearParticles();
   });
@@ -237,7 +233,6 @@ void Particles::registerSharedVariables() {
   GL_Shared& glShared = GL_Shared::getInstance();
   glShared.add_unsigned_int_value("numberOfParticles", numberOfParticles_);
   glShared.add_float_value("time", std::shared_ptr<float>{new float{0}});
-
   glShared.add_unsigned_int_value("maxParticles", maxParticles_);
   glShared.add_unsigned_int_value("maxGrid", maxGrid_);
 }
