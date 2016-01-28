@@ -13,13 +13,13 @@ Application:
     displayAvailableShaders = 0;
     displayAvailablePrograms = 0;
 
-    width = 1024;
+    width = 1324;
     height = 768;
   }
 
   Sim: 
   {
-    particlesWidth = 8;
+    particlesWidth = 16;
     particlesScale = 0.99;
 
     applyForces = 1;
@@ -57,12 +57,12 @@ Application:
     qSCorrMultipel = 0.2;
     cViscosity = 0.0001;
 
-    boundsXMin = 25.0;
-    boundsXMax = 45.0;
+    boundsXMin = 1.5;
+    boundsXMax = 63.0;
     boundsYMin = 1.5;
     boundsYMax = 64.0;
-    boundsZMin = 25.0;
-    boundsZMax = 45.0;
+    boundsZMin = 1.5;
+    boundsZMax = 63.0;
   }
 
 }
