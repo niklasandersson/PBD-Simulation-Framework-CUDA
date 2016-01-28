@@ -61,7 +61,6 @@ struct SimulationParameters{
   unsigned int kernelWidth;
 	float restDensity;
   Bounds bounds;
-  unsigned int randomStart;
   float kernelWidthDensity;
   float kernelWidthViscosity;
   float kSCorr;

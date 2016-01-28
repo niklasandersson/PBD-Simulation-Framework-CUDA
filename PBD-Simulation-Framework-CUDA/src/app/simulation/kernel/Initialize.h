@@ -13,7 +13,9 @@
 
 #include "parser/Config.h"
 
+
 // --------------------------------------------------------------------------
+
 
 void initializeFrame() {
   Events::addParticle.execute_calls();
@@ -58,8 +60,6 @@ void initializeFrame() {
   simulationParameters.bounds.z.min = config.getValue<float>("Application.Sim.boundsZMin");
   simulationParameters.bounds.z.max = config.getValue<float>("Application.Sim.boundsZMax");
 
-  simulationParameters.randomStart = rand() % simulationParameters.maxNeighboursPerParticle;
-
   CUDA(cudaMemcpyToSymbol(params, &simulationParameters, sizeof(SimulationParameters)));
 
   unsigned int threadsPerBlock = 128;
@@ -77,7 +77,9 @@ void initializeFrame() {
   cudaCallFullRangeParameters.threadsForAllParticlesPossibleBased = dim3(threadsPerBlock, 1, 1);  
 }
 
+
 // --------------------------------------------------------------------------
+
 
 void initializeShared() {
   initializeSharedBuffer(deviceBuffers.d_densities, "d_densities");
@@ -105,10 +107,11 @@ void initializeShared() {
   initializeSharedBuffer(d_densities, "d_densities");
 }
 
+
 // --------------------------------------------------------------------------
 
+
 void cudaInitializeKernels() {
-  srand(time(NULL));
   communication.initialize();
 
   initializeFrame();
@@ -117,6 +120,7 @@ void cudaInitializeKernels() {
   initializeCollision();
 	initializeDensity();
 }
+
 
 // --------------------------------------------------------------------------
 
