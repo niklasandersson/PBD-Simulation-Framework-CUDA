@@ -19,8 +19,6 @@ __global__ void addParticle(glm::vec3 pos, glm::vec3 dir) {
   float4 velocity = 50.0f * make_float4(dir.x, dir.y, dir.z, 0.0f);
   float4 color = make_float4(1.0f, 0.0f, 0.0f, 1.0f);
 
-  //printf("ADD PARTICLE: %f, %f, %f\n", pos.x, pos.y, pos.z);
-
   const unsigned int textureWidth = params.textureWidth;
   const unsigned int index = params.numberOfParticles;
   const unsigned int x = (index % textureWidth) * sizeof(float4); 
@@ -30,6 +28,7 @@ __global__ void addParticle(glm::vec3 pos, glm::vec3 dir) {
   surf2Dwrite(velocity, velocities4, x, y);
   surf2Dwrite(color, colors4, x, y);
 }
+
 
 __global__ void addParticles(const unsigned int numberOfParticlesToAdd,
                              float4* positions,
@@ -53,41 +52,26 @@ __global__ void addParticles(const unsigned int numberOfParticlesToAdd,
   }
 }
 
+
 struct Communication {
 
   Communication() 
-  : clicked_(Delegate<void(const double, const double, const int, const int, const int)>::from<Communication, &Communication::clickCallback>(this)),
-    addParticle_(Delegate<void(glm::vec3 pos, glm::vec3 dir)>::from<Communication, &Communication::addParticleCallback>(this)), 
+  : addParticle_(Delegate<void(glm::vec3 pos, glm::vec3 dir)>::from<Communication, &Communication::addParticleCallback>(this)), 
     addParticles_(Delegate<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)>::from<Communication, &Communication::addParticlesCallback>(this)),
     clearParticles_(Delegate<void()>::from<Communication, &Communication::clearParticlesCallback>(this)), 
     reload_(Delegate<void()>::from<Communication, &Communication::reloadCallback>(this)) 
-  {
-    
-  }
+  {}
 
   void initialize() {
-    //Events::click.subscribe(clicked_);
     Events::addParticle.subscribe(addParticle_);
     Events::addParticles.subscribe(addParticles_);
     Events::clearParticles.subscribe(clearParticles_);
     Events::reload.subscribe(reload_);
   }
 
-  void clickCallback(const double position_x, const double position_y, const int button, const int action, const int mods) {
-    if (button == 0 && action == 1) {
-      //std::cout << "CLICK" << std::endl;
-    }
-  }
-
   void addParticleCallback(glm::vec3 pos, glm::vec3 dir) {
-    //std::cout << "Add Particle: " << pos.x << ", " << pos.y << ", " << pos.z << " | " << dir.x << ", " << dir.y << ", " << dir.z << std::endl;
-
     auto glShared = GL_Shared::getInstance();
     auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
-
-    //glm::vec4 pos4(pos.x, pos.y, pos.z, 0.0f);
-    //glm::vec4 dir4(dir.x, dir.y, dir.z, 0.0f);
-    
     addParticle<<<1, 1>>>(pos, dir);
     glShared.set_unsigned_int_value("numberOfParticles", *numberOfParticles + 1);
   }
@@ -105,7 +89,6 @@ struct Communication {
     dim3 threads(numberOfParticlesPerBlock, 1, 1);
 
     addParticles<<<blocks, threads>>>(numberOfParticlesToAdd, deviceBuffers.d_positionsCopy, deviceBuffers.d_velocitiesCopy, deviceBuffers.d_colorsCopy);
-    
     glShared.set_unsigned_int_value("numberOfParticles", *numberOfParticles + numberOfParticlesToAdd);
   }
   
@@ -115,15 +98,15 @@ struct Communication {
   }
 
   void reloadCallback() {
-     Config::getInstance().reload();
+    Config::getInstance().reload();
   }
 
-  Delegate<void(const double, const double, const int, const int, const int)> clicked_;
   Delegate<void(glm::vec3 pos, glm::vec3 dir)> addParticle_;
   Delegate<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)> addParticles_;
   Delegate<void()> clearParticles_;
   Delegate<void()> reload_;
 
 };
+
 
 #endif // COMMUNICATION_H
