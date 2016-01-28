@@ -16,11 +16,6 @@ Canvas::Canvas(const unsigned int window_width,
 }
 
 
-Canvas::~Canvas() {
-
-}
-
-
 void Canvas::addConsoleCommands() {
   //Console::getInstance()->add("fps", dynamic_cast<GLFW_Window*>(this), &GLFW_Window::set_print_fps);
   Console::getInstance()->add("fps", [&](const char* argv) {
@@ -56,10 +51,6 @@ void Canvas::initialize() {
     glfw_window_,
     window_width_,
     window_height_,
-    //glm::vec3(0, 3, 12), 
-    //glm::vec3(0, 0.2, -1),
-    //glm::vec3(8.39222, 8.81863, 33.224),
-    //glm::vec3(0.968959, -0.246052, -0.0240319),
     glm::vec3(8.39222, 8.81863, 33.224),
     glm::vec3(0.993631, -0.110379, -0.0226556),
     45.0f,
@@ -69,14 +60,10 @@ void Canvas::initialize() {
     0.002f
   };
 
-  // glfw_controls_->setInputModeStandard();
-
- 
   floor_ = new Floor();
   floor_->setCameraNear(glfw_controls_->getCameraNear());
   floor_->setCameraFar(glfw_controls_->getCameraFar());
 
-  
   particles_ = new Particles();
   particles_->setCameraNear(glfw_controls_->getCameraNear());
   particles_->setCameraFar(glfw_controls_->getCameraFar());
@@ -84,7 +71,6 @@ void Canvas::initialize() {
   enclosure_ = new Enclosure();
   enclosure_->setCameraNear(glfw_controls_->getCameraNear());
   enclosure_->setCameraFar(glfw_controls_->getCameraFar());
-
 }
 
 
@@ -99,7 +85,6 @@ void Canvas::set_glfw_window_hints() {
 
 void Canvas::loadPrograms() {
   Config& config = Config::getInstance();
-
   OpenGL_Loader& openglLoader = OpenGL_Loader::getInstance();
 
   openglLoader.loadPrograms(config.getValue<std::string>("Application.OpenGL.programDefinitions"));
@@ -113,7 +98,6 @@ void Canvas::loadPrograms() {
     std::cout << "Available Programs:" << std::endl;
     openglLoader.printAvailablePrograms();
   }
- 
 }
 
 
@@ -129,10 +113,7 @@ void Canvas::cleanup() {
 void Canvas::render() {
   GLFW_Window::render();  
 
-  const float current_time = get_current_time();
-
   glfw_controls_->handleInput();
-  // glfw_controls_->checkInGameToggle(current_time);
 
   glm::mat4 view_matrix = glfw_controls_->getViewMatrix();
   glm::mat4 projection_matrix = glfw_controls_->getProjectionMatrix();
@@ -143,26 +124,25 @@ void Canvas::render() {
   floor_->setProjectionMatrix(projection_matrix);
   floor_->setCameraPosition(camera_position);
   floor_->setViewDirection(view_direction);
-  floor_->setCurrentTime(current_time);
+  floor_->setCurrentTime(current_time_);
   floor_->render();
  
   particles_->setViewMatrix(view_matrix);
   particles_->setProjectionMatrix(projection_matrix);
   particles_->setCameraPosition(camera_position);
   particles_->setViewDirection(view_direction);
-  particles_->setCurrentTime(current_time);
+  particles_->setCurrentTime(current_time_);
   particles_->render();
 
   enclosure_->setViewMatrix(view_matrix);
   enclosure_->setProjectionMatrix(projection_matrix);
   enclosure_->setCameraPosition(camera_position);
   enclosure_->setViewDirection(view_direction);
-  enclosure_->setCurrentTime(current_time);
+  enclosure_->setCurrentTime(current_time_);
   enclosure_->render();
   
   glfwSwapBuffers(glfw_window_);
   glfwPollEvents();
 
   glFinish();
-
 }

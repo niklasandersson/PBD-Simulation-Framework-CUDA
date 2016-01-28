@@ -1,19 +1,12 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include <iostream>
 #include <atomic>
 
 #include "parser/Config.h"
-
 #include "console/Console.h"
-
 #include "event/Events.h"
-
-#include "time/Time.h"
-
 #include "Canvas.h"
-
 #include "Simulation.h"
 
 
@@ -21,7 +14,7 @@ class Engine {
 
 public:
   Engine();
-  ~Engine();
+  ~Engine() = default;
 
   void stop();
 

@@ -10,16 +10,12 @@ Engine::Engine()
   addConsoleCommands();
 
   initialize();
+  
   while( !stop_.load() ) {
     run();
   }
+
   cleanup();
-
-}
-
-
-Engine::~Engine() {
-
 }
 
 
@@ -40,7 +36,6 @@ void Engine::addConsoleCommands() {
   console->add("q", [&](const char* args) {
     Console::getInstance()->execute("quit");
   });
-
 }
 
 
@@ -56,7 +51,6 @@ void Engine::initialize() {
   simulation_->initialize();
 
   Console::getInstance()->run();
-
 }
 
 
@@ -72,13 +66,11 @@ void Engine::cleanup() {
 
 
 void Engine::run() {
-
   simulation_->step();
 
   canvas_->render();
 
-  if (canvas_->should_close()) {
+  if( canvas_->should_close() ) {
     stop();
   }
-
 }

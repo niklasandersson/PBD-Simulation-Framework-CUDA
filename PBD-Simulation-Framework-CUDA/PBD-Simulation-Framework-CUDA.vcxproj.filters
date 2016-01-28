@@ -18,16 +18,10 @@
     <ClCompile Include="src\parser\Parser.cc" />
     <ClCompile Include="src\parser\RecursiveParser.cc" />
     <ClCompile Include="src\regex\Regular_Expression.cc" />
-    <ClCompile Include="src\thread\ThreadPool.cc" />
-    <ClCompile Include="src\thread\WorkerThread.cc" />
-    <ClCompile Include="src\thread\WorkItem.cc" />
-    <ClCompile Include="src\thread\WorkItemComparison.cc" />
     <ClCompile Include="src\utility\String_Utilities.cc" />
     <ClCompile Include="src\event\Events.cc" />
     <ClCompile Include="src\event\Global_Event_Base.cc" />
     <ClCompile Include="src\cuda\Cuda.cu" />
-    <ClCompile Include="src\time\AllTimers.cc" />
-    <ClCompile Include="src\time\Time.cc" />
     <ClCompile Include="src\app\Canvas.cc" />
     <ClCompile Include="src\glfw\GLFW_Controls.cc" />
     <ClCompile Include="src\glfw\GLFW_Window.cc" />
@@ -70,10 +64,6 @@
     <ClInclude Include="src\parser\Parser.h" />
     <ClInclude Include="src\parser\RecursiveParser.h" />
     <ClInclude Include="src\regex\Regular_Expression.h" />
-    <ClInclude Include="src\thread\ThreadPool.h" />
-    <ClInclude Include="src\thread\WorkerThread.h" />
-    <ClInclude Include="src\thread\WorkItem.h" />
-    <ClInclude Include="src\thread\WorkItemComparison.h" />
     <ClInclude Include="src\utility\String_Utilities.h" />
     <ClInclude Include="src\event\Delegate.h" />
     <ClInclude Include="src\event\Events.h" />
@@ -82,8 +72,6 @@
     <ClInclude Include="src\event\Global_Defer_Call_Event.h" />
     <ClInclude Include="src\event\Local_Defer_Call_Event.h" />
     <ClInclude Include="src\cuda\Cuda.h" />
-    <ClInclude Include="src\time\AllTimers.h" />
-    <ClInclude Include="src\time\Time.h" />
     <ClInclude Include="src\app\Engine.h" />
     <ClInclude Include="src\app\Canvas.h" />
     <ClInclude Include="src\glfw\GLFW_Controls.h" />
@@ -95,13 +83,7 @@
     <ClInclude Include="src\cuda\Cuda_Computable.h" />
     <ClInclude Include="src\cuda\Cuda_Helper_Math.h" />
     <ClInclude Include="src\app\rendering\Enclosure.h" />
-    <ClInclude Include="src\app\simulation\Util.h" />
-    <ClInclude Include="src\app\simulation\kernel\Forces\ApplyForces.h" />
-    <ClInclude Include="src\app\simulation\Parameters.h" />
     <ClInclude Include="src\app\simulation\Fluid.h" />
-    <ClInclude Include="src\app\simulation\kernel\update\UpdatePositions.h" />
-    <ClInclude Include="src\app\simulation\kernel\collision\Collision.h" />
-    <ClInclude Include="src\app\simulation\kernel\collision\Hash.h" />
     <ClInclude Include="src\app\simulation\kernel\Kernels.h" />
     <ClInclude Include="src\app\simulation\kernel\Forces.h" />
     <ClInclude Include="src\app\simulation\kernel\Update.h" />
@@ -112,14 +94,11 @@
     <ClInclude Include="src\app\simulation\kernel\Globals.h" />
     <ClInclude Include="src\app\simulation\kernel\Density.h" />
     <ClInclude Include="src\app\simulation\kernel\Communication.h" />
+    <ClInclude Include="src\cuda\Cuda_Util.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />
-    <CudaCompile Include="src\app\simulation\kernel\Forces\ApplyForces.cu" />
-    <CudaCompile Include="src\app\simulation\Parameters.cu" />
     <CudaCompile Include="src\app\simulation\Fluid.cu" />
-    <CudaCompile Include="src\app\simulation\kernel\update\UpdatePositions.cu" />
-    <CudaCompile Include="src\app\simulation\kernel\collision\Collision.cu" />
     <CudaCompile Include="src\app\simulation\kernel\Kernels.cu" />
   </ItemGroup>
 </Project>

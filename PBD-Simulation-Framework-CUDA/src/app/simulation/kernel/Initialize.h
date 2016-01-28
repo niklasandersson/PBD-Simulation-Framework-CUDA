@@ -21,14 +21,13 @@ void initializeFrame() {
   Events::clearParticles.execute_calls();
   Events::reload.execute_calls();
 
-  Config& config = Config::getInstance();
-
   auto glShared = GL_Shared::getInstance();
   const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
   const unsigned int textureWidth = glShared.get_texture("positions4")->width_;
   const unsigned int maxGrid = *glShared.get_unsigned_int_value("maxGrid");
   const unsigned int maxParticles = *glShared.get_unsigned_int_value("maxParticles");
 
+  Config& config = Config::getInstance();
   simulationParameters.numberOfParticles = numberOfParticles;
   simulationParameters.textureWidth = textureWidth;
   simulationParameters.maxNeighboursPerParticle = config.getValue<unsigned int>("Application.Sim.maxNeighboursPerParticle");
@@ -59,22 +58,6 @@ void initializeFrame() {
   simulationParameters.bounds.z.min = config.getValue<float>("Application.Sim.boundsZMin");
   simulationParameters.bounds.z.max = config.getValue<float>("Application.Sim.boundsZMax");
 
-  /*
-  simulationParameters.bounds.x.min = 1.5f;
-  simulationParameters.bounds.x.max = 64.0f - 1.5f;
-  simulationParameters.bounds.y.min = 1.5f;
-  simulationParameters.bounds.y.max = 64.0f - 1.5f;
-  simulationParameters.bounds.z.min = 1.5f;
-  simulationParameters.bounds.z.max = 64.0f - 1.5f;
-  */
-/*  
-  simulationParameters.bounds.x.min = 25.0f;
-  simulationParameters.bounds.x.max = 45.0f - 1.5f;
-  simulationParameters.bounds.y.min = 1.5f;
-  simulationParameters.bounds.y.max = 64.0f - 1.5f;
-  simulationParameters.bounds.z.min = 25.0f;
-  simulationParameters.bounds.z.max = 45.0f - 1.5f;
-*/
   simulationParameters.randomStart = rand() % simulationParameters.maxNeighboursPerParticle;
 
   CUDA(cudaMemcpyToSymbol(params, &simulationParameters, sizeof(SimulationParameters)));

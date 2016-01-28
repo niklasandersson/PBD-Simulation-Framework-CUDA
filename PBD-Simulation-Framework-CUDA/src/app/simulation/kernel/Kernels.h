@@ -7,9 +7,9 @@
 
 #include "cuda/Cuda.h"
 #include "cuda/Cuda_Helper_Math.h"
+#include "cuda/Cuda_Util.h"
 
 #include "opengl/GL_Shared.h"
-#include "../Util.h"
 
 void initializeFrame();
 void cudaInitializeKernels();

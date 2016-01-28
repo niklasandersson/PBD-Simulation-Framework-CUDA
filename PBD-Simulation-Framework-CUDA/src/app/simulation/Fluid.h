@@ -7,19 +7,7 @@
 #include "cuda/Cuda_Computable.h"
 #include "cuda/Cuda_Helper_Math.h"
 
-#include <thrust/device_vector.h>
-#include <thrust/device_ptr.h>
-#include <thrust/sort.h>
-#include <thrust/gather.h>
-#include <thrust/iterator/counting_iterator.h>
-
 #include "opengl/GL_Shared.h"
-
-#include "Parameters.h"
-
-#include "kernel/forces/ApplyForces.h"
-#include "kernel/update/UpdatePositions.h"
-#include "kernel/collision/Collision.h"
 
 #include "parser/Config.h"
 #include "kernel/kernels.h"
@@ -27,16 +15,14 @@
 class Fluid : public Cuda_Computable {
 
 public:
-  Fluid(Parameters* parameters);
+  Fluid();
 
   void compute() override;
 
 protected:
 
 private:
-  Parameters* parameters_;
 
 };
-
 
 #endif // COLLISION_H

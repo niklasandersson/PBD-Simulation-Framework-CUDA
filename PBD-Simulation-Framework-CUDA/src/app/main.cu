@@ -4,11 +4,11 @@
 #include "console/Console.h"
 #include "Engine.h"
 
+
 void printApplicationInfo(); 
 
 
 int main(int argc, const char* argv[]) {
-
   Config& config = Config::getInstance();
 
   if( config.getValue<bool>("Application.displayApplicationInfo") ) {
@@ -18,7 +18,6 @@ int main(int argc, const char* argv[]) {
   Engine engine;
 
   std::exit(EXIT_SUCCESS);
-
 }
 
 

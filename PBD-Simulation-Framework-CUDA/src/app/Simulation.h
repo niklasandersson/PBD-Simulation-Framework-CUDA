@@ -3,27 +3,26 @@
 
 #include "cuda/Cuda.h"
 
-#include "simulation/Parameters.h"
 #include "simulation/Fluid.h"
 
 
 class Simulation {
 
 public:
-  Simulation();
-  ~Simulation();
+  Simulation() = default;
+  ~Simulation() = default;
 
   void initialize();
-  void step();
   void cleanup();
+  void step();
 
 protected:
 
 private:
   Cuda* cuda_;
-  Parameters* parameters_;
   Fluid* fluid_;
 
 };
+
 
 #endif // SIMULATION_H

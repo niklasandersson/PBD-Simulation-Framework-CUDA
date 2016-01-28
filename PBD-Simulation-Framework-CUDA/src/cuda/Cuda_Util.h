@@ -1,12 +1,12 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef CUDA_UTIL_H
+#define CUDA_UTIL_H
 
 #include <iostream>
 #include <string>
 #include <limits>
 
-#include "cuda/Cuda.h"
-#include "cuda/Cuda_Helper_Math.h"
+#include "Cuda.h"
+#include "Cuda_Helper_Math.h"
 
 #include "opengl/GL_Shared.h"
 
@@ -53,4 +53,4 @@ void initializeSharedTexture(T& surface, const std::string name) {
 }
 
 
-#endif // UTIL_H
+#endif // CUDA_UTIL_H

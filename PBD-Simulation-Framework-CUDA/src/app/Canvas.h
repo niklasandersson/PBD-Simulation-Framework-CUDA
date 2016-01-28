@@ -28,11 +28,10 @@ public:
          const unsigned int opengl_major_version = 3,
          const unsigned int opengl_minor_version = 3);
 
-  ~Canvas();
+  ~Canvas() = default;
 
   void initialize() override;
   void cleanup() override;
-
   void render() override;
 
 protected:

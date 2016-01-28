@@ -1,7 +1,7 @@
 #include "Fluid.h"
 
 
-Fluid::Fluid(Parameters* parameters) : parameters_(parameters){
+Fluid::Fluid() {
   cudaInitializeKernels();
 }
 
@@ -91,7 +91,7 @@ void Fluid::compute() {
   }
   
   if( config.getValue<bool>("Application.Sim.break") ) {
-    std::cout << "Break, type character: ";
+    std::cout << "Break, enter character to continue: ";
     std::cin.get();
   } 
 
