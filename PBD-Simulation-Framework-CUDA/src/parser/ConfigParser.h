@@ -16,6 +16,7 @@ class ConfigParser : public RecursiveParser<Parser> {
 
 public:
   ConfigParser() : globalScope_(new ConfigObject(DEFAULT_SCOPE)) {}  
+  virtual ~ConfigParser() = default;
 
   template<typename T>
   T getValueImpl(const std::vector<std::string>& path) {

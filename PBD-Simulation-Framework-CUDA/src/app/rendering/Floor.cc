@@ -7,7 +7,7 @@ Floor::Floor() : GL_Renderable("program_floor") {
   add_vao("floor_vao");
   add_buffer("floor_vertices");
   add_buffer("element_buffer");
-  add_texture("compass", "assets/compass.bmp");
+  
   generateResources();
 
   add_uniform("view_matrix");

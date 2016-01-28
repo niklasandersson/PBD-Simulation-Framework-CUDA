@@ -16,6 +16,7 @@ class DefineParser : public RecursiveParser<Parser> {
 
 public:
   DefineParser() : regex_{"A-Za-z0-9_ \n\0"} {}
+  virtual ~DefineParser() = default;
 
   void addDefine(const std::string& name, const std::string& impl) {
     defines_[name] = impl;

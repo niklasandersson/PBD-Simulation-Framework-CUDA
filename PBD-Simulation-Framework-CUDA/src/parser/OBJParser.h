@@ -14,6 +14,7 @@ template<typename Parser>
 class OBJParser : public RecursiveParser<Parser> {
 
 public:
+  virtual ~OBJParser() = default;
 
   std::vector<float> getVertices() {
     return vertices_;

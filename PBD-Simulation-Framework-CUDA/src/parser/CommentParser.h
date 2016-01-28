@@ -8,6 +8,7 @@ class CommentParser : public RecursiveParser<Parser> {
 
 public:
   CommentParser() : inComment_{false} {}
+  virtual ~CommentParser() = default;
   
 protected:
 

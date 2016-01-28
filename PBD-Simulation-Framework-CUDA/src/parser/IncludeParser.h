@@ -12,6 +12,7 @@ template<typename Parser>
 class IncludeParser : public RecursiveParser<Parser> {
 
 public:
+  virtual ~IncludeParser() = default;
 
 protected:
 

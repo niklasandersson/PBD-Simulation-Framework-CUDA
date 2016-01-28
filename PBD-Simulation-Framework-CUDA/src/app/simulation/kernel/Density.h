@@ -34,61 +34,6 @@ __device__ float poly6Viscosity(float4 pi, float4 pj) {
 }
 
 
-__device__ float poly6New(float4 pi, float4 pj) {
-	const float kernelWidth = (float) params.kernelWidthDensity;
-	const float distance = length(make_float3(pi - pj));
-  if( distance <= kernelWidth ) {
-	  const float numeratorTerm = pow(kernelWidth * kernelWidth - distance * distance, 3);
-    const float rtr = (315.0f * numeratorTerm) / (64.0f * M_PI * pow(kernelWidth, 9));
-	  return rtr;
-  } else {
-    return 0.0f;
-  }
-}
-
-
-__device__ float poly6ViscosityNew(float4 pi, float4 pj) {
-	const float kernelWidth = (float) params.kernelWidthDensity;
-	const float distance = length(make_float3(pi - pj));
-  if( distance <= kernelWidth ) {
-	  const float numeratorTerm = kernelWidth - distance;
-    const float rtr = (45.0f * numeratorTerm) / (M_PI * pow(kernelWidth, 6));
-	  return rtr;
-  } else {
-    return 0.0f;
-  }
-}
-
-
-__device__ float4 spikyNew(float4 pi, float4 pj) {
-	const float kernelWidth = (float) params.kernelWidthDensity;
-	float4 r = pi - pj;
-  r.w = 0.0f;
-  const float distance = length(make_float3(r));
-  if( distance <= kernelWidth) {
-	  float numeratorTerm = pow(kernelWidth - distance, 2); 
-	  float denominatorTerm = M_PI * pow(kernelWidth, 6);
-	  return 45.0f * (numeratorTerm / denominatorTerm) * r;
-  } else {
-    return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-  }
-}
-
-
-__device__ float poly6(float4 pi, float4 pj) {
-  return poly6Viscosity(pi, pj);
-	const float kernelWidth = (float) params.kernelWidthDensity;
-	const float distance = length(make_float3(pi - pj));
-  if( distance > 0.0001f && ((kernelWidth - distance) > 0.0001f) ) {
-	  const float numeratorTerm = pow(kernelWidth * kernelWidth - distance * distance, 3);
-    const float rtr = (315.0f * numeratorTerm) / (64.0f * M_PI * pow(kernelWidth, 9));
-	  return rtr;
-  } else {
-    return 0.0f;
-  }
-}
-
-
 __device__ float4 spiky(float4 pi, float4 pj) {
 	const float kernelWidth = (float) params.kernelWidthDensity;
 	float4 r = pi - pj;
@@ -134,7 +79,7 @@ __global__ void computeLambda(unsigned int* neighbours,
       float4 pj;
       surf2Dread(&pj, predictedPositions4, x2, y2);
   
-      accumulateA += poly6(pi, pj);
+      accumulateA += poly6Viscosity(pi, pj);
       
       float4 spik = spiky(pi, pj);
 
@@ -194,7 +139,7 @@ __global__ void computeDeltaPositions(unsigned int* neighbours,
     
       const float lj = lambdas[index2];
       
-      const float sCorr = -kSCorr * pow(poly6(pi, pj) / poly6(make_float4(qSCorr, 0.0f, 0.0f, 0.0f), make_float4(0.0f, 0.0f, 0.0f, 0.0f)), nSCorr);
+      const float sCorr = -kSCorr * pow(poly6Viscosity(pi, pj) / poly6Viscosity(make_float4(qSCorr, 0.0f, 0.0f, 0.0f), make_float4(0.0f, 0.0f, 0.0f, 0.0f)), nSCorr);
       
       accumulateDelta += (li + lj + sCorr) * spiky(pi, pj);
     }

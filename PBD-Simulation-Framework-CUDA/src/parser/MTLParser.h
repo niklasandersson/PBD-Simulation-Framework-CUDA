@@ -11,6 +11,7 @@ template<typename Parser>
 class MTLParser : public RecursiveParser<Parser> {
 
 public:
+  virtual ~MTLParser() = default;
 
   std::vector<OBJMaterial> getMaterials() {
     return objMaterials_;
