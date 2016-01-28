@@ -190,8 +190,6 @@ __global__ void solveCollisions(unsigned int* cellStarts,
     float4 predictedPosition1 = predictedPositions[index];
     float inverseMass1 = predictedPosition1.w;
 
-    float4 position1 = positions[index];
-
     float4 predictedPosition2;
     float3 pos1ToPos2;
     float3 addTo1;

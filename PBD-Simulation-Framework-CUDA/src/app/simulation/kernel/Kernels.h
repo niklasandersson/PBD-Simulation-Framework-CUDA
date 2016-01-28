@@ -28,7 +28,6 @@ void cudaCallApplyDeltaPositions();
 void cudaCallComputeOmegas();
 void cudaCallComputeVorticity();
 void cudaComputeViscosity();
-void callClearAllTheCrap();
 void cudaCallFindContacts();
 void cudaCallSolveCollisions();
 void cudaCallFindNeighbours();
