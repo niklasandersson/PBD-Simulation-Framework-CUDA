@@ -264,10 +264,22 @@ void OpenGL_Loader::loadPrograms(const std::string fileNameAndPath)
 	}
 
 	std::istringstream input{programs_parser_.parseFile(fileNameAndPath)};
+  std::istringstream inputCopy{input.str()};
+
 	std::string line;
 
+  unsigned int length = 0;
+  while( getline(inputCopy, line) ) {
+    length++;
+  }
+
+  std::cout << "Loading programs: " << std::endl;
+
+  unsigned int at = 0;
 	while(getline(input, line))
 	{
+    Utils::DrawProgressBar(65, std::ceil(at++/(float)length));
+
 		std::istringstream is(line);
 		std::string name;
 		std::string files;
@@ -281,6 +293,8 @@ void OpenGL_Loader::loadPrograms(const std::string fileNameAndPath)
 
 		loadProgram(name, path, files);
 	}
+
+  std::cout << std::endl;
 
 }
 

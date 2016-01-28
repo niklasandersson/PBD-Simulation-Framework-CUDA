@@ -24,6 +24,8 @@
 #include "opengl/Shader.h"
 #include "opengl/Program.h"
 
+#include "utility/Utils.h"
+
 
 // To determine the shader filetype (string)
 #ifndef VERTEX_SHADER_TYPE
