@@ -1,5 +1,6 @@
 #include "Particles.h"
 
+
 Particles::Particles()
   : GL_Renderable("program_particles_sprite_geom")
   , clicked_(Delegate<void(const double, const double, const int, const int, const int)>::from<Particles, &Particles::clickCallback>(this))
@@ -10,7 +11,7 @@ Particles::Particles()
   Events::click.subscribe(clicked_);
 
   generateParticles();
-
+  
   registerSharedVariables();
 
   add_vao("particles_vao");
