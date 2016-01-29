@@ -17,26 +17,23 @@ Canvas::Canvas(const unsigned int window_width,
 
 
 void Canvas::addConsoleCommands() {
-  //Console::getInstance()->add("fps", dynamic_cast<GLFW_Window*>(this), &GLFW_Window::set_print_fps);
-  Console::getInstance()->add("fps", [&](const char* argv) {
-    std::istringstream is(argv);
-    bool printFps = false;
-    is >> printFps;
-    set_print_fps(printFps);
-  });
-
-  //Console::getInstance()->add("freeze", dynamic_cast<GLFW_Window*>(this), &GLFW_Window::toggleFreeze);
-  Console::getInstance()->add("freeze", [&](const char* argv) {
-    toggleFreeze();
-  });
-
-  Console::getInstance()->add("camera", [&](const char* argv) {
+  auto console = Console::getInstance();
+  console->add("fps", dynamic_cast<GLFW_Window*>(this), &GLFW_Window::set_print_fps);
+  console->add("getCamera", [&](const char* argv) {
     if( glfw_controls_ ) {
       glm::vec3 positon = glfw_controls_->getCameraPosition();
       glm::vec3 direction = glfw_controls_->getCameraDirection();
-
       std::cout << "Position: {" << positon.x << ", " << positon.y << ", " << positon.z << "}" << std::endl; 
       std::cout << "Direction: {" << direction.x << ", " << direction.y << ", " << direction.z << "}" << std::endl; 
+    }
+  });
+  console->add("setCamera", [&](const char* argv) {
+    if( glfw_controls_ ) {
+      glm::vec3 positon = glfw_controls_->getCameraPosition();
+      glm::vec3 direction = glfw_controls_->getCameraDirection();
+      Config& config = Config::getInstance();
+      config.setArray(std::vector<float>{positon.x, positon.y, positon.z}, "Application.OpenGL.Camera.position");
+      config.setArray(std::vector<float>{direction.x, direction.y, direction.z}, "Application.OpenGL.Camera.direction");
     }
   });
 }
@@ -46,19 +43,26 @@ void Canvas::initialize() {
   GLFW_Window::initialize();
 
   loadPrograms();
+  
+  Config& config = Config::getInstance();
+  float* position = config.getArray<3, float>("Application.OpenGL.Camera.position");
+  float* direction = config.getArray<3, float>("Application.OpenGL.Camera.direction");
 
   glfw_controls_ = new GLFW_Controls{
     glfw_window_,
     window_width_,
     window_height_,
-    glm::vec3(8.39222, 8.81863, 33.224),
-    glm::vec3(0.993631, -0.110379, -0.0226556),
+    glm::vec3(position[0], position[1], position[2]),
+    glm::vec3(direction[0], direction[1], direction[2]),
     45.0f,
     0.1f,
     200.0f,
     5.0f,
     0.002f
   };
+
+  delete [] direction;
+  delete [] position;
 
   floor_ = new Floor();
   floor_->setCameraNear(glfw_controls_->getCameraNear());

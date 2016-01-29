@@ -30,6 +30,7 @@
     <ClCompile Include="src\app\Engine.cu" />
     <ClCompile Include="src\app\rendering\Enclosure.cc" />
     <ClCompile Include="src\utility\Utils.cc" />
+    <ClCompile Include="src\log\Log.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\console\Command.h" />
@@ -95,6 +96,7 @@
     <ClInclude Include="src\app\simulation\kernel\Communication.h" />
     <ClInclude Include="src\cuda\Cuda_Util.h" />
     <ClInclude Include="src\utility\Utils.h" />
+    <ClInclude Include="src\log\Log.h" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\app\main.cu" />

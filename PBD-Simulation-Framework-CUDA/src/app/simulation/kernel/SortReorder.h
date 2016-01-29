@@ -216,10 +216,27 @@ void initializeSort() {
 
 // --------------------------------------------------------------------------
 
+void cleanupSort() {
+  CUDA(cudaFree(d_cellIds_in));
+  CUDA(cudaFree(d_cellIds_out));
+  CUDA(cudaFree(d_particleIds_in));
+  CUDA(cudaFree(d_particleIds_out));
+  CUDA(cudaFree(d_sortTempStorage));
+}
+
+// --------------------------------------------------------------------------
+
 void initializeCellInfo() {
   CUDA(cudaMalloc((void**)&d_cellStarts, simulationParameters.maxGrid * sizeof(unsigned int)));
   CUDA(cudaMalloc((void**)&d_cellEndings, simulationParameters.maxGrid * sizeof(unsigned int)));
   cudaCallResetCellInfo();
+}
+
+// --------------------------------------------------------------------------
+
+void cleanupCellInfo() {
+  CUDA(cudaFree(d_cellStarts));
+  CUDA(cudaFree(d_cellEndings));
 }
 
 // --------------------------------------------------------------------------
@@ -231,5 +248,10 @@ void initializeSortReorder() {
 
 // --------------------------------------------------------------------------
 
+void cleanupSortReorder() {
+  cleanupSort();
+  cleanupCellInfo();
+}
+ 
 
 #endif // SORTREORDER_H

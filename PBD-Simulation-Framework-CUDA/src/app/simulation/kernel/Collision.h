@@ -479,4 +479,16 @@ void initializeCollision() {
 // --------------------------------------------------------------------------
 
 
+void cleanupCollision() {
+  CUDA(cudaFree(d_neighbours));
+  CUDA(cudaFree(d_contactCounters));
+  CUDA(cudaFree(d_neighbourCounters));
+  CUDA(cudaFree(d_contactConstraintSucces));
+  CUDA(cudaFree(d_contactConstraintParticleUsed));
+}
+
+
+// --------------------------------------------------------------------------
+
+
 #endif // COLLISION_H

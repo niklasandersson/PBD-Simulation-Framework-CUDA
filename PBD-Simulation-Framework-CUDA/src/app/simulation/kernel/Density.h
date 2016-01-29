@@ -8,18 +8,6 @@
 #include "Globals.h"
 
 
-void initializeDensity() {
-	CUDA(cudaMalloc((void**)&d_lambdas, simulationParameters.maxParticles * sizeof(float)));
-	CUDA(cudaMalloc((void**)&d_deltaPositions, simulationParameters.maxParticles * sizeof(float4)));
-	CUDA(cudaMalloc((void**)&d_externalForces, simulationParameters.maxParticles * sizeof(float4)));
-	CUDA(cudaMalloc((void**)&d_omegas, simulationParameters.maxParticles * sizeof(float3)));
-	CUDA(cudaMemset(d_deltaPositions, 0.0f, simulationParameters.maxParticles * sizeof(float4)));
-	CUDA(cudaMemset(d_omegas, 0.0f, simulationParameters.maxParticles* sizeof(float3)));
-	CUDA(cudaMemset(d_externalForces, 0.0f, simulationParameters.maxParticles* sizeof(float4)));
-	CUDA(cudaMemset(d_lambdas, 0.0f, simulationParameters.maxParticles* sizeof(float)));
-}
-
-
 __device__ float poly6Viscosity(float4 pi, float4 pj) {
 	float kernelWidth = params.kernelWidthViscosity;
 	pi.w = 0.0f;
@@ -304,6 +292,26 @@ __global__ void computeViscosity(unsigned int* neighbors,
 
 void cudaComputeViscosity() {
 	computeViscosity<<<FOR_EACH_PARTICLE>>>(d_neighbours, d_neighbourCounters);
+}
+
+
+void initializeDensity() {
+	CUDA(cudaMalloc((void**)&d_lambdas, simulationParameters.maxParticles * sizeof(float)));
+	CUDA(cudaMalloc((void**)&d_deltaPositions, simulationParameters.maxParticles * sizeof(float4)));
+	CUDA(cudaMalloc((void**)&d_externalForces, simulationParameters.maxParticles * sizeof(float4)));
+	CUDA(cudaMalloc((void**)&d_omegas, simulationParameters.maxParticles * sizeof(float3)));
+	CUDA(cudaMemset(d_deltaPositions, 0.0f, simulationParameters.maxParticles * sizeof(float4)));
+	CUDA(cudaMemset(d_omegas, 0.0f, simulationParameters.maxParticles* sizeof(float3)));
+	CUDA(cudaMemset(d_externalForces, 0.0f, simulationParameters.maxParticles* sizeof(float4)));
+	CUDA(cudaMemset(d_lambdas, 0.0f, simulationParameters.maxParticles* sizeof(float)));
+}
+
+
+void cleanupDensity() {
+	CUDA(cudaFree(d_lambdas));
+	CUDA(cudaFree(d_deltaPositions));
+	CUDA(cudaFree(d_externalForces));
+	CUDA(cudaFree(d_omegas));
 }
 
 

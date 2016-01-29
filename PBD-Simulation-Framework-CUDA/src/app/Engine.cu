@@ -42,8 +42,8 @@ void Engine::addConsoleCommands() {
 void Engine::initialize() {
   Config& config = Config::getInstance();
 
-  canvas_ = new Canvas{config.getValue<unsigned int>("Application.OpenGL.width"),
-                       config.getValue<unsigned int>("Application.OpenGL.height"),
+  canvas_ = new Canvas{config.getValue<unsigned int>("Application.OpenGL.Resolution.width"),
+                       config.getValue<unsigned int>("Application.OpenGL.Resolution.height"),
                        config.getValue<std::string>("Application.name")};
   canvas_->initialize();
   

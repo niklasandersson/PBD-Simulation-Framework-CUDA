@@ -40,7 +40,7 @@ public:
 		}));	
 	}
 
-
+  /*
 	template<class C, typename R, typename... Ps>
 	void add(const char* name, C* c, R (C::*f)(Ps...)) {
 		addCommandItem(Command(name, [&, name, c, f](const char* args){ 	
@@ -50,6 +50,7 @@ public:
 			// cout << name << " : " << r << endl;
 		}));	
 	}
+  */
 
 	void remove(const char* name);
 
@@ -98,11 +99,11 @@ private:
 		(c->*f)(std::get<S>(arguments)...);
 	}
 
-
+  /*
 	template<int ...S, class C, typename R, typename... Ps, typename... As>
 	R call(seq<S...>, C* c, R (C::*f)(Ps...), std::tuple<As...> arguments) {
 		return (c->*f)(std::get<S>(arguments)...);
-	}
+	}*/
 
 };
 

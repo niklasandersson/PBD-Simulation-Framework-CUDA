@@ -16,7 +16,8 @@ class Fluid : public Cuda_Computable {
 
 public:
   Fluid();
-
+  ~Fluid();
+  
   void compute() override;
 
 protected:

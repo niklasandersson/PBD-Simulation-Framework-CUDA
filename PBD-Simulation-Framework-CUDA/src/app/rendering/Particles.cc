@@ -144,6 +144,9 @@ void Particles::addConsoleCommands() {
   console->add("r", [&](const char* argv) {
     Events::reload();
   });
+  console->add("w", [&](const char* argv) {
+    Config::getInstance().write();
+  });
   console->add("s", [&](const char* argv) {
     Events::addParticles(initialNumberOfParticles_, positons4_, velocities4_, colors4_);
   });
@@ -168,8 +171,8 @@ void Particles::generateParticles() {
   Config& config = Config::getInstance();
 
   const float offset = 30;
-  const float scale = config.getValue<float>("Application.Sim.particlesScale"); // 0.99f
-  const unsigned int width = config.getValue<unsigned int>("Application.Sim.particlesWidth"); // 32
+  const float scale = config.getValue<float>("Application.Simulation.Particles.particlesScale");
+  const unsigned int width = config.getValue<unsigned int>("Application.Simulation.Particles.particlesWidth");
   for (unsigned int i = 0; i<width; i++) {
     for (unsigned int j = 0; j<width; j++) {
       for (unsigned int k = 0; k<width; k++) {

@@ -1,68 +1,117 @@
-Application: 
+Application:
 {
+  authors = ["Joakim Deborg", "Niklas Andersson", "Gabriel Baravdish"];
+  displayApplicationInfo = 1;
+  license = "Do whatever you want to do, but praise us, the authors.";
   name = "PBD-Simulation-Framework CUDA";
   version = 1.0;
-  authors = ["Joakim Deborg", "Niklas Andersson", "Gabriel Baravdish"];
-  license = "Do whatever you want to do, but praise us, the authors.";
-
-  displayApplicationInfo = 1;
-
-  OpenGL: 
+  
+  Cuda:
   {
-    programDefinitions = "src/app/rendering/shader/programs.prog";
-    displayAvailableShaders = 0;
+    threadsPerBlock = 512;
+  }
+  
+  OpenGL:
+  {
     displayAvailablePrograms = 0;
-
-    width = 1024;
-    height = 768;
+    displayAvailableShaders = 0;
+    programDefinitions = "src/app/rendering/shader/programs.prog";
+    
+    Camera:
+    {
+      direction = [0.993631, -0.110379, -0.0226556];
+      position = [8.39222, 8.81863, 33.224];
+    }
+    
+    Resolution:
+    {
+      height = 768;
+      width = 1024;
+    }
   }
-
-  Sim: 
+  
+  Simulation:
   {
-    particlesWidth = 8;
-    particlesScale = 0.99;
-
-    applyForces = 1;
-    findContacts = 1;
-    findNeighbours = 1;
-    computeLambda = 1;
-    computeDeltaPositions = 1;
-    applyDeltaPositions = 1;
-    updatePositions = 1;
-    computeOmegas = 1;
-    computeVorticity = 1;
-    computeViscosity = 1;
-    break = 0;
-
-    gravity = -29.82;
-    forcesVelocityDamping = 1.0;
-    forcesPositionDamping = 0.0f;
-
-    collisionType = 0;
-    stiffness = 0.3;
-    maxCollisionBatches = 16;
-
-    solverIterations = 1;
-    stabilizationIterations = 1;
-
-    maxNeighboursPerParticle = 512;
-    deltaT = 0.01;
-    particleRadius = 0.5;
-    kernelWidth = 2;
-    kernelWidthViscosity =  4.1;
-    kernelWidthDensityMultipel = 6.1;
-    restDensity = 1200;
-    kSCorr = 0.2;
-    nSCorr = 4;
-    qSCorrMultipel = 0.2;
-    cViscosity = 0.0001;
-
-    boundsXMin = 25.0;
-    boundsXMax = 45.0;
-    boundsYMin = 1.5;
-    boundsYMax = 64.0;
-    boundsZMin = 25.0;
-    boundsZMax = 45.0;
+    Active:
+    {
+      applyDeltaPositions = 1;
+      applyForces = 1;
+      computeDeltaPositions = 1;
+      computeLambda = 1;
+      computeOmegas = 1;
+      computeViscosity = 1;
+      computeVorticity = 1;
+      findContacts = 1;
+      findNeighbours = 1;
+      updatePositions = 1;
+    }
+    
+    Collision:
+    {
+      collisionType = 0;
+      kernelWidth = 2;
+      maxCollisionBatches = 16;
+      stiffness = 0.3;
+    }
+    
+    Density:
+    {
+      kSCorr = 0.2;
+      kernelWidthDensityMultipel = 6.1;
+      nSCorr = 4;
+      qSCorrMultipel = 0.2;
+      restDensity = 1200;
+    }
+    
+    Enclosure:
+    {
+      forcesPositionDamping = 0.0f;
+      forcesVelocityDamping = 1.0;
+      
+      X:
+      {
+        max = 45.0;
+        min = 25.0;
+      }
+      
+      Y:
+      {
+        max = 64.0;
+        min = 1.5;
+      }
+      
+      Z:
+      {
+        max = 45.0;
+        min = 25.0;
+      }
+    }
+    
+    Forces:
+    {
+      deltaT = 0.01;
+      gravity = -29.82;
+    }
+    
+    Iterations:
+    {
+      solverIterations = 1;
+      stabilizationIterations = 1;
+    }
+    
+    Particles:
+    {
+      maxNeighboursPerParticle = 512;
+      particleRadius = 0.5;
+      particlesScale = 0.99;
+      particlesWidth = 8;
+    }
+    
+    Viscosity:
+    {
+      cViscosity = 0.0001;
+      kernelWidthViscosity = 4.1;
+    }
   }
-
 }
+

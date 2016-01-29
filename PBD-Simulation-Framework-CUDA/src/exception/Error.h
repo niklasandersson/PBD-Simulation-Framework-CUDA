@@ -11,6 +11,7 @@
                               {  \
                                 std::ostringstream macro_error_os{}; \
                                 macro_error_os << "@ " << file << " " << line << "; " << e; \
+                                std::cout << macro_error_os.str() << std::endl; \
                                 return macro_error_os.str(); \
                               }(__FILE__, __LINE__)
 

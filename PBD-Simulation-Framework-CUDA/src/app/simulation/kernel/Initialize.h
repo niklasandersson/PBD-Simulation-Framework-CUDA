@@ -22,6 +22,7 @@ void initializeFrame() {
   Events::addParticles.execute_calls();
   Events::clearParticles.execute_calls();
   Events::reload.execute_calls();
+  Events::deferedConsoleExecution.execute_calls();
 
   auto glShared = GL_Shared::getInstance();
   const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");
@@ -32,37 +33,42 @@ void initializeFrame() {
   Config& config = Config::getInstance();
   simulationParameters.numberOfParticles = numberOfParticles;
   simulationParameters.textureWidth = textureWidth;
-  simulationParameters.maxNeighboursPerParticle = config.getValue<unsigned int>("Application.Sim.maxNeighboursPerParticle");
+  simulationParameters.maxNeighboursPerParticle = config.getValue<unsigned int>("Application.Simulation.Particles.maxNeighboursPerParticle");
   simulationParameters.maxContactConstraints = simulationParameters.maxNeighboursPerParticle * simulationParameters.numberOfParticles;
   simulationParameters.maxGrid = maxGrid;
   simulationParameters.maxParticles = maxParticles;
   simulationParameters.maxPossibleContactConstraints = simulationParameters.maxNeighboursPerParticle * simulationParameters.maxParticles;
-  simulationParameters.deltaT = config.getValue<float>("Application.Sim.deltaT");
-  simulationParameters.particleRadius = config.getValue<float>("Application.Sim.particleRadius");
+
+  simulationParameters.particleRadius = config.getValue<float>("Application.Simulation.Particles.particleRadius");
   simulationParameters.particleDiameter = 2.0f * simulationParameters.particleRadius;
-  simulationParameters.kernelWidth = config.getValue<unsigned int>("Application.Sim.kernelWidth");
-  simulationParameters.kernelWidthDensity = simulationParameters.particleDiameter * config.getValue<float>("Application.Sim.kernelWidthDensityMultipel");
-  simulationParameters.kernelWidthViscosity = config.getValue<float>("Application.Sim.kernelWidthViscosity");
-	simulationParameters.restDensity = config.getValue<float>("Application.Sim.restDensity");
-	simulationParameters.kSCorr = config.getValue<float>("Application.Sim.kSCorr");
-	simulationParameters.nSCorr = config.getValue<int>("Application.Sim.nSCorr");
-	simulationParameters.qSCorr = simulationParameters.kernelWidthDensity * config.getValue<float>("Application.Sim.qSCorrMultipel");
-  simulationParameters.cViscosity = config.getValue<float>("Application.Sim.cViscosity");
-  simulationParameters.forcesVelocityDamping = config.getValue<float>("Application.Sim.forcesVelocityDamping");
-  simulationParameters.forcesPositionDamping = config.getValue<float>("Application.Sim.forcesPositionDamping");
-  simulationParameters.gravity = config.getValue<float>("Application.Sim.gravity");
-  simulationParameters.stiffness = config.getValue<float>("Application.Sim.stiffness");
+
+  simulationParameters.kernelWidthDensity = simulationParameters.particleDiameter * config.getValue<float>("Application.Simulation.Density.kernelWidthDensityMultipel");
+	simulationParameters.restDensity = config.getValue<float>("Application.Simulation.Density.restDensity");
+	simulationParameters.kSCorr = config.getValue<float>("Application.Simulation.Density.kSCorr");
+	simulationParameters.nSCorr = config.getValue<int>("Application.Simulation.Density.nSCorr");
+	simulationParameters.qSCorr = simulationParameters.kernelWidthDensity * config.getValue<float>("Application.Simulation.Density.qSCorrMultipel");
   
-  simulationParameters.bounds.x.min = config.getValue<float>("Application.Sim.boundsXMin");
-  simulationParameters.bounds.x.max = config.getValue<float>("Application.Sim.boundsXMax");
-  simulationParameters.bounds.y.min = config.getValue<float>("Application.Sim.boundsYMin");
-  simulationParameters.bounds.y.max = config.getValue<float>("Application.Sim.boundsYMax");
-  simulationParameters.bounds.z.min = config.getValue<float>("Application.Sim.boundsZMin");
-  simulationParameters.bounds.z.max = config.getValue<float>("Application.Sim.boundsZMax");
+  simulationParameters.kernelWidthViscosity = config.getValue<float>("Application.Simulation.Viscosity.kernelWidthViscosity");
+  simulationParameters.cViscosity = config.getValue<float>("Application.Simulation.Viscosity.cViscosity");
+
+  simulationParameters.deltaT = config.getValue<float>("Application.Simulation.Forces.deltaT");
+  simulationParameters.gravity = config.getValue<float>("Application.Simulation.Forces.gravity");
+
+  simulationParameters.kernelWidth = config.getValue<unsigned int>("Application.Simulation.Collision.kernelWidth");
+  simulationParameters.stiffness = config.getValue<float>("Application.Simulation.Collision.stiffness");
+  
+  simulationParameters.forcesVelocityDamping = config.getValue<float>("Application.Simulation.Enclosure.forcesVelocityDamping");
+  simulationParameters.forcesPositionDamping = config.getValue<float>("Application.Simulation.Enclosure.forcesPositionDamping");
+  simulationParameters.bounds.x.min = config.getValue<float>("Application.Simulation.Enclosure.X.min");
+  simulationParameters.bounds.x.max = config.getValue<float>("Application.Simulation.Enclosure.X.max");
+  simulationParameters.bounds.y.min = config.getValue<float>("Application.Simulation.Enclosure.Y.min");
+  simulationParameters.bounds.y.max = config.getValue<float>("Application.Simulation.Enclosure.Y.max");
+  simulationParameters.bounds.z.min = config.getValue<float>("Application.Simulation.Enclosure.Z.min");
+  simulationParameters.bounds.z.max = config.getValue<float>("Application.Simulation.Enclosure.Z.max");
 
   CUDA(cudaMemcpyToSymbol(params, &simulationParameters, sizeof(SimulationParameters)));
 
-  unsigned int threadsPerBlock = 128;
+  const unsigned int threadsPerBlock = config.getValue<unsigned int>("Application.Cuda.threadsPerBlock");
   
   cudaCallParameters.blocksForParticleBased = dim3(std::ceil(simulationParameters.numberOfParticles/(float)threadsPerBlock), 1, 1);
   cudaCallParameters.threadsForParticleBased = dim3(threadsPerBlock, 1, 1);
@@ -119,6 +125,16 @@ void cudaInitializeKernels() {
   initializeSortReorder();
   initializeCollision();
 	initializeDensity();
+}
+
+
+// --------------------------------------------------------------------------
+
+
+void cudaCleanupKernels() {
+  cleanupSortReorder();
+  cleanupCollision();
+  cleanupDensity();
 }
 
 

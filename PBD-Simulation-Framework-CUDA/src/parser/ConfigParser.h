@@ -9,6 +9,9 @@
 #include "parser/RecursiveParser.h"
 #include "parser/ConfigObject.h"
 
+#include "log/Log.h"
+#include "utility/String_Utilities.h"
+
 #define DEFAULT_SCOPE "global"
 
 template<typename Parser>
@@ -41,6 +44,10 @@ public:
       throw std::runtime_error{ report_error( "Failed to retrive variable '" << os.str() << "' in config '" << RecursiveParser<Parser>::getFileName() << "' " << e.what() ) };
     }
 
+    temp = Replace_occurences(temp, "\"", "");
+    temp = Replace_occurences(temp, "[", "");
+    temp = Replace_occurences(temp, "]", "");
+
     std::istringstream is{temp};
     T rtr = readValue<T>(is);
 
@@ -54,9 +61,86 @@ public:
     return getValueImpl<T>(path);
   }
 
+  std::vector<std::string> getDefinesImpl(const std::vector<std::string>& path) {
+    std::vector<std::string> defines;
+    try {
+      std::shared_ptr<ConfigObject> scope = globalScope_;
+      for(unsigned int i=0; i<path.size(); i++) {
+        scope = scope->getChild(path[i]);
+      }
+      defines = scope->getDefines();
+    } catch(const std::exception& e) {
+      std::ostringstream os{};
+      bool first = true;
+      for(auto& p : path) {
+        if( first ) {
+          first = false;
+        } else {
+          os << " ";
+        }
+        os << p;
+      }
+      throw std::runtime_error{ report_error( "Failed to retrive variable '" << os.str() << "' in config '" << RecursiveParser<Parser>::getFileName() << "' " << e.what() ) };
+    }
+    return defines;
+  }
+
+  template<typename... S>
+  std::vector<std::string> getDefines(S... args) {
+    std::vector<std::string> path;
+    getPath(path, args...);
+    return getDefinesImpl(path);
+  }
+
+  void setValueImpl2(std::string value, std::vector<std::string>& path) {
+    try {
+      std::shared_ptr<ConfigObject> scope = globalScope_;
+      for(unsigned int i=0; i<path.size()-1; i++) {
+        scope = scope->getChild(path[i]);
+      }
+      scope->addDefine(path[path.size()-1], value);
+    } catch(const std::exception& e) {
+      std::ostringstream os{};
+      bool first = true;
+      for(auto& p : path) {
+        if( first ) {
+          first = false;
+        } else {
+          os << " ";
+        }
+        os << p;
+      }
+      throw std::runtime_error{ report_error( "Failed to retrive variable '" << os.str() << "' in config '" << RecursiveParser<Parser>::getFileName() << "' " << e.what() ) };
+    }
+  }
+
+  template<typename T>
+  void setValueImpl(T value, std::vector<std::string>& path) {
+   std::ostringstream os;
+   os << value; 
+   setValueImpl2(os.str(), path);
+  }
+
+  template<>
+  void setValueImpl<std::string>(std::string value, std::vector<std::string>& path) {
+   std::ostringstream os;
+   os << "\"" << value << "\""; 
+   setValueImpl2(os.str(), path);
+  }
+
+  template<typename T, typename... S>
+  void setValue(T value, S... args) {
+    std::vector<std::string> path;
+    getPath(path, args...);
+    setValueImpl(value, path);
+  }
+
   template<unsigned int nArgs, typename T>
   T* getArrayImpl(const std::vector<std::string>& path) {
     std::string str = getValueImpl<std::string>(path);
+    str = Replace_occurences(str, "\"", "");
+    str = Replace_occurences(str, "[", "");
+    str = Replace_occurences(str, "]", "");
     std::istringstream is{str};
     T* array = new T[nArgs];
     unsigned int numberOfParsedArguments = 0;
@@ -93,6 +177,75 @@ public:
     return getArrayImpl<nArgs, T>(path);
   }
 
+
+  void setArrayImpl2(const std::vector<std::string>& path, const std::vector<std::string>& values) {
+    try {
+      std::shared_ptr<ConfigObject> scope = globalScope_;
+      for(unsigned int i=0; i<path.size()-1; i++) {
+        scope = scope->getChild(path[i]);
+      }
+      std::ostringstream os;
+      os << "[";
+      for(unsigned int i=0; i<values.size(); i++) {
+        os << values[i];
+        if( i != values.size()-1 ) {
+          os << ",";
+        }
+      }
+      os << "]";
+      scope->addDefine(path[path.size()-1], os.str());
+    } catch(const std::exception& e) {
+      std::ostringstream os{};
+      bool first = true;
+      for(auto& p : path) {
+        if( first ) {
+          first = false;
+        } else {
+          os << " ";
+        }
+        os << p;
+      }
+      throw std::runtime_error{ report_error( "Failed to retrive variable '" << os.str() << "' in config '" << RecursiveParser<Parser>::getFileName() << "' " << e.what() ) };
+    } 
+  }
+
+  template<typename T>
+  void setArrayImpl(const std::vector<std::string>& path, const std::vector<T> values) {
+    std::vector<std::string> stringValues;
+    for(auto value : values) {
+      std::ostringstream os;
+      os << value;
+      stringValues.push_back(os.str());
+    }
+    setArrayImpl2(path, stringValues);
+  }
+
+  template<>
+  void setArrayImpl<std::string>(const std::vector<std::string>& path, const std::vector<std::string> values) {
+    std::vector<std::string> stringValues;
+    for(auto value : values) {
+      std::ostringstream os;
+      os << "\"" << value << "\"";
+      stringValues.push_back(os.str());
+    }
+    setArrayImpl2(path, stringValues);
+  }
+
+  template<typename T, typename... S>
+  void setArray(const std::vector<T> values, S... args) {
+    std::vector<std::string> path;
+    getPath(path, args...);
+    setArrayImpl(path, values);
+  }
+
+  void write(const std::string filename) {
+    std::ostringstream os;
+    globalScope_->write(os);
+    Log log;
+    log << os.str() << std::endl;
+    log.write(filename);
+  }
+
 protected:
 
   void setup() override {
@@ -115,8 +268,6 @@ protected:
     std::istringstream is{onePreParsedLine};
 
     char c;
-    // TODO: FIX INSTRING AND INARRAY
-
     while( is >> std::noskipws >> c ) {
       if( c == '"' ) {
         if( inString_ ) {
@@ -124,21 +275,22 @@ protected:
         } else {
           inString_ = true;
         }
+        line_ += c;
       } else if( inString_ ) {
         line_ += c;
       } else if( c == ':' ) {
-        // std::cout << "Scope: " << line_ << std::endl;
         std::shared_ptr<ConfigObject> newScope = std::shared_ptr<ConfigObject>(new ConfigObject(line_));
         activeScope_->addChild(newScope);
         scopes_.push_back(newScope);
         line_ = "";
       } else if( c == '[' ) {
         inArray_ = true;
-        // line_ = "";
+        line_ += c;
       } else if( c == ']' ) {
         inArray_ = false;
-        
-        // line_ = "";
+        line_ += c;
+      } else if( inArray_ ) {
+        line_ += c;
       } else if( c == '{' ) {
         activeScope_ = scopes_.back();
         line_ = "";
@@ -149,7 +301,6 @@ protected:
       } else if( c == ';' ) {
         std::string variable = "";
         std::string value = "";
-        char equal;
         std::istringstream is2{line_};
         std::getline(is2, variable, '=');
         std::getline(is2, value, ';');
