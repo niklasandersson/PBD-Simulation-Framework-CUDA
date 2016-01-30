@@ -19,6 +19,7 @@ struct Events {
   static Local_Defer_Call_Event<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)> addParticles;
   static Local_Defer_Call_Event<void()> clearParticles;
   static Local_Defer_Call_Event<void()> reload;
+  static Local_Defer_Call_Event<void(const std::string file)> load;
 
   static Direct_Call_Event<void()> stopEngine;
 };

@@ -76,7 +76,8 @@ struct Communication {
   : addParticle_(Delegate<void(glm::vec3 pos, glm::vec3 dir)>::from<Communication, &Communication::addParticleCallback>(this)), 
     addParticles_(Delegate<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)>::from<Communication, &Communication::addParticlesCallback>(this)),
     clearParticles_(Delegate<void()>::from<Communication, &Communication::clearParticlesCallback>(this)), 
-    reload_(Delegate<void()>::from<Communication, &Communication::reloadCallback>(this))
+    reload_(Delegate<void()>::from<Communication, &Communication::reloadCallback>(this)),
+    load_(Delegate<void(const std::string file)>::from<Communication, &Communication::loadCallback>(this))
   {}
 
   void initialize() {
@@ -84,6 +85,7 @@ struct Communication {
     Events::addParticles.subscribe(addParticles_);
     Events::clearParticles.subscribe(clearParticles_);
     Events::reload.subscribe(reload_);
+    Events::load.subscribe(load_);
 
     auto console = Console::getInstance();
      
@@ -108,8 +110,13 @@ struct Communication {
     console->add("enclosureX", this, &Communication::setEnclosureX);
     console->add("enclosureY", this, &Communication::setEnclosureY);
     console->add("enclosureZ", this, &Communication::setEnclosureZ);
-    
+    console->add("l", this, &Communication::loadCallback);
+
     Config& config = Config::getInstance();
+
+    console->add("at", [&](const char* argv) {
+      std::cout << "Currently at config file: " << config.at() << std::endl;
+    });
 
     console->add("help", [&](const char* argv) {
       std::istringstream is{argv};
@@ -153,8 +160,17 @@ struct Communication {
           std::cout << "Enter 'r' to reload the config file." << std::endl;  
         
         } else if( command == "w" ) {
-          std::cout << "Enter 'w' to write the current configuration to the config file. Be careful, this command is only recommended for advanced users." << std::endl;  
-        
+          std::cout << "Enter 'w <optional file path>' to write the current configuration to disk." << std::endl;
+          std::cout << std::endl;
+          std::cout << "<optional file path> is of type string" << std::endl;
+          std::cout << std::endl;
+          std::cout << "Example: 'w config2.txt'" << std::endl;
+          std::cout << std::endl;
+          std::cout << "Without an <optional file path> the config will be written to the one currently loaded." << std::endl;
+          std::cout << std::endl;
+          std::cout << "Be careful, this command is only recommended for advanced users." << std::endl;  
+          std::cout << std::endl;
+
         } else if( command == "s" ) {
           std::cout << "Enter 's' to spawn a new box of particles." << std::endl;  
         
@@ -375,6 +391,17 @@ struct Communication {
           std::cout << "Current enclosureZ max: " << config.getValue<float>("Application.Simulation.Enclosure.Z.max") << std::endl;
           std::cout << std::endl;
 
+        } else if( command == "l" ) {
+          std::cout << "Enter 'l <config file>' to load a different config file." << std::endl;
+          std::cout << std::endl;
+          std::cout << "<config file> is of type string" << std::endl;
+          std::cout << std::endl;
+          std::cout << "Example: 'l config2.txt'" << std::endl;
+          std::cout << std::endl;
+
+        } else if( command == "at" ) {
+          std::cout << "Enter 'at' to see the currently loaded config file." << std::endl;
+        
         } else {
           std::cout << "The command '" << command << "' is not recognized." << std::endl;
           std::cout << "Enter 'ls' to see the available commands." << std::endl;
@@ -561,7 +588,6 @@ struct Communication {
     
     addParticle<<<1, 1>>>(pos, dir);
     glShared.set_unsigned_int_value("numberOfParticles", *numberOfParticles + 1);
-    
   }
 
   void addParticlesCallback(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col) {
@@ -593,11 +619,17 @@ struct Communication {
     Config& config = Config::getInstance();
     config.reload();
   }
-
+  
+  void loadCallback(const std::string file) {
+    Config& config = Config::getInstance();
+    config.load(file);
+  }
+  
   Delegate<void(glm::vec3 pos, glm::vec3 dir)> addParticle_;
   Delegate<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)> addParticles_;
   Delegate<void()> clearParticles_;
   Delegate<void()> reload_;
+  Delegate<void(const std::string file)> load_;
 
 };
 

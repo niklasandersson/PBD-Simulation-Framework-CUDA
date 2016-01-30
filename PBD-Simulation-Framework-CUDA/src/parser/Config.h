@@ -18,8 +18,8 @@
 class Config {
 
 public:
-  static Config& getInstance() {
-    static Config instance;
+  static Config& getInstance(const std::string file = "config.txt") {
+    static Config instance(file);
     return instance;
   }
 
@@ -80,19 +80,31 @@ public:
     parser_.setArray<T>(values, arg, args...);
   }
 
+  void load(const std::string file) {
+    pathAndName_ = file;
+    parser_.parseFile(pathAndName_);
+  }
+
   void reload() {
     parser_.parseFile(pathAndName_);
   }
 
-  void write() {
-    parser_.write(pathAndName_);
+  void write(const std::string file = "NOFILE") {
+    if( file == "NOFILE" ) {
+      parser_.write(pathAndName_);
+    } else {
+      parser_.write(file);
+    }
+  }
+
+  std::string at() {
+    return pathAndName_;
   }
 
 protected:
 
 private:
-  Config() {
-    pathAndName_ = "config.txt";
+  Config(const std::string file) : pathAndName_(file) {
     parser_.addDefine("true", "1");
     parser_.addDefine("false", "0");
     parser_.parseFile(pathAndName_);

@@ -8,5 +8,6 @@ Local_Defer_Call_Event<void(glm::vec3 pos, glm::vec3 dir)> Events::addParticle;
 Local_Defer_Call_Event<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)> Events::addParticles;
 Local_Defer_Call_Event<void()> Events::clearParticles;
 Local_Defer_Call_Event<void()> Events::reload;
+Local_Defer_Call_Event<void(const std::string file)> Events::load;
 
 Direct_Call_Event<void()> Events::stopEngine;

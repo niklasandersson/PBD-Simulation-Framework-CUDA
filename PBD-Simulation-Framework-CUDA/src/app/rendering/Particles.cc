@@ -145,7 +145,13 @@ void Particles::addConsoleCommands() {
     Events::reload();
   });
   console->add("w", [&](const char* argv) {
-    Config::getInstance().write();
+    std::istringstream is{argv};
+    std::string file;
+    if( is >> file ) {
+      Config::getInstance().write(file);
+    } else {
+      Config::getInstance().write();
+    }
   });
   console->add("s", [&](const char* argv) {
     Events::addParticles(initialNumberOfParticles_, positons4_, velocities4_, colors4_);
