@@ -5,11 +5,12 @@
 #include "Engine.h"
 
 
+Config& getConfig(int argc, const char* argv[]);
 void printApplicationInfo(); 
 
 
 int main(int argc, const char* argv[]) {
-  Config& config = Config::getInstance();
+  Config& config = getConfig(argc, argv);
 
   if( config.getValue<bool>("Application.displayApplicationInfo") ) {
     printApplicationInfo();
@@ -18,6 +19,18 @@ int main(int argc, const char* argv[]) {
   Engine engine;
 
   std::exit(EXIT_SUCCESS);
+}
+
+
+Config& getConfig(int argc, const char* argv[]) {
+  try {
+    if( argc == 2 ) {
+      return Config::getInstance(argv[1]);
+    }
+  } catch( ... ) {
+    return Config::getInstance();
+  }
+  return Config::getInstance();
 }
 
 
