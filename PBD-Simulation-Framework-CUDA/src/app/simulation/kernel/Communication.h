@@ -67,8 +67,7 @@ struct Communication {
   : addParticle_(Delegate<void(glm::vec3 pos, glm::vec3 dir)>::from<Communication, &Communication::addParticleCallback>(this)), 
     addParticles_(Delegate<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)>::from<Communication, &Communication::addParticlesCallback>(this)),
     clearParticles_(Delegate<void()>::from<Communication, &Communication::clearParticlesCallback>(this)), 
-    reload_(Delegate<void()>::from<Communication, &Communication::reloadCallback>(this)),
-    deferedConsoleExecution_(Delegate<void(const std::string command)>::from<Communication, &Communication::deferedConsoleExecutionCallback>(this)) 
+    reload_(Delegate<void()>::from<Communication, &Communication::reloadCallback>(this))
   {}
 
   void initialize() {
@@ -76,7 +75,6 @@ struct Communication {
     Events::addParticles.subscribe(addParticles_);
     Events::clearParticles.subscribe(clearParticles_);
     Events::reload.subscribe(reload_);
-    Events::deferedConsoleExecution.subscribe(deferedConsoleExecution_);
 
     auto console = Console::getInstance();
      
@@ -579,15 +577,10 @@ struct Communication {
     config.reload();
   }
 
-  void deferedConsoleExecutionCallback(const std::string command) {  
-    Console::getInstance()->execute(command.c_str());
-  }
-
   Delegate<void(glm::vec3 pos, glm::vec3 dir)> addParticle_;
   Delegate<void(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col)> addParticles_;
   Delegate<void()> clearParticles_;
   Delegate<void()> reload_;
-  Delegate<void(const std::string command)> deferedConsoleExecution_;
 
 };
 

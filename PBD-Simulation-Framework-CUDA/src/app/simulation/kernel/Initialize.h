@@ -22,7 +22,6 @@ void initializeFrame() {
   Events::addParticles.execute_calls();
   Events::clearParticles.execute_calls();
   Events::reload.execute_calls();
-  Events::deferedConsoleExecution.execute_calls();
 
   auto glShared = GL_Shared::getInstance();
   const unsigned int numberOfParticles = *glShared.get_unsigned_int_value("numberOfParticles");

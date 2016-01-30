@@ -72,7 +72,7 @@ Application:
       {
         max = 45.0;
         min = 25.0;
-      } 
+      }
       
       Y:
       {
