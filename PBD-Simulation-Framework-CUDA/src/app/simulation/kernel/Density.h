@@ -9,7 +9,7 @@
 
 
 __device__ float poly6Viscosity(float4 pi, float4 pj) {
-	float kernelWidth = params.kernelWidthViscosity;
+	float kernelWidth = params.kernelWidthPoly;
 	pi.w = 0.0f;
 	pj.w = 0.0f;
 	float distance = length(make_float3(pi - pj));
@@ -23,7 +23,7 @@ __device__ float poly6Viscosity(float4 pi, float4 pj) {
 
 
 __device__ float4 spiky(float4 pi, float4 pj) {
-	const float kernelWidth = (float) params.kernelWidthDensity;
+	const float kernelWidth = params.kernelWidthSpiky;
 	float4 r = pi - pj;
   r.w = 0.0f;
   const float distance = length(make_float3(r));

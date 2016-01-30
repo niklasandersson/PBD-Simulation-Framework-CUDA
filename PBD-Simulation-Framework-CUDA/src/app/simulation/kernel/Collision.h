@@ -94,7 +94,7 @@ __global__ void findNeighbours(unsigned int* neighbours,
   const unsigned int maxNeighboursPerParticle = params.maxNeighboursPerParticle;
   const unsigned int numberOfParticles = params.numberOfParticles;
   const unsigned int maxGrid = params.maxGrid;
-  const unsigned int kernelWidth = params.kernelWidth;
+  const unsigned int kernelWidth = params.kernelWidthNeighbours;
   const float particleDiameter = params.particleDiameter;
 
   neighbours += maxNeighboursPerParticle * index;

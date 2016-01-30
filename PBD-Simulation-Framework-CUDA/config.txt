@@ -49,7 +49,7 @@ Application:
     Collision:
     {
       collisionType = 0;
-      kernelWidth = 2;
+      kernelWidthNeighbours = 2;
       maxCollisionBatches = 16;
       stiffness = 0.3;
     }
@@ -57,22 +57,22 @@ Application:
     Density:
     {
       kSCorr = 0.2;
-      kernelWidthDensityMultipel = 6.1;
+      kernelWidthSpiky = 6.1;
       nSCorr = 4;
-      qSCorrMultipel = 0.2;
+      qSCorr = 0.2;
       restDensity = 1200;
     }
     
     Enclosure:
     {
-      forcesPositionDamping = 0.0f;
-      forcesVelocityDamping = 1.0;
+      enclosurePositionDamping = 0.0f;
+      enclosureVelocityDamping = 1.0;
       
       X:
       {
         max = 45.0;
         min = 25.0;
-      }
+      } 
       
       Y:
       {
@@ -110,7 +110,7 @@ Application:
     Viscosity:
     {
       cViscosity = 0.0001;
-      kernelWidthViscosity = 4.1;
+      kernelWidthPoly = 4.1;
     }
   }
 }

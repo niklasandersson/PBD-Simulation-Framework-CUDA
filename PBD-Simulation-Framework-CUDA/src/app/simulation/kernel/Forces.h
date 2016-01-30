@@ -20,8 +20,8 @@ __device__ __forceinline__ void confineToBox(float4& position,
                                              float4& predictedPosition, 
                                              float4& velocity,
                                              bool& updatePosition) {
-  const float velocityDamping = params.forcesVelocityDamping;
-  const float positionDamping = params.forcesPositionDamping;
+  const float velocityDamping = params.enclosureVelocityDamping;
+  const float positionDamping = params.enclosurePositionDamping;
 
 	if( predictedPosition.x < params.bounds.x.min ) {
 		velocity.x = velocityDamping * velocity.x;

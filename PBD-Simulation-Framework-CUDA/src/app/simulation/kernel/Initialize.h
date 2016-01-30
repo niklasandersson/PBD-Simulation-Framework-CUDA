@@ -42,23 +42,23 @@ void initializeFrame() {
   simulationParameters.particleRadius = config.getValue<float>("Application.Simulation.Particles.particleRadius");
   simulationParameters.particleDiameter = 2.0f * simulationParameters.particleRadius;
 
-  simulationParameters.kernelWidthDensity = simulationParameters.particleDiameter * config.getValue<float>("Application.Simulation.Density.kernelWidthDensityMultipel");
+  simulationParameters.kernelWidthSpiky = simulationParameters.particleDiameter * config.getValue<float>("Application.Simulation.Density.kernelWidthSpiky");
 	simulationParameters.restDensity = config.getValue<float>("Application.Simulation.Density.restDensity");
 	simulationParameters.kSCorr = config.getValue<float>("Application.Simulation.Density.kSCorr");
 	simulationParameters.nSCorr = config.getValue<int>("Application.Simulation.Density.nSCorr");
-	simulationParameters.qSCorr = simulationParameters.kernelWidthDensity * config.getValue<float>("Application.Simulation.Density.qSCorrMultipel");
+	simulationParameters.qSCorr = simulationParameters.kernelWidthSpiky * config.getValue<float>("Application.Simulation.Density.qSCorr");
   
-  simulationParameters.kernelWidthViscosity = config.getValue<float>("Application.Simulation.Viscosity.kernelWidthViscosity");
+  simulationParameters.kernelWidthPoly = config.getValue<float>("Application.Simulation.Viscosity.kernelWidthPoly");
   simulationParameters.cViscosity = config.getValue<float>("Application.Simulation.Viscosity.cViscosity");
 
   simulationParameters.deltaT = config.getValue<float>("Application.Simulation.Forces.deltaT");
   simulationParameters.gravity = config.getValue<float>("Application.Simulation.Forces.gravity");
 
-  simulationParameters.kernelWidth = config.getValue<unsigned int>("Application.Simulation.Collision.kernelWidth");
+  simulationParameters.kernelWidthNeighbours = config.getValue<unsigned int>("Application.Simulation.Collision.kernelWidthNeighbours");
   simulationParameters.stiffness = config.getValue<float>("Application.Simulation.Collision.stiffness");
   
-  simulationParameters.forcesVelocityDamping = config.getValue<float>("Application.Simulation.Enclosure.forcesVelocityDamping");
-  simulationParameters.forcesPositionDamping = config.getValue<float>("Application.Simulation.Enclosure.forcesPositionDamping");
+  simulationParameters.enclosureVelocityDamping = config.getValue<float>("Application.Simulation.Enclosure.enclosureVelocityDamping");
+  simulationParameters.enclosurePositionDamping = config.getValue<float>("Application.Simulation.Enclosure.enclosurePositionDamping");
   simulationParameters.bounds.x.min = config.getValue<float>("Application.Simulation.Enclosure.X.min");
   simulationParameters.bounds.x.max = config.getValue<float>("Application.Simulation.Enclosure.X.max");
   simulationParameters.bounds.y.min = config.getValue<float>("Application.Simulation.Enclosure.Y.min");
