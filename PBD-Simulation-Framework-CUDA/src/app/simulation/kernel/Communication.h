@@ -555,13 +555,21 @@ struct Communication {
   void addParticleCallback(glm::vec3 pos, glm::vec3 dir) {
     auto glShared = GL_Shared::getInstance();
     auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+    auto maxParticles = glShared.get_unsigned_int_value("maxParticles");
+
+    if( (*numberOfParticles + 1) > *maxParticles ) return;
+    
     addParticle<<<1, 1>>>(pos, dir);
     glShared.set_unsigned_int_value("numberOfParticles", *numberOfParticles + 1);
+    
   }
 
   void addParticlesCallback(const unsigned int numberOfParticlesToAdd, std::vector<glm::vec4>& pos, std::vector<glm::vec4>& vel, std::vector<glm::vec4>& col) {
     auto glShared = GL_Shared::getInstance();
     auto numberOfParticles = glShared.get_unsigned_int_value("numberOfParticles");
+    auto maxParticles = glShared.get_unsigned_int_value("maxParticles");
+
+    if( (*numberOfParticles + numberOfParticlesToAdd) > *maxParticles ) return;
     
     CUDA(cudaMemcpy(&deviceBuffers.d_positionsCopy[0], &pos[0][0], numberOfParticlesToAdd * sizeof(float4), cudaMemcpyHostToDevice));
     CUDA(cudaMemcpy(&deviceBuffers.d_velocitiesCopy[0], &vel[0][0], numberOfParticlesToAdd * sizeof(float4), cudaMemcpyHostToDevice));
