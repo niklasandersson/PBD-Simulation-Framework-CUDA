@@ -201,7 +201,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="src\opengl\Texture.cc" />
     <ClCompile Include="src\opengl\TextureXD.cc" />
     <ClCompile Include="src\parser\Parser.cc" />
-    <ClCompile Include="src\parser\RecursiveParser.cc" />
     <ClCompile Include="src\regex\Regular_Expression.cc" />
     <ClCompile Include="src\utility\String_Utilities.cc" />
   </ItemGroup>
