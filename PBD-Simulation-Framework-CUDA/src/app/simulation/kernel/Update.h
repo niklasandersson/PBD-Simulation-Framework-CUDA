@@ -7,6 +7,7 @@
 
 // --------------------------------------------------------------------------
 
+
 __global__ void updatePositions() {
   const unsigned int numberOfParticles = params.numberOfParticles;
   const unsigned int textureWidth = params.textureWidth;
@@ -30,9 +31,11 @@ __global__ void updatePositions() {
   }
 }
 
+
 void cudaCallUpdatePositions() {
   updatePositions<<<FOR_EACH_PARTICLE>>>();
 }
+
 
 // --------------------------------------------------------------------------
 

@@ -9,6 +9,7 @@
 
 // --------------------------------------------------------------------------
 
+
 __global__ void initializeCellIds(unsigned int* cellIdsIn) {
   const unsigned int numberOfParticles = params.numberOfParticles;
   const unsigned int textureWidth = params.textureWidth;
@@ -26,11 +27,14 @@ __global__ void initializeCellIds(unsigned int* cellIdsIn) {
   }
 }
 
+
 void cudaCallInitializeCellIds() {
   initializeCellIds<<<FOR_EACH_PARTICLE>>>(d_cellIds_in);
 }
 
+
 // --------------------------------------------------------------------------
+
 
 void sortIds() {
   cub::DeviceRadixSort::SortPairs(d_sortTempStorage, 
@@ -42,7 +46,9 @@ void sortIds() {
                                   simulationParameters.numberOfParticles);
 }
 
+
 // --------------------------------------------------------------------------
+
 
 __global__ void copy() {
   const unsigned int numberOfParticles = params.numberOfParticles;
@@ -68,11 +74,14 @@ __global__ void copy() {
   } 
 }
 
+
 void cudaCallCopy() {
   copy<<<FOR_EACH_PARTICLE>>>();
 }
 
+
 // --------------------------------------------------------------------------
+
 
 __global__ void reorder(unsigned int* cellIdsOut,
                         unsigned int* particleIdsOut) {
@@ -105,18 +114,23 @@ __global__ void reorder(unsigned int* cellIdsOut,
   } 
 }
 
+
 void cudaCallReorder() {
   reorder<<<FOR_EACH_PARTICLE>>>(d_cellIds_out, d_particleIds_out);
 }
 
+
 // --------------------------------------------------------------------------
+
 
 void reorderStorage() {
   cudaCallCopy();
   cudaCallReorder();
 }
 
+
 // --------------------------------------------------------------------------
+
 
 __global__ void resetCellInfo(unsigned int* cellStarts,
                               unsigned int* cellEndings) {
@@ -134,11 +148,14 @@ __global__ void resetCellInfo(unsigned int* cellStarts,
   }
 }
 
+
 void cudaCallResetCellInfo() {
   resetCellInfo<<<FOR_EACH_CELL>>>(d_cellStarts, d_cellEndings);
 }
 
+
 // --------------------------------------------------------------------------
+
 
 __global__ void computeCellInfo(unsigned int* cellStarts,
                                 unsigned int* cellEndings,
@@ -170,11 +187,14 @@ __global__ void computeCellInfo(unsigned int* cellStarts,
   }
 }
 
+
 void cudaCallComputeCellInfo() {
   computeCellInfo<<<FOR_EACH_PARTICLE>>>(d_cellStarts, d_cellEndings, d_cellIds_out, d_particleIds_out);
 }
 
+
 // --------------------------------------------------------------------------
+
 
 __global__ void initializeParticleIds(unsigned int* particleIdsIn) {
   const unsigned int maxParticles = params.maxParticles;
@@ -189,11 +209,14 @@ __global__ void initializeParticleIds(unsigned int* particleIdsIn) {
   }
 }
 
+
 void cudaCallInitializeParticleIds() {
   initializeParticleIds<<<FOR_ALL_POSSIBLE_PARTICLES>>>(d_particleIds_in);
 }
 
+
 // --------------------------------------------------------------------------
+
 
 void initializeSort() {
   CUDA(cudaMalloc((void**)&d_cellIds_in, simulationParameters.maxParticles * sizeof(unsigned int)));
@@ -214,7 +237,9 @@ void initializeSort() {
   CUDA(cudaMalloc(&d_sortTempStorage, sortTempStorageBytes));
 }
 
+
 // --------------------------------------------------------------------------
+
 
 void cleanupSort() {
   CUDA(cudaFree(d_cellIds_in));
@@ -224,7 +249,9 @@ void cleanupSort() {
   CUDA(cudaFree(d_sortTempStorage));
 }
 
+
 // --------------------------------------------------------------------------
+
 
 void initializeCellInfo() {
   CUDA(cudaMalloc((void**)&d_cellStarts, simulationParameters.maxGrid * sizeof(unsigned int)));
@@ -232,26 +259,35 @@ void initializeCellInfo() {
   cudaCallResetCellInfo();
 }
 
+
 // --------------------------------------------------------------------------
+
 
 void cleanupCellInfo() {
   CUDA(cudaFree(d_cellStarts));
   CUDA(cudaFree(d_cellEndings));
 }
 
+
 // --------------------------------------------------------------------------
+
 
 void initializeSortReorder() {
   initializeSort();
   initializeCellInfo();
 }
 
+
 // --------------------------------------------------------------------------
+
 
 void cleanupSortReorder() {
   cleanupSort();
   cleanupCellInfo();
 }
  
+
+// --------------------------------------------------------------------------
+
 
 #endif // SORTREORDER_H

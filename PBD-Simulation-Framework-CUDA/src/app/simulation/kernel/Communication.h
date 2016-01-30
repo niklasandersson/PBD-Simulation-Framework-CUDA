@@ -16,6 +16,9 @@
 #include "Globals.h"
 
 
+// --------------------------------------------------------------------------
+
+
 __global__ void addParticle(glm::vec3 pos, glm::vec3 dir) {
   const unsigned int index = params.numberOfParticles;
   const unsigned int maxParticles = params.maxParticles;
@@ -33,6 +36,9 @@ __global__ void addParticle(glm::vec3 pos, glm::vec3 dir) {
     surf2Dwrite(color, colors4, x, y);
   }
 }
+
+
+// --------------------------------------------------------------------------
 
 
 __global__ void addParticles(const unsigned int numberOfParticlesToAdd,
@@ -59,6 +65,9 @@ __global__ void addParticles(const unsigned int numberOfParticlesToAdd,
     }
   }
 }
+
+
+// --------------------------------------------------------------------------
 
 
 struct Communication {
@@ -583,6 +592,9 @@ struct Communication {
   Delegate<void()> reload_;
 
 };
+
+
+// --------------------------------------------------------------------------
 
 
 #endif // COMMUNICATION_H

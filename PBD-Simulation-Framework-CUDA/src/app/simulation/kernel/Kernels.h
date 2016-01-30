@@ -12,8 +12,13 @@
 #include "opengl/GL_Shared.h"
 
 
-void initializeFrame();
+// --------------------------------------------------------------------------
+
+
 void cudaInitializeKernels();
+void cudaCleanupKernels();
+
+void initializeFrame();
 
 void cudaCallApplyForces();
 void cudaCallInitializeCellIds();
@@ -21,7 +26,6 @@ void sortIds();
 void reorderStorage();
 void cudaCallResetCellInfo();
 void cudaCallComputeCellInfo();
-void collisionHandling();
 void cudaCallUpdatePositions();
 void cudaCallComputeLambda();
 void cudaCallComputeDeltaPositions();
@@ -37,7 +41,9 @@ void cudaCallResetContactConstraintSuccess();
 void cudaCallResetContactConstraintParticleUsed();
 void cudaCallSetupCollisionConstraintBatches();
 void cudaCallSetupCollisionConstraintBatchesCheck();
-void cudaCleanupKernels();
+
+
+// --------------------------------------------------------------------------
 
 
 #endif // KERNELS_H 

@@ -78,7 +78,6 @@ __constant__ SimulationParameters params;
 SimulationParameters simulationParameters;
 
 struct DeviceBuffers {
-  // Shared buffers
   float* d_densities;
   float4* d_positions;
   float4* d_predictedPositions;

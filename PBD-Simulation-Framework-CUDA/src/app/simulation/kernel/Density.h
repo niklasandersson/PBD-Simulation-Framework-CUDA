@@ -8,6 +8,9 @@
 #include "Globals.h"
 
 
+// --------------------------------------------------------------------------
+
+
 __device__ float poly6Viscosity(float4 pi, float4 pj) {
 	float kernelWidth = params.kernelWidthPoly;
 	pi.w = 0.0f;
@@ -22,10 +25,12 @@ __device__ float poly6Viscosity(float4 pi, float4 pj) {
 }
 
 
+// --------------------------------------------------------------------------
+
+
 __device__ float4 spiky(float4 pi, float4 pj) {
 	const float kernelWidth = params.kernelWidthSpiky;
 	float4 r = pi - pj;
-  r.w = 0.0f;
   const float distance = length(make_float3(r));
   if( distance > 0.0001f && ((kernelWidth - distance) > 0.0001f)) {
 	  float numeratorTerm = pow(kernelWidth - distance, 2); 
@@ -93,6 +98,9 @@ void cudaCallComputeLambda() {
 }
 
 
+// --------------------------------------------------------------------------
+
+
 __global__ void computeDeltaPositions(unsigned int* neighbours,
 	                                    unsigned int* neighbourCounters,
 	                                    float* lambdas,
@@ -142,6 +150,9 @@ void cudaCallComputeDeltaPositions() {
 }
 
 
+// --------------------------------------------------------------------------
+
+
 __global__ void applyDeltaPositions(float4* deltas) {
 	GET_INDEX_X_Y
 	const unsigned int numberOfParticles = params.numberOfParticles;
@@ -160,6 +171,9 @@ __global__ void applyDeltaPositions(float4* deltas) {
 void cudaCallApplyDeltaPositions() {
 	applyDeltaPositions<<<FOR_EACH_PARTICLE>>>(d_deltaPositions);
 }
+
+
+// --------------------------------------------------------------------------
 
 
 __global__ void computeVorticity(unsigned int* neighbors,
@@ -212,6 +226,9 @@ void cudaCallComputeVorticity() {
 }
 
 
+// --------------------------------------------------------------------------
+
+
 __global__ void computeOmega(unsigned int* neighbors,
 	                           unsigned int* numberOfNeighbors,
 	                           float3* omegas) {
@@ -257,6 +274,9 @@ void cudaCallComputeOmegas() {
 }
 
 
+// --------------------------------------------------------------------------
+
+
 __global__ void computeViscosity(unsigned int* neighbors,
 	                               unsigned int* numberOfNeighbors) {
 	GET_INDEX_X_Y
@@ -295,6 +315,9 @@ void cudaComputeViscosity() {
 }
 
 
+// --------------------------------------------------------------------------
+
+
 void initializeDensity() {
 	CUDA(cudaMalloc((void**)&d_lambdas, simulationParameters.maxParticles * sizeof(float)));
 	CUDA(cudaMalloc((void**)&d_deltaPositions, simulationParameters.maxParticles * sizeof(float4)));
@@ -307,12 +330,18 @@ void initializeDensity() {
 }
 
 
+// --------------------------------------------------------------------------
+
+
 void cleanupDensity() {
 	CUDA(cudaFree(d_lambdas));
 	CUDA(cudaFree(d_deltaPositions));
 	CUDA(cudaFree(d_externalForces));
 	CUDA(cudaFree(d_omegas));
 }
+
+
+// --------------------------------------------------------------------------
 
 
 #endif // DENSITY_H
