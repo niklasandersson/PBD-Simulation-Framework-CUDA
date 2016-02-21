@@ -71,6 +71,7 @@ struct SimulationParameters{
   float enclosurePositionDamping;
   float gravity;
   float stiffness;
+	float eVorticity;
 };
 
 __constant__ SimulationParameters params;

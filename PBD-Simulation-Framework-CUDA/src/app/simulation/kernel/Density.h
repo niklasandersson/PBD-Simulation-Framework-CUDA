@@ -184,6 +184,7 @@ __global__ void computeVorticity(unsigned int* neighbors,
   const unsigned int numberOfParticles = params.numberOfParticles;
 	if( index < numberOfParticles ) {
 		const unsigned int maxNumberOfNeighbors = params.maxNeighboursPerParticle;
+		const float eVorticity = params.eVorticity;
 		float4 pi;
 		surf2Dread(&pi, predictedPositions4, x, y);
 		float4 vi;
@@ -213,9 +214,8 @@ __global__ void computeVorticity(unsigned int* neighbors,
 		}
 
 		float3 N = (1.0f / (length(gradient) + EPSILON)) * (gradient + EPSILON);
-		float epsilon = 1.0f;
-		float3 vorticity = epsilon * cross(N, omegas[index]);
-
+		float3 vorticity = eVorticity * cross(N, omegas[index]);
+		
 		externalForces[index] = make_float4(vorticity.x, vorticity.y, vorticity.z, 0.0f);
 	}
 }

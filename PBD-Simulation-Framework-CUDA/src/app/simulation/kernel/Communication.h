@@ -93,6 +93,7 @@ struct Communication {
     console->add("active", this, &Communication::setActive);
     console->add("kernelWidthNeighbours", this, &Communication::setKernelWidthNeighbours);
     console->add("cViscosity", this, &Communication::setCViscosity);
+		console->add("eVorticity", this, &Communication::setEVorticity);
     console->add("restDensity", this, &Communication::setRestDensity);
     console->add("kernelWidthSpiky", this, &Communication::setKernelWidthSpiky);
     console->add("kernelWidthPoly", this, &Communication::setKernelWidthPoly);
@@ -217,7 +218,17 @@ struct Communication {
           std::cout << std::endl;
           std::cout << "Current cViscosity: " << config.getValue<float>("Application.Simulation.Viscosity.cViscosity") << std::endl;
           std::cout << std::endl;
-        
+
+				} else if (command == "eVorticity") {
+					std::cout << "Enter 'eVorticity <e value>' to set the e value for the vorticity computation." << std::endl;
+					std::cout << std::endl;
+					std::cout << "<e value> is of type float, in the range of [-10000.0, 10000.0]" << std::endl;
+					std::cout << std::endl;
+					std::cout << "Example: 'eVorticity 1.0'" << std::endl;
+					std::cout << std::endl;
+					std::cout << "Current eVorticity: " << config.getValue<float>("Application.Simulation.Vorticity.eVorticity") << std::endl;
+					std::cout << std::endl;
+
         } else if( command == "restDensity" ) {
           std::cout << "Enter 'restDensity <density value>' to set the rest density value for the density computation." << std::endl;
           std::cout << std::endl;
@@ -439,6 +450,15 @@ struct Communication {
       std::cout << "Value out of range [0.0, 100.0]." << std::endl;
     }
   }
+
+	void setEVorticity(const float eVorticity) {
+		if (eVorticity >= -10000.0f && eVorticity <= 10000.0f) {
+			Config::getInstance().setValue(eVorticity, "Application.Simulation.Vorticity.eVorticity");
+		}
+		else {
+			std::cout << "Value out of range [-10000.0, 10000.0]." << std::endl;
+		}
+	}
 
   void setRestDensity(const float restDensity) {
     if( restDensity > 0.0f && restDensity <= 100000.0f ) {

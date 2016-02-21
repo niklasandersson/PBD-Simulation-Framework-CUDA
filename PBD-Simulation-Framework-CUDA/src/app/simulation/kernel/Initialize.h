@@ -48,6 +48,8 @@ void initializeFrame() {
 	simulationParameters.nSCorr = config.getValue<int>("Application.Simulation.Density.nSCorr");
 	simulationParameters.qSCorr = simulationParameters.kernelWidthSpiky * config.getValue<float>("Application.Simulation.Density.qSCorr");
   
+	simulationParameters.eVorticity= config.getValue<float>("Application.Simulation.Vorticity.eVorticity");
+
   simulationParameters.kernelWidthPoly = config.getValue<float>("Application.Simulation.Viscosity.kernelWidthPoly");
   simulationParameters.cViscosity = config.getValue<float>("Application.Simulation.Viscosity.cViscosity");
 
