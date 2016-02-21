@@ -19,14 +19,19 @@ Application:
     
     Camera:
     {
-      direction = [0.993631, -0.110379, -0.0226556];
-      position = [8.39222, 8.81863, 33.224];
+      direction = [0.879508,-0.0545773,0.472744];
+      position = [-43.1217,25.3152,-10.4781];
     }
     
     Resolution:
     {
       height = 768;
       width = 1024;
+    }
+    
+    Textures:
+    {
+      width = 256;
     }
   }
   
@@ -70,20 +75,20 @@ Application:
       
       X:
       {
-        max = 45.0;
-        min = 25.0;
+        max = 62.5;
+        min = 1.5;
       }
       
       Y:
       {
-        max = 64.0;
+        max = 62.5;
         min = 1.5;
       }
       
       Z:
       {
-        max = 45.0;
-        min = 25.0;
+        max = 62.5;
+        min = 1.5;
       }
     }
     
@@ -101,10 +106,10 @@ Application:
     
     Particles:
     {
+      boxScale = 1.2;
+      boxWidth = 24;
       maxNeighboursPerParticle = 512;
       particleRadius = 0.5;
-      particlesScale = 0.99;
-      particlesWidth = 8;
     }
     
     Viscosity:

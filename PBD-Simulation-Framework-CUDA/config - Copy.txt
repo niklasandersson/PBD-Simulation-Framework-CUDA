@@ -28,6 +28,11 @@ Application:
       height = 768;
       width = 1024;
     }
+    
+    Textures:
+    {
+      width = 512;
+    }
   }
   
   Simulation:
@@ -59,14 +64,14 @@ Application:
       kSCorr = 0.2;
       kernelWidthSpiky = 6.1;
       nSCorr = 4;
-      qSCorrMultipel = 0.2;
+      qSCorr = 0.2;
       restDensity = 1200;
     }
     
     Enclosure:
     {
-      forcesPositionDamping = 0.0f;
-      forcesVelocityDamping = 1.0;
+      enclosurePositionDamping = 0.0f;
+      enclosureVelocityDamping = 1.0;
       
       X:
       {
@@ -101,10 +106,10 @@ Application:
     
     Particles:
     {
+      boxScale = 0.99;
+      boxWidth = 8;
       maxNeighboursPerParticle = 512;
       particleRadius = 0.5;
-      particlesScale = 0.99;
-      particlesWidth = 8;
     }
     
     Viscosity:

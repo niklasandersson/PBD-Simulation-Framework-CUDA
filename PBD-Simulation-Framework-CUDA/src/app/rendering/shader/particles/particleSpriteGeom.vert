@@ -10,6 +10,9 @@ layout(location = 2) in vec4 predictedPosition;
 layout(location = 3) in vec4 velocity;
 layout(location = 4) in vec4 color;
 
+uniform int widthi;
+uniform float widthf;
+
 uniform mat4 view_matrix;
 uniform mat4 projection_matrix;
 
@@ -25,11 +28,11 @@ out vec3 L;
 void main()
 {
 
-  const int widthi = 256; 
-  // const int heighti = 512;
+  //const int widthi = 256; 
+  //const float widthf = 255.0f;
 
-  const float one_divided_by_width_minus_onef = 1.0 / 255.0;
-  const float one_divided_by_height_minus_onef = 1.0 / 255.0;
+  float one_divided_by_width_minus_onef = 1.0 / widthf;
+  float one_divided_by_height_minus_onef = 1.0 / widthf;
 
   vec2 uv = vec2( (gl_InstanceID % widthi) * one_divided_by_width_minus_onef, 
                   (gl_InstanceID / widthi) * one_divided_by_height_minus_onef );

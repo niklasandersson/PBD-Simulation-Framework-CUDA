@@ -5,11 +5,14 @@ Particles::Particles()
   : GL_Renderable("program_particles_sprite_geom")
   , clicked_(Delegate<void(const double, const double, const int, const int, const int)>::from<Particles, &Particles::clickCallback>(this))
   , numberOfParticles_(new unsigned int{0})
-  , maxParticles_(new unsigned int{65536})
   , maxGrid_(new unsigned int{128 * 128 * 128})
 {
+  Config& config = Config::getInstance();
+  textureWidth_ = config.getValue<unsigned int>("Application.OpenGL.Textures.width");
+  maxParticles_ = std::shared_ptr<unsigned int>(new unsigned int(textureWidth_ * textureWidth_));
+  
   Events::click.subscribe(clicked_);
-
+  
   generateParticles();
   
   registerSharedVariables();
@@ -17,21 +20,19 @@ Particles::Particles()
   add_vao("particles_vao");
   add_buffer("element_buffer");
 
-  const unsigned int textureWidth = 256;
+  positons4_.resize(textureWidth_ * textureWidth_);
+  colors4_.resize(textureWidth_ * textureWidth_);
+  velocities4_.resize(textureWidth_ * textureWidth_);
 
-  positons4_.resize(textureWidth * textureWidth);
-  colors4_.resize(textureWidth * textureWidth);
-  velocities4_.resize(textureWidth * textureWidth);
+  add_shared_texture2D("positions4", textureWidth_, textureWidth_, &positons4_[0][0]);
+  add_shared_texture2D("predictedPositions4", textureWidth_, textureWidth_, &positons4_[0][0]);
+  add_shared_texture2D("velocities4", textureWidth_, textureWidth_, &velocities4_[0][0]);
+  add_shared_texture2D("colors4", textureWidth_, textureWidth_, &colors4_[0][0]);
 
-  add_shared_texture2D("positions4", textureWidth, textureWidth, &positons4_[0][0]);
-  add_shared_texture2D("predictedPositions4", textureWidth, textureWidth, &positons4_[0][0]);
-  add_shared_texture2D("velocities4", textureWidth, textureWidth, &velocities4_[0][0]);
-  add_shared_texture2D("colors4", textureWidth, textureWidth, &colors4_[0][0]);
-
-  add_shared_texture2D("positions4Copy", textureWidth, textureWidth, &positons4_[0][0]);
-  add_shared_texture2D("predictedPositions4Copy", textureWidth, textureWidth, &positons4_[0][0]);
-  add_shared_texture2D("velocities4Copy", textureWidth, textureWidth, &velocities4_[0][0]);
-  add_shared_texture2D("colors4Copy", textureWidth, textureWidth, &colors4_[0][0]);
+  add_shared_texture2D("positions4Copy", textureWidth_, textureWidth_, &positons4_[0][0]);
+  add_shared_texture2D("predictedPositions4Copy", textureWidth_, textureWidth_, &positons4_[0][0]);
+  add_shared_texture2D("velocities4Copy", textureWidth_, textureWidth_, &velocities4_[0][0]);
+  add_shared_texture2D("colors4Copy", textureWidth_, textureWidth_, &colors4_[0][0]);
 
   add_shared_buffer("d_densities");
   add_shared_buffer("d_positions");
@@ -45,7 +46,6 @@ Particles::Particles()
   add_shared_buffer("d_velocitiesCopy");
   add_shared_buffer("d_colorsCopy");
 
-  generateResources();
 
   add_uniform("view_matrix");
   add_uniform("inverse_view_matrix");
@@ -56,6 +56,11 @@ Particles::Particles()
   add_uniform("camera_position");
   add_uniform("view_direction");
 
+  add_uniform("widthi");
+  add_uniform("widthf");
+
+  generateResources();
+  
   bindVertexArray("particles_vao");
 
   densities_.resize(*maxParticles_);
@@ -177,14 +182,13 @@ void Particles::generateParticles() {
   Config& config = Config::getInstance();
 
   const float offset = 30;
-  const float scale = config.getValue<float>("Application.Simulation.Particles.particlesScale");
-  const unsigned int width = config.getValue<unsigned int>("Application.Simulation.Particles.particlesWidth");
+  const float scale = config.getValue<float>("Application.Simulation.Particles.boxScale");
+  const unsigned int width = config.getValue<unsigned int>("Application.Simulation.Particles.boxWidth");
   for (unsigned int i = 0; i<width; i++) {
     for (unsigned int j = 0; j<width; j++) {
       for (unsigned int k = 0; k<width; k++) {
         positons4_.push_back(glm::vec4{ offset + i*scale, 2 + offset + j*scale, offset + k*scale, 0 });
         velocities4_.push_back(glm::vec4{ 0, 0, 0, 0 });
-        collisionDeltas4_.push_back(glm::vec4{ 0, 0, 0, 0 });
       }
     }
   }
@@ -246,6 +250,11 @@ void Particles::render() {
   glUniformMatrix4fv(get_uniform("projection_matrix"), 1, GL_FALSE, &projection_matrix_[0][0]);
   glUniformMatrix4fv(get_uniform("rotation_matrix"), 1, GL_FALSE, &rotation_matrix[0][0]);
   glUniformMatrix4fv(get_uniform("inverse_rotation_matrix"), 1, GL_FALSE, &inverse_rotation_matrix[0][0]);
+   
+  const int widthi = textureWidth_;
+  const float widthf = widthi - 1;
+  glUniform1i(get_uniform("widthi"), widthi);
+  glUniform1f(get_uniform("widthf"), widthf);
 
   bindVertexArray("particles_vao");
   glDrawElementsInstanced(GL_POINTS, 1, GL_UNSIGNED_SHORT, nullptr, *numberOfParticles_);

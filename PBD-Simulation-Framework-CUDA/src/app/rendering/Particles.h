@@ -8,7 +8,6 @@
 #include "console/Console.h"
 
 #include "parser/Parser.h"
-#include "parser/OBJParser.h"
 #include "parser/Config.h"
 
 #include "event/Events.h"
@@ -44,20 +43,12 @@ private:
 
   glm::vec3 light_direction_{1.0f, -1.0f, 0.0f};
 
-  std::vector<float> vertices_;
-  std::vector<float> normals_;
-  std::vector<unsigned short> indices_;
+  unsigned int textureWidth_;
 
-  std::vector<glm::vec3> positons_;
   std::vector<glm::vec4> positons4_;
   std::vector<glm::vec4> velocities4_;
   std::vector<glm::vec4> colors4_;
-  std::vector<glm::vec4> collisionDeltas4_;
   std::vector<float> densities_;
-
-  std::vector<glm::vec3> colors_;
-
-  OBJParser<Parser> objParser_;
 
 };
 
