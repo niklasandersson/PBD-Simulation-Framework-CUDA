@@ -14,6 +14,12 @@ Particles::Particles()
   Events::click.subscribe(clicked_);
   
   generateParticles();
+
+  if( config.getValue<bool>("Application.Simulation.Particles.Box.spawnInTheBeginning") ) {
+    *numberOfParticles_ = positons4_.size();
+  } else {
+    *numberOfParticles_ = 0;
+  }
   
   registerSharedVariables();
 
@@ -159,6 +165,7 @@ void Particles::addConsoleCommands() {
     }
   });
   console->add("s", [&](const char* argv) {
+    generateParticles();
     Events::addParticles(initialNumberOfParticles_, positons4_, velocities4_, colors4_);
   });
   console->add("c", [&](const char* argv) {
@@ -171,6 +178,7 @@ void Particles::clickCallback(const double position_x, const double position_y, 
   if( button == 0 && action == 1 ) {
     Events::addParticle(camera_position_, view_direction_);
   } else if( button == 1 && action == 1 ) {
+    generateParticles();
     Events::addParticles(initialNumberOfParticles_, positons4_, velocities4_, colors4_);
   } else if( button == 2 && action == 1 ) {
     Events::clearParticles();
@@ -181,12 +189,19 @@ void Particles::clickCallback(const double position_x, const double position_y, 
 void Particles::generateParticles() {
   Config& config = Config::getInstance();
 
+  positons4_.clear();
+  velocities4_.clear();
+  colors4_.clear();
+  densities_.clear();
+
   const float offset = 30;
-  const float scale = config.getValue<float>("Application.Simulation.Particles.boxScale");
-  const unsigned int width = config.getValue<unsigned int>("Application.Simulation.Particles.boxWidth");
+  const float scale = config.getValue<float>("Application.Simulation.Particles.Box.spacing");
+  const unsigned int width = config.getValue<unsigned int>("Application.Simulation.Particles.Box.width");
+  const unsigned int height = config.getValue<unsigned int>("Application.Simulation.Particles.Box.height");
+  const unsigned int depth = config.getValue<unsigned int>("Application.Simulation.Particles.Box.depth");
   for (unsigned int i = 0; i<width; i++) {
-    for (unsigned int j = 0; j<width; j++) {
-      for (unsigned int k = 0; k<width; k++) {
+    for (unsigned int j = 0; j<height; j++) {
+      for (unsigned int k = 0; k<depth; k++) {
         positons4_.push_back(glm::vec4{ offset + i*scale, 2 + offset + j*scale, offset + k*scale, 0 });
         velocities4_.push_back(glm::vec4{ 0, 0, 0, 0 });
       }
@@ -202,8 +217,7 @@ void Particles::generateParticles() {
   for(unsigned int i=0; i<*maxParticles_; i++) {
     densities_.push_back(0.0f);
   }
-
-  *numberOfParticles_ = positons4_.size();
+  
   initialNumberOfParticles_ = positons4_.size();
 }
 

@@ -19,8 +19,8 @@ Application:
     
     Camera:
     {
-      direction = [0.879508,-0.0545773,0.472744];
-      position = [-43.1217,25.3152,-10.4781];
+      direction = [0.49877,-0.108391,0.85993];
+      position = [-9.38781,32.3075,-48.3019];
     }
     
     Resolution:
@@ -106,10 +106,17 @@ Application:
     
     Particles:
     {
-      boxScale = 1.2;
-      boxWidth = 24;
       maxNeighboursPerParticle = 512;
       particleRadius = 0.5;
+      
+      Box:
+      {
+        depth = 24;
+        height = 24;
+        spacing = 1.2;
+        spawnInTheBeginning = 0;
+        width = 24;
+      }
     }
     
     Viscosity:

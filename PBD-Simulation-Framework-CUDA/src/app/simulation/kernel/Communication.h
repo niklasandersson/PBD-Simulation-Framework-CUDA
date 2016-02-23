@@ -111,6 +111,7 @@ struct Communication {
     console->add("enclosureX", this, &Communication::setEnclosureX);
     console->add("enclosureY", this, &Communication::setEnclosureY);
     console->add("enclosureZ", this, &Communication::setEnclosureZ);
+    console->add("box", this, &Communication::setBox);
     console->add("l", this, &Communication::loadCallback);
 
     Config& config = Config::getInstance();
@@ -402,6 +403,19 @@ struct Communication {
           std::cout << "Current enclosureZ max: " << config.getValue<float>("Application.Simulation.Enclosure.Z.max") << std::endl;
           std::cout << std::endl;
 
+        } else if( command == "box" ) {
+          std::cout << "Enter 'box <width> <height> <depth>' to set size of the box." << std::endl;
+          std::cout << std::endl;
+          std::cout << "<width>, <height> and <depth> is of type unsigned int and each should be larger than 0." << std::endl;
+          std::cout << std::endl;
+          std::cout << "Example: 'box 16 16 16'" << std::endl;
+          std::cout << std::endl;
+          std::cout << "Current box: " << config.getValue<unsigned int>("Application.Simulation.Particles.Box.width")
+                                       << ", " << config.getValue<unsigned int>("Application.Simulation.Particles.Box.height")
+                                       << ", " << config.getValue<unsigned int>("Application.Simulation.Particles.Box.depth")
+                                       << std::endl;
+          std::cout << std::endl;
+
         } else if( command == "l" ) {
           std::cout << "Enter 'l <config file>' to load a different config file." << std::endl;
           std::cout << std::endl;
@@ -580,6 +594,16 @@ struct Communication {
       Config::getInstance().setValue(max, "Application.Simulation.Enclosure.Z.max");
     } else {
       std::cout << "Values out of range, each should be in [1.5, 126.5]." << std::endl;
+    }
+  }
+  
+  void setBox(const unsigned int width, const unsigned int height, const unsigned int depth) {
+    if( width > 0 && height > 0 && depth > 0 ) {
+      Config::getInstance().setValue(width, "Application.Simulation.Particles.Box.width");
+      Config::getInstance().setValue(height, "Application.Simulation.Particles.Box.height");
+      Config::getInstance().setValue(depth, "Application.Simulation.Particles.Box.depth");
+    } else {
+      std::cout << "Values out of range, each should be larger than 0." << std::endl;
     }
   }
 
